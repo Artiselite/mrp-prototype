@@ -10,12 +10,13 @@ import {
   Receipt,
   Users,
   ShoppingCart,
+  ClipboardList,
   TrendingUp,
   AlertTriangle,
-  CheckCircle,
 } from "lucide-react"
 import {
   quotations,
+  salesOrders,
   engineeringProjects,
   billsOfMaterials,
   productionOrders,
@@ -29,6 +30,7 @@ export default function Dashboard() {
   // Calculate summary statistics
   const stats = {
     activeQuotations: quotations.filter((q) => q.status !== "Rejected").length,
+    activeSalesOrders: salesOrders.filter((so) => so.status !== "Cancelled" && so.status !== "Delivered").length,
     activeProjects: engineeringProjects.filter((e) => e.status === "In Progress").length,
     activeBOMs: billsOfMaterials.filter((b) => b.status === "Active").length,
     activeProduction: productionOrders.filter((p) => p.status === "In Progress").length,
@@ -36,6 +38,7 @@ export default function Dashboard() {
     activeCustomers: customers.filter((c) => c.status === "Active").length,
     pendingPOs: purchaseOrders.filter((po) => po.status === "Sent" || po.status === "Acknowledged").length,
     totalRevenue: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+    salesOrderValue: salesOrders.reduce((sum, so) => sum + so.totalAmount, 0),
   }
 
   const modules = [
@@ -50,12 +53,22 @@ export default function Dashboard() {
       status: "Active Quotes",
     },
     {
+      title: "Sales Orders",
+      description: "Customer orders and delivery tracking",
+      icon: ClipboardList,
+      href: "/sales-orders",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      count: stats.activeSalesOrders,
+      status: "Active Orders",
+    },
+    {
       title: "Engineering",
       description: "Project design and documentation",
       icon: Wrench,
       href: "/engineering",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
       count: stats.activeProjects,
       status: "Active Projects",
     },
@@ -64,8 +77,8 @@ export default function Dashboard() {
       description: "Material requirements and specifications",
       icon: Package,
       href: "/bom",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
       count: stats.activeBOMs,
       status: "Active BOMs",
     },
@@ -74,8 +87,8 @@ export default function Dashboard() {
       description: "Manufacturing and work orders",
       icon: Factory,
       href: "/production",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-red-600",
+      bgColor: "bg-red-50",
       count: stats.activeProduction,
       status: "In Progress",
     },
@@ -84,8 +97,8 @@ export default function Dashboard() {
       description: "Billing and payment tracking",
       icon: Receipt,
       href: "/invoicing",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      color: "text-pink-600",
+      bgColor: "bg-pink-50",
       count: stats.pendingInvoices,
       status: "Pending Payment",
     },
@@ -104,8 +117,8 @@ export default function Dashboard() {
       description: "Purchase orders and supplier management",
       icon: ShoppingCart,
       href: "/procurement",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
       count: stats.pendingPOs,
       status: "Pending Orders",
     },
@@ -114,6 +127,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Steel MRP Dashboard</h1>
+          <p className="text-gray-600 mt-2">Manufacturing Resource Planning System</p>
+        </div>
+
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -132,10 +151,10 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeProjects}</p>
+                  <p className="text-sm font-medium text-gray-600">Sales Order Value</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.salesOrderValue)}</p>
                 </div>
-                <Factory className="w-8 h-8 text-blue-600" />
+                <ClipboardList className="w-8 h-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
@@ -144,10 +163,10 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Invoices</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.pendingInvoices}</p>
+                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeProjects}</p>
                 </div>
-                <Receipt className="w-8 h-8 text-orange-600" />
+                <Factory className="w-8 h-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
@@ -159,10 +178,39 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-gray-600">Active Customers</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.activeCustomers}</p>
                 </div>
-                <Users className="w-8 h-8 text-purple-600" />
+                <Users className="w-8 h-8 text-indigo-600" />
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Module Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {modules.map((module) => {
+            const Icon = module.icon
+            return (
+              <Card key={module.title} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <Link href={module.href} className="block">
+                    <div className={`w-12 h-12 ${module.bgColor} rounded-lg flex items-center justify-center mb-4`}>
+                      <Icon className={`w-6 h-6 ${module.color}`} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{module.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{module.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{module.count}</p>
+                        <p className="text-xs text-gray-500">{module.status}</p>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        View All
+                      </Button>
+                    </div>
+                  </Link>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
 
         {/* Recent Activity */}
@@ -176,6 +224,14 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">Sales Order SO-2024-001 in production</p>
+                    <p className="text-sm text-gray-600">ABC Manufacturing Corp - Steel Frame Assembly</p>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800">In Progress</Badge>
+                </div>
+
                 <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                   <div>
                     <p className="font-medium">PO-2024-002 shipped</p>
@@ -184,20 +240,20 @@ export default function Dashboard() {
                   <Badge className="bg-yellow-100 text-yellow-800">Shipping</Badge>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                   <div>
-                    <p className="font-medium">Production WO-2024-001 in progress</p>
-                    <p className="text-sm text-gray-600">Steel Frame Assembly - Team A Fabrication</p>
+                    <p className="font-medium">Sales Order SO-2024-002 confirmed</p>
+                    <p className="text-sm text-gray-600">XYZ Construction LLC - Structural Beams</p>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Active</Badge>
+                  <Badge className="bg-blue-100 text-blue-800">Confirmed</Badge>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                   <div>
                     <p className="font-medium">Invoice INV-2024-001 sent</p>
                     <p className="text-sm text-gray-600">ABC Manufacturing Corp - Due March 28</p>
                   </div>
-                  <Badge className="bg-blue-100 text-blue-800">Pending</Badge>
+                  <Badge className="bg-purple-100 text-purple-800">Pending</Badge>
                 </div>
               </div>
             </CardContent>

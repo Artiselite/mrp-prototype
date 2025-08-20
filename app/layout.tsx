@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Steel MRP System",
   description: "Material Requirements Planning for Steel Manufacturing",
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 export default function RootLayout({
@@ -20,15 +20,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar stats={{
-          activeQuotations: 1,
-          activeProjects: 0,
-          activeBOMs: 1,
-          activeProduction: 1,
-          pendingInvoices: 1,
-          activeCustomers: 2,
-          pendingPOs: 0,
-        }} />
+        <Navbar
+          stats={{
+            activeQuotations: 1,
+            activeProjects: 0,
+            activeBOMs: 1,
+            activeProduction: 1,
+            pendingInvoices: 1,
+            activeCustomers: 2,
+            pendingPOs: 0,
+            activeSalesOrders: 2,
+          }}
+        />
         {children}
       </body>
     </html>

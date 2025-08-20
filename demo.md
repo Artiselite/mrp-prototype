@@ -12,7 +12,7 @@ The prototype focuses heavily on the early stages — from quotation and enginee
 
 ## 🗺️ End-to-End User Journey Diagram
 
-```mermaid
+\`\`\`mermaid
 journey
     title MRP Platform - Complete Manufacturing Journey
     section Part 1: Platform Setup & Foundation
@@ -30,7 +30,7 @@ journey
       Work Order Operations & Routing: 4: Operations
       Work Order Completion: 4: QA
       Invoice Creation: 4: Finance
-```
+\`\`\`
 
 ---
 

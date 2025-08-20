@@ -1,135 +1,99 @@
 "use client"
 
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  FileText,
-  Wrench,
-  Package,
-  Factory,
-  Receipt,
-  Users,
-  ShoppingCart,
-  Plus,
-} from "lucide-react"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { FileText, ClipboardList, Wrench, Package, Factory, Receipt, Users, ShoppingCart, Menu, X } from "lucide-react"
+import { useState } from "react"
 
-interface NavbarProps {
-  stats: {
-    activeQuotations: number
-    activeProjects: number
-    activeBOMs: number
-    activeProduction: number
-    pendingInvoices: number
-    activeCustomers: number
-    pendingPOs: number
-  }
-}
+const navigation = [
+  { name: "Dashboard", href: "/", icon: null },
+  { name: "Quotations", href: "/quotations", icon: FileText },
+  { name: "Sales Orders", href: "/sales-orders", icon: ClipboardList },
+  { name: "Engineering", href: "/engineering", icon: Wrench },
+  { name: "BOM", href: "/bom", icon: Package },
+  { name: "Production", href: "/production", icon: Factory },
+  { name: "Invoicing", href: "/invoicing", icon: Receipt },
+  { name: "Customers", href: "/customers", icon: Users },
+  { name: "Procurement", href: "/procurement", icon: ShoppingCart },
+]
 
-export function Navbar({ stats }: NavbarProps) {
-  const navItems = [
-    {
-      title: "Quotations",
-      href: "/quotations",
-      icon: FileText,
-      count: stats.activeQuotations,
-      status: "Active Quotes",
-    },
-    {
-      title: "Engineering",
-      href: "/engineering",
-      icon: Wrench,
-      count: stats.activeProjects,
-      status: "Active Projects",
-    },
-    {
-      title: "Bill of Materials",
-      href: "/bom",
-      icon: Package,
-      count: stats.activeBOMs,
-      status: "Active BOMs",
-    },
-    {
-      title: "Production",
-      href: "/production",
-      icon: Factory,
-      count: stats.activeProduction,
-      status: "In Progress",
-    },
-    {
-      title: "Invoicing",
-      href: "/invoicing",
-      icon: Receipt,
-      count: stats.pendingInvoices,
-      status: "Pending Payment",
-    },
-    {
-      title: "Customers",
-      href: "/customers",
-      icon: Users,
-      count: stats.activeCustomers,
-      status: "Active Customers",
-    },
-    {
-      title: "Procurement",
-      href: "/procurement",
-      icon: ShoppingCart,
-      count: stats.pendingPOs,
-      status: "Pending Orders",
-    },
-  ]
+export function Navbar() {
+  const pathname = usePathname()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
     <nav className="bg-white shadow-sm border-b">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-start items-center py-4">
-          <div className="flex items-center space-x-6">
-            <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900">Steel MRP System</h1>
-            </Link>
-
-            <div className="flex items-center space-x-3 overflow-x-auto scrollbar-hide">
-              {navItems.map((item) => {
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link href="/" className="text-xl font-bold text-gray-900">
+                Steel MRP
+              </Link>
+            </div>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              {navigation.map((item) => {
                 const Icon = item.icon
                 return (
                   <Link
-                    key={item.title}
+                    key={item.name}
                     href={item.href}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap flex-shrink-0"
+                    className={cn(
+                      "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium",
+                      pathname === item.href
+                        ? "border-blue-500 text-gray-900"
+                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                    )}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.title}</span>
+                    {Icon && <Icon className="w-4 h-4 mr-2" />}
+                    {item.name}
                   </Link>
                 )
               })}
             </div>
           </div>
+          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            <div className="text-sm text-gray-500">Steel Manufacturing MRP System</div>
+          </div>
+          <div className="-mr-2 flex items-center sm:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+            >
+              {mobileMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        <div className="lg:hidden py-4 border-t">
-          <div className="grid grid-cols-2 gap-4">
-            {navItems.map((item) => {
+      {mobileMenuOpen && (
+        <div className="sm:hidden">
+          <div className="pt-2 pb-3 space-y-1">
+            {navigation.map((item) => {
               const Icon = item.icon
               return (
                 <Link
-                  key={item.title}
+                  key={item.name}
                   href={item.href}
-                  className="flex items-center space-x-3 p-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                  className={cn(
+                    "block pl-3 pr-4 py-2 border-l-4 text-base font-medium",
+                    pathname === item.href
+                      ? "bg-blue-50 border-blue-500 text-blue-700"
+                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700",
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Icon className="w-5 h-5" />
-                  <div className="flex-1">
-                    <div className="font-medium">{item.title}</div>
-                    <div className="text-xs text-gray-500">
-                      {item.count} {item.status}
-                    </div>
+                  <div className="flex items-center">
+                    {Icon && <Icon className="w-4 h-4 mr-3" />}
+                    {item.name}
                   </div>
                 </Link>
               )
             })}
           </div>
         </div>
-      </div>
+      )}
     </nav>
   )
 }

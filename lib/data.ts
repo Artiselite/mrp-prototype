@@ -1,317 +1,430 @@
-// Mock data and utility functions for the MRP system
+import type {
+  Quotation,
+  Engineering,
+  BillOfMaterials,
+  Production,
+  Invoice,
+  Customer,
+  PurchaseOrder,
+  Supplier,
+} from "./types"
 
-import { Quotation, EngineeringDrawing, BillOfMaterials, WorkOrder, Invoice, JobTraceability } from './types'
-
-// Steel grades and specifications
-export const steelGrades = [
-  { value: "a36", label: "A36 Structural Steel", description: "General construction, low carbon" },
-  { value: "a992", label: "A992 Grade 50", description: "High strength structural beams" },
-  { value: "a572", label: "A572 Grade 50", description: "High strength low alloy" },
-  { value: "a514", label: "A514 High Strength", description: "Quenched and tempered alloy" },
-  { value: "a588", label: "A588 Weathering Steel", description: "Atmospheric corrosion resistant" }
-]
-
-// Standard steel shapes and sizes
-export const steelShapes = [
-  { category: "Wide Flange Beams", items: ["W12x65", "W14x90", "W16x100", "W18x130"] },
-  { category: "Columns", items: ["W8x31", "W10x49", "W12x65", "W14x90"] },
-  { category: "Angles", items: ["L4x4x1/2", "L6x6x3/4", "L8x8x1"] },
-  { category: "Plates", items: ["1/2x12x20", "3/4x16x24", "1x20x40"] },
-  { category: "Channels", items: ["C12x20.7", "C15x33.9", "C18x42.7"] }
-]
-
-// Production teams and capabilities
-export const productionTeams = [
-  { id: "team-a", name: "Team A - Structural", specialization: "Heavy structural fabrication", supervisor: "Mike Johnson" },
-  { id: "team-b", name: "Team B - Fabrication", specialization: "Custom fabrication and machining", supervisor: "Sarah Davis" },
-  { id: "team-c", name: "Team C - Assembly", specialization: "Assembly and finishing", supervisor: "Tom Wilson" }
-]
-
-// Engineers and their specializations
-export const engineers = [
-  { id: "john", name: "John Smith", specialization: "Structural Design", experience: "15 years" },
-  { id: "sarah", name: "Sarah Johnson", specialization: "Mechanical Design", experience: "12 years" },
-  { id: "mike", name: "Mike Davis", specialization: "Fabrication Engineering", experience: "18 years" }
-]
-
-// Mock quotations data
+// Mock data for quotations
 export const quotations: Quotation[] = [
   {
     id: "QUO-2024-001",
-    customerName: "ABC Steel Works",
-    customerEmail: "contact@abcsteel.com",
-    customerPhone: "(555) 123-4567",
-    customerAddress: "123 Industrial Blvd, Steel City, SC 12345",
-    projectName: "Industrial Warehouse Frame",
-    projectDescription: "Complete structural steel frame for 50,000 sq ft warehouse facility",
-    status: "sent",
-    createdDate: "2024-01-10",
-    validUntil: "2024-02-10",
-    totalAmount: 125000,
-    lineItems: [
-      {
-        id: "1",
-        description: "W12x65 Wide Flange Beams",
-        quantity: 20,
-        unit: "pieces",
-        unitPrice: 450,
-        totalPrice: 9000
-      },
-      {
-        id: "2", 
-        description: "A36 Steel Plates 1/2\" x 12\" x 20'",
-        quantity: 50,
-        unit: "pieces",
-        unitPrice: 280,
-        totalPrice: 14000
-      }
-    ],
-    notes: "Includes delivery and basic installation consultation"
-  },
-  {
-    id: "QUO-2024-002",
-    customerName: "Metro Construction",
-    customerEmail: "orders@metroconstruction.com",
-    customerPhone: "(555) 987-6543",
-    customerAddress: "456 Builder Ave, Metro City, MC 67890",
-    projectName: "Bridge Support Beams",
-    projectDescription: "Custom fabricated support beams for highway overpass project",
-    status: "approved",
-    createdDate: "2024-01-08",
-    validUntil: "2024-02-08",
-    totalAmount: 89500,
-    lineItems: [
-      {
-        id: "1",
-        description: "A992 Grade 50 W18x130 Beams",
-        quantity: 12,
-        unit: "pieces",
-        unitPrice: 650,
-        totalPrice: 7800
-      }
-    ],
-    notes: "Requires special coating for weather resistance"
-  },
-  {
-    id: "QUO-2024-003",
-    customerName: "Industrial Corp",
-    customerEmail: "procurement@industrialcorp.com",
-    customerPhone: "(555) 456-7890",
-    customerAddress: "789 Factory Rd, Industrial Park, IP 13579",
-    projectName: "Custom Fabricated Brackets",
-    projectDescription: "Specialized mounting brackets for heavy machinery installation",
-    status: "draft",
-    createdDate: "2024-01-12",
-    validUntil: "2024-02-12",
-    totalAmount: 15750,
-    lineItems: [
-      {
-        id: "1",
-        description: "A572 Grade 50 Custom Brackets",
-        quantity: 100,
-        unit: "pieces",
-        unitPrice: 125,
-        totalPrice: 12500
-      }
-    ],
-    notes: "Prototype approval required before full production"
-  }
-]
-
-// Mock engineering drawings data
-export const engineeringDrawings: EngineeringDrawing[] = [
-  {
-    id: "DWG-2024-001",
-    quotationId: "QUO-2024-001",
-    title: "Warehouse Frame Assembly",
-    drawingType: "Assembly Drawing",
-    revision: "Rev A",
-    status: "approved",
-    engineer: "John Smith",
+    customerId: "CUST-001",
+    customer: "ABC Manufacturing Corp",
+    title: "Steel Frame Assembly",
+    description: "Custom steel frame assembly for industrial equipment",
+    status: "Approved",
+    priority: "High",
     createdDate: "2024-01-15",
-    lastModified: "2024-01-20",
-    specifications: "AISC 360-16 compliant structural design",
-    files: [
-      { name: "warehouse-frame-assembly.dwg", size: "2.4 MB", type: "AutoCAD" },
-      { name: "structural-details.pdf", size: "1.8 MB", type: "PDF" }
-    ]
-  },
-  {
-    id: "DWG-2024-002", 
-    quotationId: "QUO-2024-002",
-    title: "Bridge Support Beam Details",
-    drawingType: "Detail Drawing",
-    revision: "Rev B",
-    status: "in-progress",
-    engineer: "Sarah Johnson",
-    createdDate: "2024-01-12",
-    lastModified: "2024-01-18",
-    specifications: "AASHTO LRFD Bridge Design Specifications",
-    files: [
-      { name: "bridge-beam-details.dwg", size: "3.1 MB", type: "AutoCAD" }
-    ]
-  }
-]
-
-// Mock BOM data
-export const billsOfMaterials: BillOfMaterials[] = [
-  {
-    id: "BOM-2024-001",
-    drawingId: "DWG-2024-001",
-    title: "Warehouse Frame Materials",
-    status: "approved",
-    createdDate: "2024-01-22",
-    totalCost: 45000,
-    materials: [
+    validUntil: "2024-02-15",
+    totalAmount: 45000,
+    items: [
       {
         id: "1",
-        partNumber: "W12x65-20FT",
-        description: "W12x65 Wide Flange Beam, 20ft length",
-        quantity: 20,
+        description: "Steel Frame - Main Structure",
+        quantity: 2,
         unit: "pieces",
-        unitCost: 450,
-        totalCost: 9000,
-        supplier: "Steel Supply Co",
-        steelGrade: "A992"
+        unitPrice: 15000,
+        totalPrice: 30000,
+        steelGrade: "A992",
+        specifications: "Welded construction, painted finish",
       },
       {
         id: "2",
-        partNumber: "PL-0.5x12x20",
-        description: "Steel Plate 1/2\" x 12\" x 20'",
-        quantity: 50,
-        unit: "pieces", 
-        unitCost: 280,
-        totalCost: 14000,
-        supplier: "Metro Steel",
-        steelGrade: "A36"
-      }
-    ]
-  }
+        description: "Support Brackets",
+        quantity: 8,
+        unit: "pieces",
+        unitPrice: 1875,
+        totalPrice: 15000,
+        steelGrade: "A36",
+        specifications: "Bolted connections, galvanized",
+      },
+    ],
+    notes: "Rush order - customer needs by end of month",
+    engineeringId: "ENG-2024-001",
+    bomId: "BOM-2024-001",
+  },
 ]
 
-// Mock work orders data
-export const workOrders: WorkOrder[] = [
+// Mock data for engineering
+export const engineeringProjects: Engineering[] = [
   {
-    id: "WO-2024-001",
+    id: "ENG-2024-001",
+    quotationId: "QUO-2024-001",
+    title: "Steel Frame Assembly Design",
+    description: "Engineering design for custom steel frame assembly",
+    status: "Approved",
+    priority: "High",
+    assignedEngineer: "John Smith",
+    startDate: "2024-01-20",
+    targetDate: "2024-02-05",
+    completionDate: "2024-02-03",
+    drawings: [
+      {
+        id: "DWG-001",
+        name: "Main Frame Assembly",
+        version: "Rev A",
+        type: "Assembly",
+        status: "Approved",
+        createdDate: "2024-01-25",
+        modifiedDate: "2024-02-01",
+        engineer: "John Smith",
+      },
+    ],
+    specifications: "AISC standards, AWS welding procedures",
+    materials: ["A992 Steel", "A36 Steel", "Welding consumables"],
     bomId: "BOM-2024-001",
-    title: "Warehouse Frame Fabrication",
-    status: "in-progress",
-    priority: "high",
-    assignedTeam: "Team A - Structural",
-    supervisor: "Mike Johnson",
-    startDate: "2024-01-25",
-    dueDate: "2024-02-15",
-    estimatedHours: 120,
-    actualHours: 45,
+  },
+]
+
+// Mock data for bills of materials
+export const billsOfMaterials: BillOfMaterials[] = [
+  {
+    id: "BOM-2024-001",
+    engineeringId: "ENG-2024-001",
+    title: "Steel Frame Assembly BOM",
+    description: "Bill of materials for steel frame assembly project",
+    status: "Active",
+    version: "1.0",
+    createdDate: "2024-02-01",
+    modifiedDate: "2024-02-03",
+    createdBy: "John Smith",
+    totalCost: 32500,
+    items: [
+      {
+        id: "1",
+        partNumber: "SF-MAIN-001",
+        description: "Main Frame Steel - W12x65",
+        quantity: 40,
+        unit: "feet",
+        unitCost: 125,
+        totalCost: 5000,
+        supplier: "Steel Supply Co",
+        leadTime: 7,
+        steelGrade: "A992",
+        category: "Raw Material",
+      },
+    ],
+  },
+]
+
+// Mock data for production
+export const productionOrders: Production[] = [
+  {
+    id: "PROD-2024-001",
+    bomId: "BOM-2024-001",
+    workOrder: "WO-2024-001",
+    title: "Steel Frame Assembly Production",
+    description: "Production of steel frame assembly per approved drawings",
+    status: "In Progress",
+    priority: "High",
+    scheduledStart: "2024-02-10",
+    scheduledEnd: "2024-02-25",
+    actualStart: "2024-02-10",
+    assignedTeam: "Team A - Fabrication",
     operations: [
       {
         id: "1",
         sequence: 1,
         operation: "Material Cutting",
-        description: "Cut beams and plates to specified dimensions",
-        estimatedDuration: 8,
-        actualDuration: 6,
-        status: "completed",
-        assignedWorker: "Tom Wilson"
+        description: "Cut steel members to length",
+        estimatedHours: 8,
+        actualHours: 7.5,
+        status: "Completed",
+        assignedWorker: "Mike Johnson",
       },
+    ],
+    materials: [
       {
-        id: "2",
-        sequence: 2,
-        operation: "Welding Assembly",
-        description: "Weld frame components according to drawing specifications",
-        estimatedDuration: 24,
-        actualDuration: 0,
-        status: "in-progress",
-        assignedWorker: "Sarah Davis"
-      }
-    ]
-  }
+        id: "1",
+        partNumber: "SF-MAIN-001",
+        description: "Main Frame Steel - W12x65",
+        requiredQuantity: 40,
+        allocatedQuantity: 40,
+        unit: "feet",
+        status: "Allocated",
+      },
+    ],
+    qualityChecks: [
+      {
+        id: "1",
+        checkPoint: "Material Inspection",
+        description: "Verify material certifications and dimensions",
+        status: "Passed",
+        inspector: "QC Inspector 1",
+      },
+    ],
+  },
 ]
 
-// Mock invoices data
+// Mock data for invoices
 export const invoices: Invoice[] = [
   {
     id: "INV-2024-001",
-    workOrderId: "WO-2024-001",
-    customerName: "ABC Steel Works",
-    customerAddress: "123 Industrial Blvd, Steel City, SC 12345",
-    status: "sent",
-    issueDate: "2024-02-01",
-    dueDate: "2024-03-01",
-    subtotal: 125000,
+    quotationId: "QUO-2024-001",
+    customerId: "CUST-001",
+    customer: "ABC Manufacturing Corp",
+    title: "Steel Frame Assembly",
+    description: "Invoice for completed steel frame assembly",
+    status: "Sent",
+    invoiceDate: "2024-02-26",
+    dueDate: "2024-03-28",
+    subtotal: 45000,
     taxRate: 8.5,
-    taxAmount: 10625,
-    totalAmount: 135625,
-    lineItems: [
+    taxAmount: 3825,
+    totalAmount: 48825,
+    paymentTerms: "Net 30",
+    items: [
       {
         id: "1",
-        description: "Warehouse Frame Fabrication - Complete",
+        description: "Steel Frame Assembly - Complete",
         quantity: 1,
-        unit: "project",
-        unitPrice: 125000,
-        totalPrice: 125000
-      }
+        unit: "lot",
+        unitPrice: 45000,
+        totalPrice: 45000,
+      },
     ],
-    paymentTerms: "Net 30 days"
-  }
+  },
 ]
 
-// Utility function to generate job traceability
-export const generateJobTrace = (quotationId: string): JobTraceability => {
-  return {
-    quotationId,
-    drawingId: quotationId.replace('QUO', 'DWG'),
-    bomId: quotationId.replace('QUO', 'BOM'),
-    workOrderId: quotationId.replace('QUO', 'WO'),
-    invoiceId: quotationId.replace('QUO', 'INV'),
+// Mock data for customers
+export const customers: Customer[] = [
+  {
+    id: "CUST-001",
+    name: "ABC Manufacturing Corp",
+    type: "Corporation",
     status: "Active",
-    currentStage: "Quotation"
-  }
-}
+    contactPerson: "Sarah Johnson",
+    email: "sarah.johnson@abcmfg.com",
+    phone: "(555) 123-4567",
+    address: "123 Industrial Blvd",
+    city: "Manufacturing City",
+    state: "TX",
+    zipCode: "75001",
+    industry: "Industrial Equipment",
+    creditLimit: 100000,
+    paymentTerms: "Net 30",
+    taxId: "12-3456789",
+    createdDate: "2023-06-15",
+    lastContact: "2024-01-15",
+  },
+  {
+    id: "CUST-002",
+    name: "XYZ Construction LLC",
+    type: "Corporation",
+    status: "Active",
+    contactPerson: "Mike Davis",
+    email: "mike.davis@xyzconstruction.com",
+    phone: "(555) 987-6543",
+    address: "456 Builder Ave",
+    city: "Construction Town",
+    state: "TX",
+    zipCode: "75002",
+    industry: "Construction",
+    creditLimit: 75000,
+    paymentTerms: "Net 15",
+    createdDate: "2023-08-22",
+    lastContact: "2024-01-10",
+  },
+]
 
-// Utility function to calculate BOM total cost
-export const calculateBOMTotal = (items: any[]) => {
-  return items.reduce((total, item) => total + (item.quantity * item.unitCost), 0)
-}
+// Mock data for suppliers
+export const suppliers: Supplier[] = [
+  {
+    id: "SUPP-001",
+    name: "Steel Supply Co",
+    contactPerson: "Robert Wilson",
+    email: "robert.wilson@steelsupply.com",
+    phone: "(555) 111-2222",
+    address: "789 Steel Mill Rd",
+    city: "Steel City",
+    state: "TX",
+    zipCode: "75003",
+    specialties: ["Structural Steel", "Plate Steel", "Pipe & Tube"],
+    rating: 4.8,
+    paymentTerms: "Net 30",
+    leadTime: 7,
+    status: "Preferred",
+  },
+  {
+    id: "SUPP-002",
+    name: "Industrial Hardware Inc",
+    contactPerson: "Lisa Chen",
+    email: "lisa.chen@industrialhardware.com",
+    phone: "(555) 333-4444",
+    address: "321 Hardware St",
+    city: "Industrial Park",
+    state: "TX",
+    zipCode: "75004",
+    specialties: ["Bolts & Fasteners", "Welding Supplies", "Safety Equipment"],
+    rating: 4.5,
+    paymentTerms: "Net 15",
+    leadTime: 3,
+    status: "Active",
+  },
+  {
+    id: "SUPP-003",
+    name: "Precision Metals LLC",
+    contactPerson: "David Brown",
+    email: "david.brown@precisionmetals.com",
+    phone: "(555) 555-6666",
+    address: "654 Precision Way",
+    city: "Metal Works",
+    state: "TX",
+    zipCode: "75005",
+    specialties: ["Aluminum", "Stainless Steel", "Exotic Alloys"],
+    rating: 4.9,
+    paymentTerms: "Net 45",
+    leadTime: 14,
+    status: "Preferred",
+  },
+]
 
-// Utility function to format currency
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount)
-}
-
-// Utility function to calculate project timeline
-export const calculateProjectTimeline = (operations: any[]) => {
-  return operations.reduce((total, op) => total + op.estimatedDuration, 0)
-}
+// Mock data for purchase orders
+export const purchaseOrders: PurchaseOrder[] = [
+  {
+    id: "PO-2024-001",
+    supplierId: "SUPP-001",
+    supplier: "Steel Supply Co",
+    bomId: "BOM-2024-001",
+    status: "Received",
+    priority: "High",
+    orderDate: "2024-02-05",
+    requestedDeliveryDate: "2024-02-12",
+    actualDeliveryDate: "2024-02-11",
+    subtotal: 5000,
+    taxRate: 8.5,
+    taxAmount: 425,
+    shippingCost: 500,
+    totalAmount: 5925,
+    shippingAddress: "123 Factory St, Production City, PC 12345",
+    paymentTerms: "Net 30",
+    items: [
+      {
+        id: "1",
+        description: "Main Frame Steel - W12x65",
+        partNumber: "SF-MAIN-001",
+        quantity: 40,
+        unit: "feet",
+        unitPrice: 125,
+        totalPrice: 5000,
+        steelGrade: "A992",
+        specifications: "ASTM A992 Grade 50",
+        urgency: "High",
+        requestedDate: "2024-02-12",
+      },
+    ],
+  },
+  {
+    id: "PO-2024-002",
+    supplierId: "SUPP-002",
+    supplier: "Industrial Hardware Inc",
+    status: "Shipped",
+    priority: "Medium",
+    orderDate: "2024-02-08",
+    requestedDeliveryDate: "2024-02-15",
+    subtotal: 1250,
+    taxRate: 8.5,
+    taxAmount: 106.25,
+    shippingCost: 150,
+    totalAmount: 1506.25,
+    shippingAddress: "123 Factory St, Production City, PC 12345",
+    paymentTerms: "Net 15",
+    items: [
+      {
+        id: "1",
+        description: "High Strength Bolts - A325",
+        partNumber: "BOLT-A325-1",
+        quantity: 100,
+        unit: "pieces",
+        unitPrice: 8.5,
+        totalPrice: 850,
+        specifications: '1" diameter, Grade A325',
+        urgency: "Medium",
+      },
+      {
+        id: "2",
+        description: "Welding Electrodes - E7018",
+        partNumber: "ELEC-E7018",
+        quantity: 20,
+        unit: "pounds",
+        unitPrice: 20,
+        totalPrice: 400,
+        specifications: '3/32" diameter',
+        urgency: "Low",
+      },
+    ],
+  },
+]
 
 // Status color mappings
 export const statusColors = {
   quotation: {
-    "draft": "bg-gray-100 text-gray-800",
-    "sent": "bg-blue-100 text-blue-800", 
-    "approved": "bg-green-100 text-green-800",
-    "rejected": "bg-red-100 text-red-800"
+    Draft: "bg-gray-100 text-gray-800",
+    Sent: "bg-blue-100 text-blue-800",
+    "Under Review": "bg-yellow-100 text-yellow-800",
+    Approved: "bg-green-100 text-green-800",
+    Rejected: "bg-red-100 text-red-800",
   },
   engineering: {
-    "draft": "bg-gray-100 text-gray-800",
-    "in-progress": "bg-blue-100 text-blue-800",
-    "review": "bg-yellow-100 text-yellow-800",
-    "approved": "bg-green-100 text-green-800",
-    "rejected": "bg-red-100 text-red-800"
+    Planning: "bg-gray-100 text-gray-800",
+    "In Progress": "bg-blue-100 text-blue-800",
+    Review: "bg-yellow-100 text-yellow-800",
+    Approved: "bg-green-100 text-green-800",
+    "On Hold": "bg-red-100 text-red-800",
+  },
+  bom: {
+    Draft: "bg-gray-100 text-gray-800",
+    Active: "bg-green-100 text-green-800",
+    Revision: "bg-yellow-100 text-yellow-800",
+    Obsolete: "bg-red-100 text-red-800",
   },
   production: {
-    "planning": "bg-yellow-100 text-yellow-800",
-    "in-progress": "bg-blue-100 text-blue-800",
-    "completed": "bg-green-100 text-green-800",
-    "on-hold": "bg-red-100 text-red-800"
+    Planned: "bg-gray-100 text-gray-800",
+    "In Progress": "bg-blue-100 text-blue-800",
+    "Quality Check": "bg-yellow-100 text-yellow-800",
+    Completed: "bg-green-100 text-green-800",
+    "On Hold": "bg-red-100 text-red-800",
   },
   invoice: {
-    "draft": "bg-gray-100 text-gray-800",
-    "sent": "bg-blue-100 text-blue-800",
-    "paid": "bg-green-100 text-green-800",
-    "overdue": "bg-red-100 text-red-800"
-  }
+    Draft: "bg-gray-100 text-gray-800",
+    Sent: "bg-blue-100 text-blue-800",
+    Paid: "bg-green-100 text-green-800",
+    Overdue: "bg-red-100 text-red-800",
+    Cancelled: "bg-gray-100 text-gray-800",
+  },
+  customer: {
+    Active: "bg-green-100 text-green-800",
+    Inactive: "bg-gray-100 text-gray-800",
+    Prospect: "bg-blue-100 text-blue-800",
+    Former: "bg-red-100 text-red-800",
+  },
+  procurement: {
+    Draft: "bg-gray-100 text-gray-800",
+    Sent: "bg-blue-100 text-blue-800",
+    Acknowledged: "bg-yellow-100 text-yellow-800",
+    Shipped: "bg-purple-100 text-purple-800",
+    Received: "bg-green-100 text-green-800",
+    Cancelled: "bg-red-100 text-red-800",
+  },
+}
+
+// Utility functions
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount)
+}
+
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })
 }

@@ -23,7 +23,7 @@ function QuotationsContent() {
     if (searchTerm) {
       filtered = filtered.filter(q => 
         q.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         q.id.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
@@ -38,7 +38,8 @@ function QuotationsContent() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Draft': return 'bg-gray-100 text-gray-800'
-      case 'Pending': return 'bg-blue-100 text-blue-800'
+      case 'Sent': return 'bg-blue-100 text-blue-800'
+      case 'Under Review': return 'bg-yellow-100 text-yellow-800'
       case 'Approved': return 'bg-green-100 text-green-800'
       case 'Rejected': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
@@ -48,7 +49,8 @@ function QuotationsContent() {
   const stats = {
     total: quotations.length,
     draft: quotations.filter(q => q.status === 'Draft').length,
-    pending: quotations.filter(q => q.status === 'Pending').length,
+    sent: quotations.filter(q => q.status === 'Sent').length,
+    underReview: quotations.filter(q => q.status === 'Under Review').length,
     approved: quotations.filter(q => q.status === 'Approved').length,
     rejected: quotations.filter(q => q.status === 'Rejected').length
   }
@@ -91,10 +93,11 @@ function QuotationsContent() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="sent">Sent</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Sent">Sent</SelectItem>
+                      <SelectItem value="Under Review">Under Review</SelectItem>
+                      <SelectItem value="Approved">Approved</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -115,14 +118,14 @@ function QuotationsContent() {
                         <strong>Customer:</strong> {quotation.customer}
                       </p>
                       <p className="text-sm text-gray-600 mb-1">
-                        <strong>Project:</strong> {quotation.projectName}
+                        <strong>Project:</strong> {quotation.title}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Created: {quotation.dateCreated} | Valid until: {quotation.validUntil}
+                        Created: {quotation.createdDate} | Valid until: {quotation.validUntil}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">${quotation.estimatedValue.toLocaleString()}</span>
+                      <span className="font-semibold text-lg">${quotation.totalAmount.toLocaleString()}</span>
                       <div className="flex gap-1">
                         <Link href={`/quotations/${quotation.id}`}>
                           <Button variant="outline" size="sm">
@@ -162,8 +165,12 @@ function QuotationsContent() {
                   <span className="font-semibold text-gray-600">{stats.draft}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Pending</span>
-                  <span className="font-semibold text-blue-600">{stats.pending}</span>
+                  <span>Sent</span>
+                  <span className="font-semibold text-blue-600">{stats.sent}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Under Review</span>
+                  <span className="font-semibold text-yellow-600">{stats.underReview}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Approved</span>

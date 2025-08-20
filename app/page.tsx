@@ -113,24 +113,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Steel MRP System</h1>
-              <p className="text-gray-600">Material Requirements Planning Dashboard</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-green-700 border-green-200">
-                <CheckCircle className="w-4 h-4 mr-1" />
-                System Online
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -181,34 +163,6 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Module Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => {
-            const Icon = module.icon
-            return (
-              <Card key={module.title} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className={`p-2 rounded-lg ${module.bgColor}`}>
-                      <Icon className={`w-6 h-6 ${module.color}`} />
-                    </div>
-                    <Badge variant="secondary">
-                      {module.count} {module.status}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-xl">{module.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{module.description}</p>
-                  <Link href={module.href}>
-                    <Button className="w-full">Access Module</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )
-          })}
         </div>
 
         {/* Recent Activity */}

@@ -10,6 +10,10 @@ import type {
   PurchaseOrder,
 } from "./types"
 
+/* =========================
+ *  MASTER DATA
+ * =======================*/
+
 export const customers: Customer[] = [
   {
     id: "1",
@@ -47,6 +51,24 @@ export const customers: Customer[] = [
     createdAt: "2024-02-01T09:15:00Z",
     updatedAt: "2024-02-10T16:45:00Z",
   },
+  {
+    id: "3",
+    name: "Blue Ridge Fabricators",
+    contactPerson: "Evelyn Carter",
+    email: "evelyn.carter@brfabricators.com",
+    phone: "+1 (555) 222-7744",
+    address: "77 Foundry Way",
+    city: "Charlotte",
+    state: "NC",
+    zipCode: "28202",
+    country: "USA",
+    status: "Active",
+    creditLimit: 250000,
+    paymentTerms: "Net 30",
+    totalOrders: 3,
+    createdAt: "2024-02-05T10:00:00Z",
+    updatedAt: "2024-02-15T12:00:00Z",
+  },
 ]
 
 export const suppliers: Supplier[] = [
@@ -65,15 +87,42 @@ export const suppliers: Supplier[] = [
     paymentTerms: "Net 30",
     leadTime: 14,
     qualityRating: 4.8,
+    rating: 4.8,
     totalOrders: 45,
+    specialties: ["Structural Steel", "Steel Beams", "Steel Plates"],
     createdAt: "2024-01-10T10:00:00Z",
     updatedAt: "2024-01-25T11:20:00Z",
   },
+  {
+    id: "2",
+    name: "Welding Supply Inc",
+    contactPerson: "Priya Nair",
+    email: "priya.nair@weldingsupply.com",
+    phone: "+1 (555) 333-5588",
+    address: "12 Torch Ln",
+    city: "Cleveland",
+    state: "OH",
+    zipCode: "44114",
+    country: "USA",
+    status: "Active",
+    paymentTerms: "Net 30",
+    leadTime: 5,
+    qualityRating: 4.6,
+    rating: 4.6,
+    totalOrders: 21,
+    specialties: ["Welding Rods", "Shielding Gas"],
+    createdAt: "2024-01-08T09:30:00Z",
+    updatedAt: "2024-01-18T09:30:00Z",
+  },
 ]
+
+/* =========================
+ *  FRONT-OF-HOUSE DOCS
+ * =======================*/
 
 export const quotations: Quotation[] = [
   {
-    id: "1",
+    id: "Q1",
     customerId: "1",
     customerName: "Acme Construction Corp",
     quotationNumber: "Q-2024-001",
@@ -82,7 +131,7 @@ export const quotations: Quotation[] = [
     status: "Approved",
     items: [
       {
-        id: "1",
+        id: "Q1-I1",
         description: "W12x26 Steel I-Beam, 20ft length",
         quantity: 10,
         unitPrice: 450.0,
@@ -92,7 +141,7 @@ export const quotations: Quotation[] = [
         isNewItem: false,
       },
       {
-        id: "2",
+        id: "Q1-I2",
         description: "Custom connection plates",
         quantity: 20,
         unitPrice: 75.0,
@@ -103,7 +152,7 @@ export const quotations: Quotation[] = [
       },
     ],
     subtotal: 6000.0,
-    tax: 480.0,
+    tax: 480.0, // 8%
     total: 6480.0,
     validUntil: "2024-03-01",
     createdAt: "2024-01-20T09:00:00Z",
@@ -111,14 +160,82 @@ export const quotations: Quotation[] = [
     revision: "Rev A",
     notes: "Customer requested expedited delivery",
   },
+  {
+    id: "Q2",
+    customerId: "2",
+    customerName: "Metro Steel Works",
+    quotationNumber: "Q-2024-002",
+    title: "Structural Steel Columns",
+    description: "W14x30 steel columns for warehouse expansion",
+    status: "Sent",
+    items: [
+      {
+        id: "Q2-I1",
+        description: "W14x30 Steel Column, 12ft length",
+        quantity: 8,
+        unitPrice: 520.0,
+        totalPrice: 4160.0,
+        deliveryDate: "2024-04-01",
+        specifications: "ASTM A992 Grade 50 steel",
+        isNewItem: false,
+      },
+    ],
+    subtotal: 4160.0,
+    tax: 332.8,
+    total: 4492.8,
+    validUntil: "2024-03-10",
+    createdAt: "2024-02-08T11:00:00Z",
+    updatedAt: "2024-02-09T09:00:00Z",
+    revision: "Rev A",
+    notes: "Pending confirmation",
+  },
+  {
+    id: "Q3",
+    customerId: "3",
+    customerName: "Blue Ridge Fabricators",
+    quotationNumber: "Q-2024-003",
+    title: "Stair Stringers & Brackets",
+    description: "Fabrication of stair stringers with mounting brackets",
+    status: "Approved",
+    items: [
+      {
+        id: "Q3-I1",
+        description: "Stair Stringer Assembly",
+        quantity: 6,
+        unitPrice: 300.0,
+        totalPrice: 1800.0,
+        deliveryDate: "2024-03-25",
+        specifications: "A36 steel, primed",
+        isNewItem: false,
+      },
+      {
+        id: "Q3-I2",
+        description: "Mounting Brackets",
+        quantity: 12,
+        unitPrice: 30.0,
+        totalPrice: 360.0,
+        deliveryDate: "2024-03-25",
+        specifications: "A36 steel 1/4 inch",
+        isNewItem: true,
+      },
+    ],
+    subtotal: 2160.0,
+    tax: 172.8,
+    total: 2332.8,
+    validUntil: "2024-03-05",
+    createdAt: "2024-02-15T10:00:00Z",
+    updatedAt: "2024-02-16T10:00:00Z",
+    revision: "Rev A",
+    notes: "Approved to proceed",
+  },
 ]
 
 export const salesOrders: SalesOrder[] = [
   {
-    id: "1",
+    id: "SO1",
     customerId: "1",
     customerName: "Acme Construction Corp",
-    quotationId: "1",
+    quotationId: "Q1",
     salesOrderNumber: "SO-2024-001",
     customerPO: "PO-ACM-2024-0156",
     title: "Custom Steel Beams for Building Project",
@@ -126,7 +243,7 @@ export const salesOrders: SalesOrder[] = [
     status: "In Production",
     items: [
       {
-        id: "1",
+        id: "SO1-I1",
         description: "W12x26 Steel I-Beam, 20ft length",
         quantity: 10,
         unitPrice: 450.0,
@@ -134,11 +251,11 @@ export const salesOrders: SalesOrder[] = [
         deliveryDate: "2024-03-15",
         specifications: "ASTM A992 Grade 50 steel",
         status: "In Production",
-        bomId: "1",
-        workOrderId: "1",
+        bomId: "BOM1",
+        workOrderId: "WO1",
       },
       {
-        id: "2",
+        id: "SO1-I2",
         description: "Custom connection plates",
         quantity: 20,
         unitPrice: 75.0,
@@ -163,9 +280,10 @@ export const salesOrders: SalesOrder[] = [
     notes: "Engineering approved Rev B for production",
   },
   {
-    id: "2",
+    id: "SO2",
     customerId: "2",
     customerName: "Metro Steel Works",
+    quotationId: "Q2",
     salesOrderNumber: "SO-2024-002",
     customerPO: "PO-MSW-2024-0089",
     title: "Structural Steel Components",
@@ -173,14 +291,16 @@ export const salesOrders: SalesOrder[] = [
     status: "Confirmed",
     items: [
       {
-        id: "3",
+        id: "SO2-I1",
         description: "W14x30 Steel Column, 12ft length",
         quantity: 8,
         unitPrice: 520.0,
         totalPrice: 4160.0,
         deliveryDate: "2024-04-01",
         specifications: "ASTM A992 Grade 50 steel",
-        status: "Pending",
+        status: "In Production",
+        bomId: "BOM2",
+        workOrderId: "WO2",
       },
     ],
     subtotal: 4160.0,
@@ -196,12 +316,60 @@ export const salesOrders: SalesOrder[] = [
     revision: "Rev A",
     notes: "Awaiting engineering review",
   },
+  {
+    id: "SO3",
+    customerId: "3",
+    customerName: "Blue Ridge Fabricators",
+    quotationId: "Q3",
+    salesOrderNumber: "SO-2024-003",
+    customerPO: "PO-BRF-2024-0018",
+    title: "Stair Stringers & Brackets",
+    description: "Fabrication of stair stringers with mounting brackets",
+    status: "Confirmed",
+    items: [
+      {
+        id: "SO3-I1",
+        description: "Stair Stringer Assembly",
+        quantity: 6,
+        unitPrice: 300.0,
+        totalPrice: 1800.0,
+        deliveryDate: "2024-03-25",
+        specifications: "A36 steel, primed",
+        status: "Pending",
+      },
+      {
+        id: "SO3-I2",
+        description: "Mounting Brackets",
+        quantity: 12,
+        unitPrice: 30.0,
+        totalPrice: 360.0,
+        deliveryDate: "2024-03-25",
+        specifications: "A36 steel 1/4 inch",
+        status: "Pending",
+      },
+    ],
+    subtotal: 2160.0,
+    tax: 172.8,
+    total: 2332.8,
+    orderDate: "2024-02-20",
+    requestedDeliveryDate: "2024-03-25",
+    shippingAddress: "77 Foundry Way, Charlotte, NC 28202",
+    billingAddress: "77 Foundry Way, Charlotte, NC 28202",
+    paymentTerms: "Net 30",
+    createdAt: "2024-02-20T13:00:00Z",
+    updatedAt: "2024-02-21T09:00:00Z",
+    revision: "Rev A",
+    notes: "Standard lead time",
+  },
 ]
 
-// Export as engineeringProjects to match the import in dashboard
+/* =========================
+ *  ENGINEERING
+ * =======================*/
+
 export const engineeringProjects: EngineeringDrawing[] = [
   {
-    id: "1",
+    id: "DWG1",
     projectId: "PROJ-001",
     drawingNumber: "DWG-2024-001",
     title: "W12x26 I-Beam Assembly",
@@ -217,51 +385,70 @@ export const engineeringProjects: EngineeringDrawing[] = [
     fileUrl: "/drawings/DWG-2024-001.pdf",
     specifications: "ASTM A992 Grade 50 steel, welded connections",
     materials: ["A992 Grade 50 Steel", "E70XX Welding Rod"],
-    dimensions: {
-      length: 240, // 20 feet in inches
-      width: 12,
-      height: 12.22,
-      weight: 520, // pounds per beam
-    },
+    dimensions: { length: 240, width: 12, height: 12.22, weight: 520 },
     notes: "Updated for production release",
+  },
+  {
+    id: "DWG2",
+    projectId: "PROJ-002",
+    drawingNumber: "DWG-2024-002",
+    title: "W14x30 Column",
+    description: "Column fabrication drawing",
+    status: "Under Review",
+    version: "0.9",
+    drawnBy: "Marcus Lee",
+    checkedBy: "Bob Senior",
+    approvedBy: "—",
+    createdAt: "2024-02-10T08:00:00Z",
+    updatedAt: "2024-02-12T10:00:00Z",
+    revision: "Rev A",
+    fileUrl: "/drawings/DWG-2024-002.pdf",
+    specifications: "ASTM A992 Grade 50 steel",
+    materials: ["A992 Grade 50 Steel"],
+    dimensions: { length: 144, width: 14, height: 13.0, weight: 600 },
+    notes: "Awaiting weld detail confirmation",
   },
 ]
 
-// Also export as engineeringDrawings for consistency
+// Alias often used in UIs
 export const engineeringDrawings = engineeringProjects
 
-// Export as billsOfMaterials to match the import in dashboard
+/* =========================
+ *  BOM
+ * =======================*/
+
 export const billsOfMaterials: BillOfMaterials[] = [
   {
-    id: "1",
+    id: "BOM1",
     bomNumber: "BOM-2024-001",
+    title: "W12x26 Steel I-Beam Assembly",
     productName: "W12x26 Steel I-Beam Assembly",
     description: "Complete BOM for custom I-beam fabrication",
     status: "Released",
     version: "1.0",
     items: [
       {
-        id: "1",
+        id: "BOM1-I1",
         partNumber: "STL-W12x26-20",
         description: "W12x26 Steel Beam, 20ft raw",
         quantity: 1,
         unit: "EA",
         unitCost: 380.0,
         totalCost: 380.0,
-        supplier: "Steel Supply Co",
+        supplier: "Steel Supply Co", // supplierId: "1" via name
         leadTime: 14,
         category: "Raw Material",
         specifications: "ASTM A992 Grade 50",
       },
       {
-        id: "2",
+        id: "BOM1-I2",
         partNumber: "WLD-E70XX",
         description: "E70XX Welding Rod",
         quantity: 2,
         unit: "LB",
         unitCost: 8.5,
         totalCost: 17.0,
-        supplier: "Welding Supply Inc",
+        supplier: "Welding Supply Inc", // supplierId: "2" via name
         leadTime: 3,
         category: "Raw Material",
       },
@@ -272,18 +459,53 @@ export const billsOfMaterials: BillOfMaterials[] = [
     createdAt: "2024-01-28T09:00:00Z",
     updatedAt: "2024-02-01T15:00:00Z",
     revision: "Rev B",
-    engineeringDrawingId: "1",
+    engineeringDrawingId: "DWG1",
     notes: "Released for production",
+  },
+  {
+    id: "BOM2",
+    bomNumber: "BOM-2024-002",
+    title: "W14x30 Column Assembly",
+    productName: "W14x30 Column",
+    description: "BOM for the column fabrication",
+    status: "Draft",
+    version: "0.9",
+    items: [
+      {
+        id: "BOM2-I1",
+        partNumber: "STL-W14x30-12",
+        description: "W14x30 Steel Column, 12ft raw",
+        quantity: 1,
+        unit: "EA",
+        unitCost: 420.0,
+        totalCost: 420.0,
+        supplier: "Steel Supply Co",
+        leadTime: 14,
+        category: "Raw Material",
+        specifications: "ASTM A992",
+      },
+    ],
+    totalCost: 420.0,
+    createdBy: "Marcus Lee",
+    approvedBy: "",
+    createdAt: "2024-02-11T09:00:00Z",
+    updatedAt: "2024-02-12T12:00:00Z",
+    revision: "Rev A",
+    engineeringDrawingId: "DWG2",
+    notes: "Pending review",
   },
 ]
 
-// Export as productionOrders to match the import in dashboard
+/* =========================
+ *  PRODUCTION
+ * =======================*/
+
 export const productionOrders: ProductionWorkOrder[] = [
   {
-    id: "1",
+    id: "WO1",
     workOrderNumber: "WO-2024-001",
-    salesOrderId: "1",
-    bomId: "1",
+    salesOrderId: "SO1",
+    bomId: "BOM1",
     productName: "W12x26 Steel I-Beam Assembly",
     description: "Fabricate 10 custom I-beams per specifications",
     quantity: 10,
@@ -300,34 +522,47 @@ export const productionOrders: ProductionWorkOrder[] = [
     revision: "Rev B",
     notes: "On schedule, quality checks passed",
   },
+  {
+    id: "WO2",
+    workOrderNumber: "WO-2024-002",
+    salesOrderId: "SO2",
+    bomId: "BOM2",
+    productName: "W14x30 Column",
+    description: "Cut, drill, and prep columns",
+    quantity: 8,
+    status: "Planned",
+    priority: "Medium",
+    startDate: "2024-02-20",
+    dueDate: "2024-03-25",
+    assignedTo: "Production Team B",
+    progress: 10,
+    estimatedHours: 50,
+    actualHours: 0,
+    createdAt: "2024-02-18T08:00:00Z",
+    updatedAt: "2024-02-18T08:00:00Z",
+    revision: "Rev A",
+    notes: "Waiting for final weld details",
+  },
 ]
 
-// Also export as productionWorkOrders for consistency
+// Alias
 export const productionWorkOrders = productionOrders
+
+/* =========================
+ *  BILLING
+ * =======================*/
 
 export const invoices: Invoice[] = [
   {
-    id: "1",
+    id: "INV1",
     invoiceNumber: "INV-2024-001",
     customerId: "1",
     customerName: "Acme Construction Corp",
-    salesOrderId: "1",
+    salesOrderId: "SO1",
     status: "Sent",
     items: [
-      {
-        id: "1",
-        description: "W12x26 Steel I-Beam, 20ft length",
-        quantity: 10,
-        unitPrice: 450.0,
-        totalPrice: 4500.0,
-      },
-      {
-        id: "2",
-        description: "Custom connection plates",
-        quantity: 20,
-        unitPrice: 75.0,
-        totalPrice: 1500.0,
-      },
+      { id: "INV1-I1", description: "W12x26 Steel I-Beam, 20ft length", quantity: 10, unitPrice: 450.0, totalPrice: 4500.0 },
+      { id: "INV1-I2", description: "Custom connection plates", quantity: 20, unitPrice: 75.0, totalPrice: 1500.0 },
     ],
     subtotal: 6000.0,
     tax: 480.0,
@@ -339,25 +574,75 @@ export const invoices: Invoice[] = [
     revision: "Rev A",
     notes: "Payment due within 30 days",
   },
+  {
+    id: "INV2",
+    invoiceNumber: "INV-2024-002",
+    customerId: "2",
+    customerName: "Metro Steel Works",
+    salesOrderId: "SO2",
+    status: "Draft",
+    items: [
+      { id: "INV2-I1", description: "W14x30 Steel Column, 12ft length", quantity: 8, unitPrice: 520.0, totalPrice: 4160.0 },
+    ],
+    subtotal: 4160.0,
+    tax: 332.8,
+    total: 4492.8,
+    issueDate: "2024-02-25",
+    dueDate: "2024-03-26",
+    createdAt: "2024-02-25T09:00:00Z",
+    updatedAt: "2024-02-25T09:00:00Z",
+    revision: "Rev A",
+    notes: "Auto-calculated tax at 8%",
+  },
+  {
+    id: "INV3",
+    invoiceNumber: "INV-2024-003",
+    customerId: "3",
+    customerName: "Blue Ridge Fabricators",
+    salesOrderId: "SO3",
+    status: "Sent",
+    items: [
+      { id: "INV3-I1", description: "Stair Stringer Assembly", quantity: 6, unitPrice: 300.0, totalPrice: 1800.0 },
+      { id: "INV3-I2", description: "Mounting Brackets", quantity: 12, unitPrice: 30.0, totalPrice: 360.0 },
+    ],
+    subtotal: 2160.0,
+    tax: 172.8,
+    total: 2332.8,
+    issueDate: "2024-03-01",
+    dueDate: "2024-03-31",
+    createdAt: "2024-03-01T11:00:00Z",
+    updatedAt: "2024-03-01T11:00:00Z",
+    revision: "Rev A",
+    notes: "Net 30",
+  },
 ]
+
+/* =========================
+ *  PROCUREMENT
+ * =======================*/
 
 export const purchaseOrders: PurchaseOrder[] = [
   {
-    id: "1",
+    id: "PO1",
     poNumber: "PO-2024-001",
-    supplierId: "1",
+    supplierId: "1", // Steel Supply Co
     supplierName: "Steel Supply Co",
     status: "Sent",
+    priority: "Medium",
     items: [
       {
-        id: "1",
-        partNumber: "STL-W12x26-20",
+        id: "PO1-I1",
+        partNumber: "STL-W12x26-20", // maps to BOM1-I1
         description: "W12x26 Steel Beam, 20ft raw",
-        quantity: 12,
+        quantity: 12, // 10 for WO1 + 2 spare
+        unit: "pieces",
         unitPrice: 380.0,
         totalPrice: 4560.0,
+        steelGrade: "A992",
+        urgency: "Medium",
         requestedDate: "2024-02-15",
         specifications: "ASTM A992 Grade 50",
+        notes: "Include MTRs",
       },
     ],
     subtotal: 4560.0,
@@ -371,7 +656,45 @@ export const purchaseOrders: PurchaseOrder[] = [
     revision: "Rev A",
     notes: "Rush order for production schedule",
   },
+  {
+    id: "PO2",
+    poNumber: "PO-2024-002",
+    supplierId: "2", // Welding Supply Inc
+    supplierName: "Welding Supply Inc",
+    status: "Acknowledged",
+    priority: "Low",
+    items: [
+      {
+        id: "PO2-I1",
+        partNumber: "WLD-E70XX", // maps to BOM1-I2
+        description: "E70XX Welding Rod",
+        quantity: 50, // LB
+        unit: "LB",
+        unitPrice: 8.5,
+        totalPrice: 425.0,
+        steelGrade: "",
+        urgency: "Low",
+        requestedDate: "2024-02-10",
+        specifications: "",
+        notes: "Deliver to bay 2",
+      },
+    ],
+    subtotal: 425.0,
+    tax: 34.0,
+    total: 459.0,
+    orderDate: "2024-02-05",
+    requestedDeliveryDate: "2024-02-10",
+    paymentTerms: "Net 30",
+    createdAt: "2024-02-05T09:00:00Z",
+    updatedAt: "2024-02-06T09:00:00Z",
+    revision: "Rev A",
+    notes: "OK to partial",
+  },
 ]
+
+/* =========================
+ *  UI HELPERS (unchanged)
+ * =======================*/
 
 export const statusColors = {
   quotation: {
@@ -437,17 +760,8 @@ export const statusColors = {
   },
 }
 
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount)
-}
+export const formatCurrency = (amount: number): string =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
 
-export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
+export const formatDate = (dateString: string): string =>
+  new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })

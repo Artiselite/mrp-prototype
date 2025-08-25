@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,32 +15,43 @@ import {
   ClipboardList,
   TrendingUp,
   AlertTriangle,
+  Building2,
 } from "lucide-react"
-import {
-  quotations,
-  salesOrders,
-  engineeringProjects,
-  billsOfMaterials,
-  productionOrders,
-  invoices,
-  customers,
-  purchaseOrders,
-  formatCurrency,
-} from "@/lib/data"
+import { useDatabaseContext } from "@/components/database-provider"
+import { DatabaseManager } from "@/components/database-manager"
 
 export default function Dashboard() {
+  const {
+    useQuotations,
+    useSalesOrders,
+    useEngineeringDrawings,
+    useBillsOfMaterials,
+    useProductionWorkOrders,
+    useInvoices,
+    useCustomers,
+    useSuppliers,
+    usePurchaseOrders
+  } = useDatabaseContext()
+
+  const { quotations } = useQuotations()
+  const { salesOrders } = useSalesOrders()
+  const { drawings: engineeringProjects } = useEngineeringDrawings()
+  const { boms: billsOfMaterials } = useBillsOfMaterials()
+  const { workOrders: productionOrders } = useProductionWorkOrders()
+  const { invoices } = useInvoices()
+  const { customers } = useCustomers()
+  const { suppliers } = useSuppliers()
+  const { purchaseOrders } = usePurchaseOrders()
+
   // Calculate summary statistics
   const stats = {
     activeQuotations: quotations.filter((q) => q.status !== "Rejected").length,
     activeSalesOrders: salesOrders.filter((so) => so.status !== "Cancelled" && so.status !== "Delivered").length,
-    activeProjects: engineeringProjects.filter((e) => e.status === "In Progress").length,
-    activeBOMs: billsOfMaterials.filter((b) => b.status === "Active").length,
     activeProduction: productionOrders.filter((p) => p.status === "In Progress").length,
     pendingInvoices: invoices.filter((i) => i.status === "Sent").length,
     activeCustomers: customers.filter((c) => c.status === "Active").length,
+    activeSuppliers: suppliers.filter((s) => s.status === "Active").length,
     pendingPOs: purchaseOrders.filter((po) => po.status === "Sent" || po.status === "Acknowledged").length,
-    totalRevenue: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
-    salesOrderValue: salesOrders.reduce((sum, so) => sum + so.totalAmount, 0),
   }
 
   const modules = [
@@ -69,7 +82,6 @@ export default function Dashboard() {
       href: "/engineering",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-      count: stats.activeProjects,
       status: "Active Projects",
     },
     {
@@ -79,7 +91,6 @@ export default function Dashboard() {
       href: "/bom",
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      count: stats.activeBOMs,
       status: "Active BOMs",
     },
     {
@@ -113,6 +124,16 @@ export default function Dashboard() {
       status: "Active Customers",
     },
     {
+      title: "Suppliers",
+      description: "Supplier relationship and procurement management",
+      icon: Building2,
+      href: "/suppliers",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      count: stats.activeSuppliers,
+      status: "Active Suppliers",
+    },
+    {
       title: "Procurement",
       description: "Purchase orders and supplier management",
       icon: ShoppingCart,
@@ -140,7 +161,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
+                  <p className="text-2xl font-bold text-gray-900">0</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div>
@@ -152,7 +173,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Sales Order Value</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.salesOrderValue)}</p>
+                  <p className="text-2xl font-bold text-gray-900">0</p>
                 </div>
                 <ClipboardList className="w-8 h-8 text-blue-600" />
               </div>
@@ -164,7 +185,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeProjects}</p>
+                  <p className="text-2xl font-bold text-gray-900">0</p>
                 </div>
                 <Factory className="w-8 h-8 text-purple-600" />
               </div>
@@ -176,7 +197,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active Customers</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeCustomers}</p>
+                  <p className="text-2xl font-bold text-gray-900">0</p>
                 </div>
                 <Users className="w-8 h-8 text-indigo-600" />
               </div>
@@ -184,37 +205,8 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Module Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {modules.map((module) => {
-            const Icon = module.icon
-            return (
-              <Card key={module.title} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <Link href={module.href} className="block">
-                    <div className={`w-12 h-12 ${module.bgColor} rounded-lg flex items-center justify-center mb-4`}>
-                      <Icon className={`w-6 h-6 ${module.color}`} />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{module.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{module.description}</p>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">{module.count}</p>
-                        <p className="text-xs text-gray-500">{module.status}</p>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        View All
-                      </Button>
-                    </div>
-                  </Link>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-
         {/* Recent Activity */}
-        <div className="mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -258,6 +250,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
         </div>
       </main>
     </div>

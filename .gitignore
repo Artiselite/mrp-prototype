@@ -28,3 +28,6 @@ next-env.d.ts
 node_modules
 .next
 .cursor
+
+.DS_Store
+.eslintrc.json

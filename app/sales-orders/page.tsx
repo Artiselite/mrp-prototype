@@ -2,16 +2,19 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Search, Eye, Edit } from "lucide-react"
-import { salesOrders, statusColors, formatCurrency, formatDate } from "@/lib/data"
+import { statusColors, formatCurrency, formatDate } from "@/lib/data"
+import { useDatabaseContext } from "@/components/database-provider"
 
 export default function SalesOrdersPage() {
+  const { useSalesOrders } = useDatabaseContext()
+  const { salesOrders } = useSalesOrders()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [customerFilter, setCustomerFilter] = useState("all")
@@ -43,20 +46,28 @@ export default function SalesOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sales Orders</h1>
-            <p className="text-gray-600 mt-2">Manage customer orders and delivery tracking</p>
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <Link href="/" className="text-sm text-blue-600 hover:text-blue-800 mb-2 block">
+                ← Back to Dashboard
+              </Link>
+              <h1 className="text-2xl font-bold text-gray-900">Sales Orders</h1>
+              <p className="text-sm text-gray-600">Manage customer orders and delivery tracking</p>
+            </div>
+            <Link href="/sales-orders/create">
+              <Button className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                New Sales Order
+              </Button>
+            </Link>
           </div>
-          <Link href="/sales-orders/create">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Sales Order
-            </Button>
-          </Link>
         </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
@@ -102,15 +113,15 @@ export default function SalesOrdersPage() {
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Search and Filters */}
         <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search by order number, customer, title, or PO..."
+                    placeholder="Search orders..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -118,7 +129,7 @@ export default function SalesOrdersPage() {
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -132,7 +143,7 @@ export default function SalesOrdersPage() {
                 </SelectContent>
               </Select>
               <Select value={customerFilter} onValueChange={setCustomerFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by customer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,72 +162,70 @@ export default function SalesOrdersPage() {
         {/* Sales Orders Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Sales Orders ({filteredOrders.length})</CardTitle>
+            <CardTitle>Sales Orders</CardTitle>
+            <CardDescription>
+              Customer orders and delivery tracking for all projects
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order Number</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Customer PO</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Order Date</TableHead>
-                    <TableHead>Delivery Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Revision</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/sales-orders/${order.id}`} className="text-blue-600 hover:text-blue-800">
-                          {order.salesOrderNumber}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order Number</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Order Date</TableHead>
+                  <TableHead>Delivery Date</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Revision</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">
+                      {order.salesOrderNumber}
+                    </TableCell>
+                    <TableCell>{order.customerName}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{order.title}</p>
+                        <p className="text-sm text-gray-500">{order.customerPO}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={statusColors.salesOrder[order.status]}>
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{formatDate(order.orderDate)}</TableCell>
+                    <TableCell>
+                      {order.confirmedDeliveryDate
+                        ? formatDate(order.confirmedDeliveryDate)
+                        : formatDate(order.requestedDeliveryDate)}
+                    </TableCell>
+                    <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
+                    <TableCell>{order.revision}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Link href={`/sales-orders/${order.id}`}>
+                          <Button variant="ghost" size="sm" title="View Details">
+                            <Eye className="w-4 h-4" />
+                          </Button>
                         </Link>
-                      </TableCell>
-                      <TableCell>{order.customerName}</TableCell>
-                      <TableCell className="font-mono text-sm">{order.customerPO}</TableCell>
-                      <TableCell>
-                        <div className="max-w-xs truncate" title={order.title}>
-                          {order.title}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusColors.salesOrder[order.status]}>{order.status}</Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(order.orderDate)}</TableCell>
-                      <TableCell>
-                        {order.confirmedDeliveryDate
-                          ? formatDate(order.confirmedDeliveryDate)
-                          : formatDate(order.requestedDeliveryDate)}
-                      </TableCell>
-                      <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{order.revision}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Link href={`/sales-orders/${order.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                          <Link href={`/sales-orders/${order.id}/edit`}>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                        <Link href={`/sales-orders/${order.id}/edit`}>
+                          <Button variant="ghost" size="sm" title="Edit Order">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
             {filteredOrders.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-500">No sales orders found matching your criteria.</p>

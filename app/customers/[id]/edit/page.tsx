@@ -2,22 +2,25 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, ArrowLeft, UserPlus } from "lucide-react"
+import { Users, ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { useDatabaseContext } from "@/components/database-provider"
+import { Customer } from "@/lib/types"
 
-export default function CreateCustomerPage() {
+export default function EditCustomerPage() {
   const router = useRouter()
+  const params = useParams()
+  const customerId = params.id as string
   const { useCustomers } = useDatabaseContext()
-  const { createCustomer } = useCustomers()
+  const { customers, updateCustomer } = useCustomers()
+
   const [formData, setFormData] = useState({
     name: "",
     contactPerson: "",
@@ -28,15 +31,40 @@ export default function CreateCustomerPage() {
     state: "",
     zipCode: "",
     country: "USA",
-    taxId: "",
     paymentTerms: "Net 30",
     creditLimit: 100000,
     status: "Active",
-    notes: "",
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [customer, setCustomer] = useState<Customer | null>(null)
+
+  // Load customer data when component mounts
+  useEffect(() => {
+    const customer = customers.find((c: Customer) => c.id === customerId)
+    if (customer) {
+      setCustomer(customer)
+      setFormData({
+        name: customer.name,
+        contactPerson: customer.contactPerson,
+        email: customer.email,
+        phone: customer.phone,
+        address: customer.address,
+        city: customer.city,
+        state: customer.state,
+        zipCode: customer.zipCode,
+        country: customer.country,
+        paymentTerms: customer.paymentTerms,
+        creditLimit: customer.creditLimit,
+        status: customer.status,
+      })
+      setIsLoading(false)
+    } else {
+      setIsLoading(false)
+    }
+  }, [customers, customerId])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -77,15 +105,15 @@ export default function CreateCustomerPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateForm()) {
+    if (!validateForm() || !customer) {
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      // Create customer data without ID (database will generate it)
-      const customerData = {
+      // Update customer data
+      const updatedCustomer = await updateCustomer(customer.id, {
         name: formData.name,
         contactPerson: formData.contactPerson,
         email: formData.email,
@@ -95,24 +123,51 @@ export default function CreateCustomerPage() {
         state: formData.state,
         zipCode: formData.zipCode,
         country: formData.country,
-        taxId: formData.taxId,
         paymentTerms: formData.paymentTerms,
         creditLimit: formData.creditLimit,
         status: formData.status as "Active" | "Inactive" | "Suspended",
-        notes: formData.notes,
-        totalOrders: 0,
+      })
+
+      if (updatedCustomer) {
+        // Redirect to customer details page
+        router.push(`/customers/${customer.id}`)
       }
-
-      // Create the customer in the database
-      await createCustomer(customerData)
-
-      // Redirect to customers list
-      router.push("/customers")
     } catch (error) {
-      console.error("Error creating customer:", error)
+      console.error("Error updating customer:", error)
       setIsSubmitting(false)
-      // You could add error handling UI here
     }
+  }
+
+  // Show loading state while customer data loads
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading customer data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error if customer not found
+  if (!customer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Customer Not Found</h1>
+          <p className="text-gray-600 mb-4">
+            Customer with ID "{customerId}" was not found in the database.
+          </p>
+          <Link href="/customers" className="inline-block">
+            <Button variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Customers
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -122,23 +177,23 @@ export default function CreateCustomerPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
-              <Link href="/customers">
+              <Link href={`/customers/${customer.id}`}>
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Customers
+                  Back to Customer
                 </Button>
               </Link>
               <div className="flex items-center gap-3">
                 <Users className="w-8 h-8 text-blue-600" />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Add New Customer</h1>
-                  <p className="text-sm text-gray-600">Create a new customer record</p>
+                  <h1 className="text-2xl font-bold text-gray-900">Edit Customer</h1>
+                  <p className="text-sm text-gray-600">Update customer information for {customer.name}</p>
                 </div>
               </div>
             </div>
             <Button type="submit" form="customer-form" disabled={isSubmitting}>
-              <UserPlus className="w-4 h-4 mr-2" />
-              {isSubmitting ? "Creating..." : "Create Customer"}
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>
@@ -198,15 +253,7 @@ export default function CreateCustomerPage() {
                   {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
                 </div>
 
-                <div>
-                  <Label htmlFor="taxId">Tax ID</Label>
-                  <Input
-                    id="taxId"
-                    value={formData.taxId}
-                    onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                    placeholder="12-3456789"
-                  />
-                </div>
+
 
                 <div>
                   <Label htmlFor="status">Status</Label>
@@ -337,25 +384,6 @@ export default function CreateCustomerPage() {
                   />
                   {errors.creditLimit && <p className="text-sm text-red-500 mt-1">{errors.creditLimit}</p>}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Additional Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={4}
-                  placeholder="Additional information about the customer..."
-                />
               </div>
             </CardContent>
           </Card>

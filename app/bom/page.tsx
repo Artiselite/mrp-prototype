@@ -4,53 +4,16 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Eye, Edit, FileText, Package, Calculator } from 'lucide-react'
+import { Plus, Search, Eye, Edit, Package, Calculator } from 'lucide-react'
 import Link from "next/link"
+import { useDatabaseContext } from "@/components/database-provider"
 
 export default function BOMPage() {
-  const [boms] = useState([
-    {
-      id: "BOM-2024-001",
-      drawingId: "DWG-2024-001",
-      project: "Industrial Warehouse Frame",
-      customer: "ABC Steel Works",
-      status: "Approved",
-      totalCost: "$89,450",
-      materialCount: 15,
-      dateCreated: "2024-01-12",
-      dateApproved: "2024-01-15",
-      engineer: "John Smith"
-    },
-    {
-      id: "BOM-2024-002",
-      drawingId: "DWG-2024-002",
-      project: "Bridge Support Beams",
-      customer: "Metro Construction",
-      status: "Review",
-      totalCost: "$67,200",
-      materialCount: 12,
-      dateCreated: "2024-01-10",
-      dateApproved: null,
-      engineer: "Sarah Johnson"
-    },
-    {
-      id: "BOM-2024-003",
-      drawingId: "DWG-2024-003",
-      project: "Custom Fabricated Brackets",
-      customer: "Industrial Corp",
-      status: "Draft",
-      totalCost: "$12,800",
-      materialCount: 8,
-      dateCreated: "2024-01-14",
-      dateApproved: null,
-      engineer: "Mike Davis"
-    }
-  ])
+  const { useBillsOfMaterials } = useDatabaseContext()
+  const { boms } = useBillsOfMaterials()
 
   const getStatusColor = (status: string) => {
     switch (status) {

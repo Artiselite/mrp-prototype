@@ -18,24 +18,72 @@ import {
   CreditCard,
 } from "lucide-react"
 import Link from "next/link"
-import { customers, quotations, statusColors, formatCurrency } from "@/lib/data"
+import { statusColors, formatCurrency } from "@/lib/data"
 import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useDatabaseContext } from "@/components/database-provider"
+import { Customer, Quotation } from "@/lib/types"
 
-interface CustomerDetailPageProps {
-  params: {
-    id: string
+export default function CustomerDetailPage() {
+  const params = useParams()
+  const customerId = params.id as string
+  const { useCustomers, useQuotations, isInitialized, isLoading } = useDatabaseContext()
+  const { customers } = useCustomers()
+  const { quotations } = useQuotations()
+  
+  console.log("Customer ID:", customerId)
+  console.log("Available customers:", customers)
+  console.log("Available quotations:", quotations)
+  console.log("Database initialized:", isInitialized)
+  console.log("Database loading:", isLoading)
+  
+  // Show loading state while database initializes
+  if (isLoading || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading customer details...</p>
+        </div>
+      </div>
+    )
   }
-}
-
-export default function CustomerDetailPage({ params }: CustomerDetailPageProps) {
-  const customer = customers.find((c) => c.id === params.id)
+  
+  const customer = customers.find((c: Customer) => c.id === customerId)
 
   if (!customer) {
-    notFound()
+    console.log("Customer not found!")
+    console.log("Available customer IDs:", customers.map(c => c.id))
+    
+    // Show debug information instead of notFound
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Customer Not Found</h1>
+          <p className="text-gray-600 mb-4">
+            Customer with ID "{customerId}" was not found in the database.
+          </p>
+          <div className="bg-gray-100 p-4 rounded-lg text-left">
+            <p className="text-sm font-medium mb-2">Available Customer IDs:</p>
+            <ul className="text-sm text-gray-600">
+              {customers.map(c => (
+                <li key={c.id}>• {c.id}: {c.name}</li>
+              ))}
+            </ul>
+          </div>
+          <Link href="/customers" className="mt-4 inline-block">
+            <Button variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Customers
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   // Get customer's quotations
-  const customerQuotations = quotations.filter((q) => q.customerId === customer.id)
+  const customerQuotations = quotations.filter((q: Quotation) => q.customerId === customer.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -128,7 +176,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-500">Customer Since</p>
-                        <p className="font-medium">{customer.dateCreated}</p>
+                        <p className="font-medium">{new Date(customer.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
@@ -147,23 +195,11 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-purple-600">
-                      {customer.lastOrderDate ? new Date(customer.lastOrderDate).toLocaleDateString() : "N/A"}
+                      N/A
                     </p>
                     <p className="text-sm text-gray-500">Last Order</p>
                   </div>
                 </div>
-
-                {customer.notes && (
-                  <div className="mt-6 pt-6 border-t">
-                    <div className="flex items-start gap-2">
-                      <FileText className="w-4 h-4 text-gray-400 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-500">Notes</p>
-                        <p className="text-gray-700">{customer.notes}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -181,7 +217,6 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                       {customer.city}, {customer.state} {customer.zipCode}
                     </p>
                     <p className="text-gray-600">{customer.country}</p>
-                    {customer.taxId && <p className="text-sm text-gray-500 mt-2">Tax ID: {customer.taxId}</p>}
                   </div>
                 </div>
               </CardContent>
@@ -198,12 +233,12 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                     {customerQuotations.slice(0, 5).map((quotation) => (
                       <div key={quotation.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <h4 className="font-medium">{quotation.id}</h4>
-                          <p className="text-sm text-gray-600">{quotation.projectName}</p>
-                          <p className="text-xs text-gray-500">Created: {quotation.createdDate}</p>
+                          <h4 className="font-medium">{quotation.quotationNumber}</h4>
+                          <p className="text-sm text-gray-600">{quotation.title}</p>
+                          <p className="text-xs text-gray-500">Created: {new Date(quotation.createdAt).toLocaleDateString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">{formatCurrency(quotation.totalAmount)}</p>
+                          <p className="font-bold">{formatCurrency(quotation.total)}</p>
                           <Badge className={statusColors.quotation[quotation.status]}>{quotation.status}</Badge>
                         </div>
                       </div>

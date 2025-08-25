@@ -4,56 +4,17 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Eye, Edit, FileText, Upload, Download } from 'lucide-react'
+import { Plus, Search, Eye, Edit, Download } from 'lucide-react'
 import Link from "next/link"
 
+import { useDatabaseContext } from "@/components/database-provider"
+
 export default function EngineeringPage() {
-  const [drawings] = useState([
-    {
-      id: "DWG-2024-001",
-      quotationId: "QUO-2024-001",
-      customer: "ABC Steel Works",
-      project: "Industrial Warehouse Frame",
-      drawingType: "Structural Assembly",
-      revision: "Rev A",
-      status: "In Progress",
-      engineer: "John Smith",
-      dateCreated: "2024-01-11",
-      dueDate: "2024-01-16",
-      specifications: "A36 Steel, Welded Connections"
-    },
-    {
-      id: "DWG-2024-002",
-      quotationId: "QUO-2024-002",
-      customer: "Metro Construction",
-      project: "Bridge Support Beams",
-      drawingType: "Detail Drawing",
-      revision: "Rev B",
-      status: "Approved",
-      engineer: "Sarah Johnson",
-      dateCreated: "2024-01-09",
-      dueDate: "2024-01-14",
-      specifications: "A992 Grade 50, Bolted Connections"
-    },
-    {
-      id: "DWG-2024-003",
-      quotationId: "QUO-2024-003",
-      customer: "Industrial Corp",
-      project: "Custom Fabricated Brackets",
-      drawingType: "Shop Drawing",
-      revision: "Rev A",
-      status: "Review",
-      engineer: "Mike Davis",
-      dateCreated: "2024-01-13",
-      dueDate: "2024-01-19",
-      specifications: "A572 Grade 50, Custom Machining"
-    }
-  ])
+  const { useEngineeringDrawings } = useDatabaseContext()
+  const { drawings } = useEngineeringDrawings()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -140,37 +101,32 @@ export default function EngineeringPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Drawing ID</TableHead>
-                  <TableHead>Quotation</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Revision</TableHead>
-                  <TableHead>Engineer</TableHead>
+                  <TableHead>Drawing Number</TableHead>
+                  <TableHead>Project ID</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Drawn By</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
+                  <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {drawings.map((drawing) => (
                   <TableRow key={drawing.id}>
-                    <TableCell className="font-medium">{drawing.id}</TableCell>
-                    <TableCell>{drawing.quotationId}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{drawing.project}</p>
-                        <p className="text-sm text-gray-500">{drawing.customer}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{drawing.drawingType}</TableCell>
-                    <TableCell>{drawing.revision}</TableCell>
-                    <TableCell>{drawing.engineer}</TableCell>
+                    <TableCell className="font-medium">{drawing.drawingNumber}</TableCell>
+                    <TableCell>{drawing.projectId}</TableCell>
+                    <TableCell>{drawing.title}</TableCell>
+                    <TableCell className="max-w-xs truncate">{drawing.description}</TableCell>
+                    <TableCell>{drawing.version}</TableCell>
+                    <TableCell>{drawing.drawnBy}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(drawing.status)}>
                         {drawing.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{drawing.dueDate}</TableCell>
+                    <TableCell>{drawing.createdAt}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Link href={`/engineering/${drawing.id}`}>

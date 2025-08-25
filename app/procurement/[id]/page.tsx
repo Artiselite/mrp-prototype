@@ -23,21 +23,25 @@ import {
 import Link from "next/link"
 import { purchaseOrders, suppliers, formatCurrency } from "@/lib/data"
 import { notFound } from "next/navigation"
+import { use } from "react"
 
 interface PurchaseOrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailPageProps) {
-  const order = purchaseOrders.find((po) => po.id === params.id)
+  const unwrappedParams = use(params) as { id: string }
+  const order = purchaseOrders.find((po) => po.id === unwrappedParams.id)
 
   if (!order) {
     notFound()
   }
 
-  const supplier = suppliers.find((s) => s.id === order.supplierId)
+  const supplier = order ? suppliers.find((s) => s.id === order.supplierId) : null
+
+
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
@@ -79,6 +83,11 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
       default:
         return "border-gray-500 text-gray-700 bg-gray-50"
     }
+  }
+
+  // Safety check - this should never happen due to notFound() above
+  if (!order) {
+    return <div>Order not found</div>
   }
 
   return (
@@ -128,10 +137,10 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      {getPriorityIcon(order.priority)}
+                      {order.priority && getPriorityIcon(order.priority)}
                       <div>
                         <p className="text-sm text-gray-500">Priority</p>
-                        <p className="font-medium">{order.priority}</p>
+                        <p className="font-medium">{order.priority || "Not set"}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -154,7 +163,7 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
                       <DollarSign className="w-4 h-4 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-500">Total Amount</p>
-                        <p className="font-bold text-lg">{formatCurrency(order.totalAmount)}</p>
+                        <p className="font-bold text-lg">{formatCurrency(order.total)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -286,17 +295,13 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
                       <span>{formatCurrency(order.subtotal)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Tax ({order.taxRate}%):</span>
-                      <span>{formatCurrency(order.taxAmount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Shipping:</span>
-                      <span>{formatCurrency(order.shippingCost)}</span>
+                      <span>Tax:</span>
+                      <span>{formatCurrency(order.tax)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
-                      <span>{formatCurrency(order.totalAmount)}</span>
+                      <span>{formatCurrency(order.total)}</span>
                     </div>
                   </div>
                 </div>

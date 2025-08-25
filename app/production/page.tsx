@@ -14,66 +14,11 @@ import { Progress } from "@/components/ui/progress"
 import { Plus, Search, Eye, Edit, Factory, Clock, Users, AlertTriangle } from 'lucide-react'
 import Link from "next/link"
 
+import { useDatabaseContext } from "@/components/database-provider"
+
 export default function ProductionPage() {
-  const [workOrders] = useState([
-    {
-      id: "WO-2024-001",
-      bomId: "BOM-2024-001",
-      project: "Industrial Warehouse Frame",
-      customer: "ABC Steel Works",
-      status: "In Progress",
-      priority: "High",
-      progress: 65,
-      startDate: "2024-01-15",
-      dueDate: "2024-02-15",
-      assignedTeam: "Team A",
-      supervisor: "Mike Johnson",
-      operations: [
-        { step: "Material Cutting", status: "Completed", duration: "2 days" },
-        { step: "Welding", status: "In Progress", duration: "5 days" },
-        { step: "Assembly", status: "Pending", duration: "3 days" },
-        { step: "Quality Check", status: "Pending", duration: "1 day" }
-      ]
-    },
-    {
-      id: "WO-2024-002",
-      bomId: "BOM-2024-002",
-      project: "Bridge Support Beams",
-      customer: "Metro Construction",
-      status: "Planning",
-      priority: "Medium",
-      progress: 15,
-      startDate: "2024-01-20",
-      dueDate: "2024-02-28",
-      assignedTeam: "Team B",
-      supervisor: "Sarah Davis",
-      operations: [
-        { step: "Material Preparation", status: "In Progress", duration: "1 day" },
-        { step: "Machining", status: "Pending", duration: "4 days" },
-        { step: "Welding", status: "Pending", duration: "6 days" },
-        { step: "Finishing", status: "Pending", duration: "2 days" }
-      ]
-    },
-    {
-      id: "WO-2024-003",
-      bomId: "BOM-2024-003",
-      project: "Custom Fabricated Brackets",
-      customer: "Industrial Corp",
-      status: "Completed",
-      priority: "Low",
-      progress: 100,
-      startDate: "2024-01-05",
-      dueDate: "2024-01-25",
-      assignedTeam: "Team C",
-      supervisor: "Tom Wilson",
-      operations: [
-        { step: "Cutting", status: "Completed", duration: "1 day" },
-        { step: "Drilling", status: "Completed", duration: "2 days" },
-        { step: "Assembly", status: "Completed", duration: "1 day" },
-        { step: "Quality Check", status: "Completed", duration: "0.5 days" }
-      ]
-    }
-  ])
+  const { useProductionWorkOrders } = useDatabaseContext()
+  const { workOrders } = useProductionWorkOrders()
 
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)

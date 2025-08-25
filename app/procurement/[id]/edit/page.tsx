@@ -12,40 +12,66 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ShoppingCart, Plus, Trash2, ArrowLeft, Save, Send } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { purchaseOrders, suppliers, billsOfMaterials } from "@/lib/data"
-import type { ProcurementItem } from "@/lib/types"
-import { notFound } from "next/navigation"
+import { suppliers, billsOfMaterials } from "@/lib/data"
+import type { PurchaseOrderItem } from "@/lib/types"
+import { use } from "react"
 
-interface EditPurchaseOrderPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditPurchaseOrderPage({ params }: EditPurchaseOrderPageProps) {
+export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const existingOrder = purchaseOrders.find((po) => po.id === params.id)
-
-  if (!existingOrder) {
-    notFound()
-  }
+  const unwrappedParams = use(params) as { id: string }
+  
+  // Mock existing order data - in a real app, this would come from an API
+  const [existingOrder] = useState({
+    id: unwrappedParams.id,
+    poNumber: "PO-2024-001",
+    supplierId: "1",
+    supplier: "Steel Supply Co",
+    bomId: "BOM-2024-001",
+    status: "Draft",
+    priority: "Medium",
+    orderDate: "2024-02-01",
+    requestedDeliveryDate: "2024-02-15",
+    actualDeliveryDate: "",
+    subtotal: 4560.0,
+    tax: 364.8,
+    total: 4924.8,
+    items: [
+      {
+        id: "1",
+        partNumber: "STL-W12x26-20",
+        description: "W12x26 Steel Beam, 20ft raw",
+        quantity: 12,
+        unit: "pieces",
+        unitPrice: 380.0,
+        totalPrice: 4560.0,
+        steelGrade: "A992",
+        urgency: "Medium" as const,
+        requestedDate: "2024-02-15",
+        specifications: "ASTM A992 Grade 50",
+        notes: "",
+      },
+    ],
+    shippingAddress: "123 Factory St, Production City, PC 12345",
+    paymentTerms: "Net 30",
+    notes: "Rush order for production schedule",
+  })
 
   const [formData, setFormData] = useState({
     supplierId: existingOrder.supplierId,
     bomId: existingOrder.bomId || "",
-    priority: existingOrder.priority,
+    priority: existingOrder.priority || "Medium",
     requestedDeliveryDate: existingOrder.requestedDeliveryDate,
     actualDeliveryDate: existingOrder.actualDeliveryDate || "",
-    shippingAddress: existingOrder.shippingAddress,
+    shippingAddress: existingOrder.shippingAddress || "",
     paymentTerms: existingOrder.paymentTerms,
     notes: existingOrder.notes || "",
   })
 
-  const [items, setItems] = useState<ProcurementItem[]>(existingOrder.items)
+  const [items, setItems] = useState<PurchaseOrderItem[]>(existingOrder.items)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const addItem = () => {
-    const newItem: ProcurementItem = {
+    const newItem: PurchaseOrderItem = {
       id: (items.length + 1).toString(),
       description: "",
       partNumber: "",
@@ -54,9 +80,9 @@ export default function EditPurchaseOrderPage({ params }: EditPurchaseOrderPageP
       unitPrice: 0,
       totalPrice: 0,
       steelGrade: "",
-      specifications: "",
       urgency: "Medium",
       requestedDate: "",
+      specifications: "",
       notes: "",
     }
     setItems([...items, newItem])
@@ -68,7 +94,7 @@ export default function EditPurchaseOrderPage({ params }: EditPurchaseOrderPageP
     }
   }
 
-  const updateItem = (id: string, field: keyof ProcurementItem, value: any) => {
+  const updateItem = (id: string, field: keyof PurchaseOrderItem, value: string | number) => {
     setItems(
       items.map((item) => {
         if (item.id === id) {
@@ -160,7 +186,7 @@ export default function EditPurchaseOrderPage({ params }: EditPurchaseOrderPageP
 
     console.log("Updating PO:", updatedPO)
     // In a real app, this would be an API call
-    router.push(`/procurement/${params.id}`)
+    router.push(`/procurement/${unwrappedParams.id}`)
   }
 
   const selectedSupplier = suppliers.find((s) => s.id === formData.supplierId)
@@ -172,7 +198,7 @@ export default function EditPurchaseOrderPage({ params }: EditPurchaseOrderPageP
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
-              <Link href={`/procurement/${params.id}`}>
+                              <Link href={`/procurement/${unwrappedParams.id}`}>
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Order

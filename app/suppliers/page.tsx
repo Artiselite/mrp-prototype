@@ -6,25 +6,25 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, Plus, Search, Building, Phone, Mail, DollarSign } from "lucide-react"
+import { Building2, Plus, Search, Building, Phone, Mail, Star, Clock } from "lucide-react"
 import Link from "next/link"
 import { statusColors, formatCurrency } from "@/lib/data"
 import { useSearchParams } from "next/navigation"
 import { useDatabaseContext } from "@/components/database-provider"
 
-function CustomersContent() {
+function SuppliersContent() {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all")
-  const { useCustomers } = useDatabaseContext()
-  const { customers } = useCustomers()
+  const { useSuppliers } = useDatabaseContext()
+  const { suppliers } = useSuppliers()
 
-  const filteredCustomers = customers.filter((customer) => {
+  const filteredSuppliers = suppliers.filter((supplier) => {
     const matchesSearch =
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || customer.status === statusFilter
+      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || supplier.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
@@ -38,13 +38,13 @@ function CustomersContent() {
               <Link href="/" className="text-sm text-blue-600 hover:text-blue-800 mb-2 block">
                 ← Back to Dashboard
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-              <p className="text-sm text-gray-600">Manage customer relationships and information</p>
+              <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
+              <p className="text-sm text-gray-600">Manage supplier relationships and procurement information</p>
             </div>
-            <Link href="/customers/create">
+            <Link href="/suppliers/create">
               <Button className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
-                New Customer
+                New Supplier
               </Button>
             </Link>
           </div>
@@ -84,57 +84,52 @@ function CustomersContent() {
           </CardContent>
         </Card>
 
-        {/* Customers List */}
+        {/* Suppliers List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCustomers.map((customer) => (
-            <Card key={customer.id} className="hover:shadow-lg transition-shadow">
+          {filteredSuppliers.map((supplier) => (
+            <Card key={supplier.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Building className="w-8 h-8 text-blue-600" />
+                    <Building2 className="w-8 h-8 text-green-600" />
                     <div>
-                      <h3 className="font-semibold text-lg">{customer.name}</h3>
-                      <p className="text-sm text-gray-600">{customer.contactPerson}</p>
+                      <h3 className="font-semibold text-lg">{supplier.name}</h3>
+                      <p className="text-sm text-gray-600">{supplier.contactPerson}</p>
                     </div>
                   </div>
-                  <Badge className={statusColors.customer[customer.status]}>{customer.status}</Badge>
+                  <Badge className={statusColors.supplier[supplier.status]}>{supplier.status}</Badge>
                 </div>
 
-                <div className="space-y-2 mb-4">
+                <div className="space-y-3 mb-4">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Mail className="w-4 h-4" />
-                    <span className="truncate">{customer.email}</span>
+                    <span>{supplier.email}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Phone className="w-4 h-4" />
-                    <span>{customer.phone}</span>
+                    <span>{supplier.phone}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <DollarSign className="w-4 h-4" />
-                    <span>Credit Limit: {formatCurrency(customer.creditLimit)}</span>
+                    <Building className="w-4 h-4" />
+                    <span>{supplier.city}, {supplier.state}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Star className="w-4 h-4" />
+                    <span>Rating: {supplier.rating}/5</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    <span>Lead Time: {supplier.leadTime} days</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Total Orders</p>
-                    <p className="font-medium">{customer.totalOrders}</p>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    {supplier.totalOrders} orders
                   </div>
-                  <div>
-                    <p className="text-gray-500">Payment Terms</p>
-                    <p className="font-medium">{customer.paymentTerms}</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Link href={`/customers/${customer.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
-                      View Details
-                    </Button>
-                  </Link>
-                  <Link href={`/customers/${customer.id}/edit`}>
+                  <Link href={`/suppliers/${supplier.id}`}>
                     <Button variant="outline" size="sm">
-                      Edit
+                      View Details
                     </Button>
                   </Link>
                 </div>
@@ -143,22 +138,24 @@ function CustomersContent() {
           ))}
         </div>
 
-        {filteredCustomers.length === 0 && (
+        {filteredSuppliers.length === 0 && (
           <Card>
-            <CardContent className="text-center py-12">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
-              <p className="text-gray-500 mb-4">
+            <CardContent className="p-12 text-center">
+              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No suppliers found</h3>
+              <p className="text-gray-600 mb-4">
                 {searchTerm || statusFilter !== "all"
-                  ? "Try adjusting your search criteria or filters."
-                  : "Get started by adding your first customer."}
+                  ? "Try adjusting your search or filters"
+                  : "Get started by creating your first supplier"}
               </p>
-              <Link href="/customers/create">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Customer
-                </Button>
-              </Link>
+              {!searchTerm && statusFilter === "all" && (
+                <Link href="/suppliers/create">
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Supplier
+                  </Button>
+                </Link>
+              )}
             </CardContent>
           </Card>
         )}
@@ -167,10 +164,10 @@ function CustomersContent() {
   )
 }
 
-export default function CustomersPage() {
+export default function SuppliersPage() {
   return (
-    <Suspense fallback={<div>Loading customers...</div>}>
-      <CustomersContent />
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuppliersContent />
     </Suspense>
   )
 }

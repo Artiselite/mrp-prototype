@@ -13,60 +13,11 @@ import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrig
 import { Plus, Search, Eye, Edit, Receipt, Download, Send } from 'lucide-react'
 import Link from "next/link"
 
+import { useDatabaseContext } from "@/components/database-provider"
+
 export default function InvoicingPage() {
-  const [invoices] = useState([
-    {
-      id: "INV-2024-001",
-      workOrderId: "WO-2024-003",
-      project: "Custom Fabricated Brackets",
-      customer: "Industrial Corp",
-      status: "Paid",
-      amount: "$18,750",
-      dateIssued: "2024-01-26",
-      dateDue: "2024-02-25",
-      datePaid: "2024-01-30",
-      lineItems: [
-        { description: "Material Cost (A572 Grade 50)", quantity: "8 tons", rate: "$1,200", amount: "$9,600" },
-        { description: "Fabrication Labor", quantity: "40 hrs", rate: "$85", amount: "$3,400" },
-        { description: "Machining Services", quantity: "16 hrs", rate: "$120", amount: "$1,920" },
-        { description: "Quality Inspection", quantity: "1", rate: "$500", amount: "$500" },
-        { description: "Delivery & Setup", quantity: "1", rate: "$750", amount: "$750" }
-      ]
-    },
-    {
-      id: "INV-2024-002",
-      workOrderId: "WO-2024-001",
-      project: "Industrial Warehouse Frame",
-      customer: "ABC Steel Works",
-      status: "Sent",
-      amount: "$142,500",
-      dateIssued: "2024-01-28",
-      dateDue: "2024-02-27",
-      datePaid: null,
-      lineItems: [
-        { description: "Structural Steel Materials", quantity: "50 tons", rate: "$1,800", amount: "$90,000" },
-        { description: "Welding & Assembly", quantity: "120 hrs", rate: "$95", amount: "$11,400" },
-        { description: "Engineering Services", quantity: "40 hrs", rate: "$150", amount: "$6,000" },
-        { description: "Project Management", quantity: "1", rate: "$2,500", amount: "$2,500" }
-      ]
-    },
-    {
-      id: "INV-2024-003",
-      workOrderId: "WO-2024-002",
-      project: "Bridge Support Beams",
-      customer: "Metro Construction",
-      status: "Draft",
-      amount: "$95,800",
-      dateIssued: null,
-      dateDue: null,
-      datePaid: null,
-      lineItems: [
-        { description: "High-Grade Steel (A992)", quantity: "35 tons", rate: "$2,100", amount: "$73,500" },
-        { description: "Precision Machining", quantity: "60 hrs", rate: "$140", amount: "$8,400" },
-        { description: "Quality Testing", quantity: "1", rate: "$1,200", amount: "$1,200" }
-      ]
-    }
-  ])
+  const { useInvoices } = useDatabaseContext()
+  const { invoices } = useInvoices()
 
   const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)

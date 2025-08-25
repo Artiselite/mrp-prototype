@@ -13,7 +13,7 @@ import { ShoppingCart, Plus, Trash2, ArrowLeft, Save, Send } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { suppliers, billsOfMaterials } from "@/lib/data"
-import type { ProcurementItem } from "@/lib/types"
+import type { PurchaseOrderItem } from "@/lib/types"
 
 export default function CreatePurchaseOrderPage() {
   const router = useRouter()
@@ -27,7 +27,7 @@ export default function CreatePurchaseOrderPage() {
     notes: "",
   })
 
-  const [items, setItems] = useState<ProcurementItem[]>([
+  const [items, setItems] = useState<PurchaseOrderItem[]>([
     {
       id: "1",
       description: "",
@@ -37,9 +37,9 @@ export default function CreatePurchaseOrderPage() {
       unitPrice: 0,
       totalPrice: 0,
       steelGrade: "",
-      specifications: "",
       urgency: "Medium",
       requestedDate: "",
+      specifications: "",
       notes: "",
     },
   ])
@@ -47,7 +47,7 @@ export default function CreatePurchaseOrderPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const addItem = () => {
-    const newItem: ProcurementItem = {
+    const newItem: PurchaseOrderItem = {
       id: (items.length + 1).toString(),
       description: "",
       partNumber: "",
@@ -56,9 +56,9 @@ export default function CreatePurchaseOrderPage() {
       unitPrice: 0,
       totalPrice: 0,
       steelGrade: "",
-      specifications: "",
       urgency: "Medium",
       requestedDate: "",
+      specifications: "",
       notes: "",
     }
     setItems([...items, newItem])
@@ -70,7 +70,7 @@ export default function CreatePurchaseOrderPage() {
     }
   }
 
-  const updateItem = (id: string, field: keyof ProcurementItem, value: any) => {
+  const updateItem = (id: string, field: keyof PurchaseOrderItem, value: string | number) => {
     setItems(
       items.map((item) => {
         if (item.id === id) {

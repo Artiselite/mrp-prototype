@@ -34,9 +34,12 @@ export interface Supplier {
   paymentTerms: string
   leadTime: number
   qualityRating: number
+  rating: number
   totalOrders: number
+  specialties: string[]
   createdAt: string
   updatedAt: string
+  notes?: string
 }
 
 // Quotation types
@@ -155,6 +158,7 @@ export interface BOMItem {
 export interface BillOfMaterials {
   id: string
   bomNumber: string
+  title: string
   productName: string
   description: string
   status: "Draft" | "Under Review" | "Approved" | "Released" | "Obsolete"
@@ -227,10 +231,14 @@ export interface PurchaseOrderItem {
   partNumber: string
   description: string
   quantity: number
+  unit: string
   unitPrice: number
   totalPrice: number
+  steelGrade: string
+  urgency: "Low" | "Medium" | "High" | "Critical"
   requestedDate: string
   specifications?: string
+  notes?: string
 }
 
 export interface PurchaseOrder {
@@ -238,6 +246,8 @@ export interface PurchaseOrder {
   poNumber: string
   supplierId: string
   supplierName: string
+  bomId?: string
+  priority?: "Low" | "Medium" | "High" | "Critical"
   status: "Draft" | "Sent" | "Acknowledged" | "Shipped" | "Received" | "Cancelled"
   items: PurchaseOrderItem[]
   subtotal: number
@@ -245,9 +255,27 @@ export interface PurchaseOrder {
   total: number
   orderDate: string
   requestedDeliveryDate: string
+  actualDeliveryDate?: string
+  shippingAddress?: string
   paymentTerms: string
   createdAt: string
   updatedAt: string
   revision: string
   notes?: string
+}
+
+// Procurement types
+export interface ProcurementItem {
+  id: string
+  description: string
+  partNumber: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  totalPrice: number
+  steelGrade: string
+  specifications: string
+  urgency: "Low" | "Medium" | "High" | "Critical"
+  requestedDate: string
+  notes: string
 }

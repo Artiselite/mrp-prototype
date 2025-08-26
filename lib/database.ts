@@ -4,10 +4,15 @@ import type {
   Quotation,
   SalesOrder,
   EngineeringDrawing,
+  EngineeringProject,
+  EngineeringChange,
   BillOfMaterials,
+  BillOfQuantities,
   ProductionWorkOrder,
   Invoice,
   PurchaseOrder,
+  Item,
+  Location,
 } from "./types"
 
 // Database configuration
@@ -22,10 +27,15 @@ const DB_KEYS = {
   QUOTATIONS: `${DB_PREFIX}quotations`,
   SALES_ORDERS: `${DB_PREFIX}sales_orders`,
   ENGINEERING_DRAWINGS: `${DB_PREFIX}engineering_drawings`,
+  ENGINEERING_PROJECTS: `${DB_PREFIX}engineering_projects`,
+  ENGINEERING_CHANGES: `${DB_PREFIX}engineering_changes`,
   BILLS_OF_MATERIALS: `${DB_PREFIX}bills_of_materials`,
+  BILLS_OF_QUANTITIES: `${DB_PREFIX}bills_of_quantities`,
   PRODUCTION_WORK_ORDERS: `${DB_PREFIX}production_work_orders`,
   INVOICES: `${DB_PREFIX}invoices`,
   PURCHASE_ORDERS: `${DB_PREFIX}purchase_orders`,
+  ITEMS: `${DB_PREFIX}items`,
+  LOCATIONS: `${DB_PREFIX}locations`,
 } as const
 
 // Database class
@@ -73,7 +83,9 @@ class LocalDatabase {
   private async seedDatabase(): Promise<void> {
     try {
       // Import data directly instead of dynamic import
-      const { customers, suppliers, quotations, salesOrders, engineeringDrawings, billsOfMaterials, productionWorkOrders, invoices, purchaseOrders } = await import("./data")
+      const { customers, suppliers, quotations, salesOrders, engineeringDrawings, 
+        engineeringProjects, engineeringChanges, billsOfMaterials, billsOfQuantities, 
+        productionWorkOrders, invoices, purchaseOrders, items, locations } = await import("./data")
 
       console.log("Seeding database with:", { customers: customers.length, suppliers: suppliers.length, quotations: quotations.length })
 
@@ -92,8 +104,17 @@ class LocalDatabase {
       // Seed engineering drawings
       this.setEngineeringDrawings(engineeringDrawings)
 
+      // Seed engineering projects
+      this.setEngineeringProjects(engineeringProjects)
+
+      // Seed engineering changes
+      this.setEngineeringChanges(engineeringChanges)
+
       // Seed bills of materials
       this.setBillsOfMaterials(billsOfMaterials)
+
+      // Seed bills of quantities
+      this.setBillsOfQuantities(billsOfQuantities)
 
       // Seed production work orders
       this.setProductionWorkOrders(productionWorkOrders)
@@ -103,6 +124,12 @@ class LocalDatabase {
 
       // Seed purchase orders
       this.setPurchaseOrders(purchaseOrders)
+
+      // Seed items
+      this.setItems(items)
+
+      // Seed locations
+      this.setLocations(locations)
 
       console.log("Database seeding completed successfully")
     } catch (error) {
@@ -480,6 +507,61 @@ class LocalDatabase {
     return true
   }
 
+  // Bill of Quantities operations
+  getBillsOfQuantities(): BillOfQuantities[] {
+    return this.getItem<BillOfQuantities>(DB_KEYS.BILLS_OF_QUANTITIES)
+  }
+
+  getBillOfQuantities(id: string): BillOfQuantities | null {
+    const boqs = this.getBillsOfQuantities()
+    return boqs.find(b => b.id === id) || null
+  }
+
+  setBillsOfQuantities(boqs: BillOfQuantities[]): void {
+    this.setItem(DB_KEYS.BILLS_OF_QUANTITIES, boqs)
+  }
+
+  createBillOfQuantities(boq: Omit<BillOfQuantities, "id" | "createdAt" | "updatedAt">): BillOfQuantities {
+    const boqs = this.getBillsOfQuantities()
+    const newBoq = {
+      ...boq,
+      id: this.generateId(),
+    }
+
+    const updatedBoq = this.updateTimestamps(newBoq, true)
+    boqs.push(updatedBoq)
+    this.setBillsOfQuantities(boqs)
+
+    return updatedBoq
+  }
+
+  updateBillOfQuantities(id: string, updates: Partial<BillOfQuantities>): BillOfQuantities | null {
+    const boqs = this.getBillsOfQuantities()
+    const index = boqs.findIndex(b => b.id === id)
+
+    if (index === -1) return null
+
+    const updatedBoq = this.updateTimestamps({
+      ...boqs[index],
+      ...updates,
+    })
+
+    boqs[index] = updatedBoq
+    this.setBillsOfQuantities(boqs)
+
+    return updatedBoq
+  }
+
+  deleteBillOfQuantities(id: string): boolean {
+    const boqs = this.getBillsOfQuantities()
+    const filtered = boqs.filter(b => b.id !== id)
+
+    if (filtered.length === boqs.length) return false
+
+    this.setBillsOfQuantities(filtered)
+    return true
+  }
+
   // Production Work Order operations
   getProductionWorkOrders(): ProductionWorkOrder[] {
     return this.getItem<ProductionWorkOrder>(DB_KEYS.PRODUCTION_WORK_ORDERS)
@@ -699,6 +781,226 @@ class LocalDatabase {
   getSuppliersByStatus(status: Supplier["status"]): Supplier[] {
     const suppliers = this.getSuppliers()
     return suppliers.filter(supplier => supplier.status === status)
+  }
+
+  // Item operations
+  getItems(): Item[] {
+    return this.getItem<Item>(DB_KEYS.ITEMS)
+  }
+
+  getItemById(id: string): Item | null {
+    const items = this.getItems()
+    return items.find(item => item.id === id) || null
+  }
+
+  setItems(items: Item[]): void {
+    this.setItem(DB_KEYS.ITEMS, items)
+  }
+
+  createItem(item: Omit<Item, "id" | "createdAt" | "updatedAt">): Item {
+    const items = this.getItems()
+    const newItem = {
+      ...item,
+      id: this.generateId(),
+    }
+
+    const updatedItem = this.updateTimestamps(newItem, true)
+    items.push(updatedItem)
+    this.setItems(items)
+
+    return updatedItem
+  }
+
+  updateItem(id: string, updates: Partial<Item>): Item | null {
+    const items = this.getItems()
+    const index = items.findIndex(item => item.id === id)
+
+    if (index === -1) return null
+
+    const updatedItem = this.updateTimestamps({
+      ...items[index],
+      ...updates,
+    })
+
+    items[index] = updatedItem
+    this.setItems(items)
+
+    return updatedItem
+  }
+
+  deleteItem(id: string): boolean {
+    const items = this.getItems()
+    const filtered = items.filter(item => item.id !== id)
+
+    if (filtered.length === items.length) return false
+
+    this.setItems(filtered)
+    return true
+  }
+
+  // Location operations
+  getLocations(): Location[] {
+    return this.getItem<Location>(DB_KEYS.LOCATIONS)
+  }
+
+  getLocation(id: string): Location | null {
+    const locations = this.getLocations()
+    return locations.find(location => location.id === id) || null
+  }
+
+  setLocations(locations: Location[]): void {
+    this.setItem(DB_KEYS.LOCATIONS, locations)
+  }
+
+  createLocation(location: Omit<Location, "id" | "createdAt" | "updatedAt">): Location {
+    const locations = this.getLocations()
+    const newLocation = {
+      ...location,
+      id: this.generateId(),
+    }
+
+    const updatedLocation = this.updateTimestamps(newLocation, true)
+    locations.push(updatedLocation)
+    this.setLocations(locations)
+
+    return updatedLocation
+  }
+
+  updateLocation(id: string, updates: Partial<Location>): Location | null {
+    const locations = this.getLocations()
+    const index = locations.findIndex(location => location.id === id)
+
+    if (index === -1) return null
+
+    const updatedLocation = this.updateTimestamps({
+      ...locations[index],
+      ...updates,
+    })
+
+    locations[index] = updatedLocation
+    this.setLocations(locations)
+
+    return updatedLocation
+  }
+
+  deleteLocation(id: string): boolean {
+    const locations = this.getLocations()
+    const filtered = locations.filter(location => location.id !== id)
+
+    if (filtered.length === locations.length) return false
+
+    this.setLocations(filtered)
+    return true
+  }
+
+  // Engineering Project operations
+  getEngineeringProjects(): EngineeringProject[] {
+    return this.getItem<EngineeringProject>(DB_KEYS.ENGINEERING_PROJECTS)
+  }
+
+  getEngineeringProjectById(id: string): EngineeringProject | null {
+    const projects = this.getEngineeringProjects()
+    return projects.find(project => project.id === id) || null
+  }
+
+  setEngineeringProjects(projects: EngineeringProject[]): void {
+    this.setItem(DB_KEYS.ENGINEERING_PROJECTS, projects)
+  }
+
+  createEngineeringProject(project: Omit<EngineeringProject, "id" | "createdAt" | "updatedAt">): EngineeringProject {
+    const projects = this.getEngineeringProjects()
+    const newProject = {
+      ...project,
+      id: this.generateId(),
+    }
+
+    const updatedProject = this.updateTimestamps(newProject, true)
+    projects.push(updatedProject)
+    this.setEngineeringProjects(projects)
+
+    return updatedProject
+  }
+
+  updateEngineeringProject(id: string, updates: Partial<EngineeringProject>): EngineeringProject | null {
+    const projects = this.getEngineeringProjects()
+    const index = projects.findIndex(project => project.id === id)
+
+    if (index === -1) return null
+
+    const updatedProject = this.updateTimestamps({
+      ...projects[index],
+      ...updates,
+    })
+
+    projects[index] = updatedProject
+    this.setEngineeringProjects(projects)
+
+    return updatedProject
+  }
+
+  deleteEngineeringProject(id: string): boolean {
+    const projects = this.getEngineeringProjects()
+    const filtered = projects.filter(project => project.id !== id)
+
+    if (filtered.length === projects.length) return false
+
+    this.setEngineeringProjects(filtered)
+    return true
+  }
+
+  // Engineering Change operations
+  getEngineeringChanges(): EngineeringChange[] {
+    return this.getItem<EngineeringChange>(DB_KEYS.ENGINEERING_CHANGES)
+  }
+
+  getEngineeringChangeById(id: string): EngineeringChange | null {
+    const changes = this.getEngineeringChanges()
+    return changes.find(change => change.id === id) || null
+  }
+
+  setEngineeringChanges(changes: EngineeringChange[]): void {
+    this.setItem(DB_KEYS.ENGINEERING_CHANGES, changes)
+  }
+
+  createEngineeringChange(change: Omit<EngineeringChange, "id" | "createdAt" | "updatedAt">): EngineeringChange {
+    const changes = this.getEngineeringChanges()
+    const newChange = {
+      ...change,
+      id: this.generateId(),
+    }
+
+    const updatedChange = this.updateTimestamps(newChange, true)
+    changes.push(updatedChange)
+    this.setEngineeringChanges(changes)
+
+    return updatedChange
+  }
+
+  updateEngineeringChange(id: string, updates: Partial<EngineeringChange>): EngineeringChange | null {
+    const changes = this.getEngineeringChanges()
+    const index = changes.findIndex(change => change.id === id)
+
+    if (index === -1) return null
+
+    const updatedChange = this.updateTimestamps({
+      ...changes[index],
+      ...updates,
+    })
+
+    changes[index] = updatedChange
+    this.setEngineeringChanges(changes)
+
+    return updatedChange
+  }
+
+  deleteEngineeringChange(id: string): boolean {
+    const changes = this.getEngineeringChanges()
+    const filtered = changes.filter(change => change.id !== id)
+
+    if (filtered.length === changes.length) return false
+
+    this.setEngineeringChanges(filtered)
+    return true
   }
 }
 

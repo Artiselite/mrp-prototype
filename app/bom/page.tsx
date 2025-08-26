@@ -49,6 +49,63 @@ export default function BOMPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Package className="h-8 w-8 text-blue-500" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total BOMs</p>
+                  <p className="text-2xl font-bold text-gray-900">{boms.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="h-4 w-4 bg-green-500 rounded-full"></div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Approved</p>
+                  <p className="text-2xl font-bold text-gray-900">{boms.filter(b => b.status === "Approved").length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <div className="h-4 w-4 bg-yellow-500 rounded-full"></div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Draft</p>
+                  <p className="text-2xl font-bold text-gray-900">{boms.filter(b => b.status === "Draft").length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Calculator className="h-8 w-8 text-green-500" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Value</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ${boms.reduce((total, bom) => total + (bom.totalCost || 0), 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search and Filters */}
         <Card className="mb-6">
           <CardContent className="pt-6">
@@ -66,17 +123,17 @@ export default function BOMPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="review">Review</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
               <Select>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by engineer" />
+                  <SelectValue placeholder="Filter by creator" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Engineers</SelectItem>
+                  <SelectItem value="all">All Creators</SelectItem>
                   <SelectItem value="john">John Smith</SelectItem>
                   <SelectItem value="sarah">Sarah Johnson</SelectItem>
                   <SelectItem value="mike">Mike Davis</SelectItem>
@@ -98,42 +155,55 @@ export default function BOMPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>BOM ID</TableHead>
-                  <TableHead>Drawing</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Materials</TableHead>
+                  <TableHead>BOM Number</TableHead>
+                  <TableHead>Product Name</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Items</TableHead>
                   <TableHead>Total Cost</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Engineer</TableHead>
+                  <TableHead>Created By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {boms.map((bom) => (
+                {boms.length > 0 ? boms.map((bom) => (
                   <TableRow key={bom.id}>
-                    <TableCell className="font-medium">{bom.id}</TableCell>
-                    <TableCell>{bom.drawingId}</TableCell>
+                    <TableCell className="font-medium">{bom.bomNumber}</TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{bom.project}</p>
-                        <p className="text-sm text-gray-500">Created: {bom.dateCreated}</p>
+                        <p className="font-medium">{bom.productName}</p>
+                        <p className="text-sm text-gray-500">Created: {new Date(bom.createdAt).toLocaleDateString()}</p>
                       </div>
                     </TableCell>
-                    <TableCell>{bom.customer}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{bom.version}</span>
+                        <span className="text-sm text-gray-500">({bom.revision})</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {bom.bomType ? (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          {bom.bomType}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Package className="w-4 h-4 text-gray-500" />
-                        {bom.materialCount} items
+                        {bom.itemCount || bom.items?.length || 0} items
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{bom.totalCost}</TableCell>
+                    <TableCell className="font-medium">${bom.totalCost?.toLocaleString() || '0'}</TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(bom.status)}>
-                        {bom.status}
+                      <Badge className={getStatusColor(bom.status || "Draft")}>
+                        {bom.status || "Draft"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{bom.engineer}</TableCell>
+                    <TableCell>{bom.createdBy || 'Unknown'}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Link href={`/bom/${bom.id}`}>
@@ -146,13 +216,31 @@ export default function BOMPage() {
                             <Edit className="w-4 h-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm" title="Cost Analysis">
-                          <Calculator className="w-4 h-4" />
-                        </Button>
+                        <Link href={`/boq/create?bomId=${bom.id}`}>
+                          <Button variant="ghost" size="sm" title="Create BOQ">
+                            <Calculator className="w-4 h-4" />
+                          </Button>
+                        </Link>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <Package className="w-12 h-12 text-gray-400" />
+                        <p className="text-gray-500 font-medium">No BOMs found</p>
+                        <p className="text-sm text-gray-400">Create your first BOM to get started</p>
+                        <Link href="/bom/create" className="mt-2">
+                          <Button size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create BOM
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>

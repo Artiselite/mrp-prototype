@@ -1,191 +1,256 @@
-# MRP Platform Demo Flow - Two-Part Manufacturing Journey
+# MRP Platform Demo Flow - Engineer-to-Order Manufacturing Journey
 
 ## Demo Overview
-This demo is structured in two parts to provide a comprehensive understanding of the MRP platform:
+This demo showcases an **Engineer-to-Order (ETO) manufacturing platform** where every customer order requires custom engineering design, detailed cost estimation, and precise production planning. The journey begins with customer requirements and flows through engineering analysis, quotation development, and sales order conversion.
 
-**Part 1**: Platform Setup & Foundation - Establishing the core system infrastructure  
-**Part 2**: End-to-End Journey - Walking through the complete manufacturing workflow
+**Part 1**: Platform Setup & Foundation - Establishing the core ETO system infrastructure  
+**Part 2**: End-to-End ETO Journey - Walking through the complete engineering-driven workflow
 
-The prototype focuses heavily on the early stages — from quotation and engineering drawings through BOM creation, demand consolidation, and procurement planning — while maintaining functional representation of later stages to demonstrate the complete journey.
+The prototype focuses heavily on the **engineering-driven early stages** — from RFQ analysis and engineering drawings through BOM creation, cost estimation, quotation development, and sales order conversion — while maintaining functional representation of later stages to demonstrate the complete journey.
 
 ---
 
-## 🗺️ End-to-End User Journey Diagram
+## 🗺️ End-to-End ETO User Journey Diagram
 
-\`\`\`mermaid
+```mermaid
 journey
-    title MRP Platform - Complete Manufacturing Journey
+    title MRP Platform - Engineer-to-Order Manufacturing Journey
     section Part 1: Platform Setup & Foundation
       Customer Setup: 5: Admin
+      Engineering Standards: 5: Engineering
       Manufacturing Routings: 5: Engineering
       Bill of Materials (BOMs): 5: Engineering
       Item Master Setup: 5: Admin
-    section Part 2: End-to-End Manufacturing Journey
+      Cost Structure Setup: 5: Finance
+    section Part 2: End-to-End ETO Journey
       Receive RFQ: 5: Customer
+      Engineering Analysis: 5: Engineering
       RFQ to Quotation: 5: Engineering
+      Quotation Review & Approval: 4: Sales/Management
       Quotation Sent to Customer: 4: Sales
+      Customer Negotiation: 4: Sales/Engineering
       Receive Purchase Order: 5: Customer
       PO to Sales Order: 4: Sales
+      Engineering Release: 5: Engineering
       Sales Order to Work Order: 4: Planning
       Work Order Operations & Routing: 4: Operations
       Work Order Completion: 4: QA
       Invoice Creation: 4: Finance
-\`\`\`
+```
 
 ---
 
 ## 🎯 Demo Structure
 
-### **Part 1: Platform Setup & Foundation** ⭐ **SYSTEM CONFIGURATION**
+### **Part 1: Platform Setup & Foundation** ⭐ **ETO SYSTEM CONFIGURATION**
 *Duration: 15-20 minutes*
 
 #### 1.1 Customer Setup
-- **Customer Portal Configuration**: Set up customer accounts and access permissions
-- **Customer Profile Management**: Configure customer-specific settings and preferences
-- **Communication Templates**: Establish standardized communication workflows
+- **Customer Portal Configuration**: Set up customer accounts with engineering document access
+- **Customer Profile Management**: Configure customer-specific engineering standards and preferences
+- **Communication Templates**: Establish standardized engineering review and approval workflows
 
-#### 1.2 Manufacturing Routings
-- **Routing Definition**: Create production process workflows and sequences
-- **Operation Setup**: Define individual manufacturing operations with time estimates
-- **Resource Allocation**: Configure machines, work centers, and labor requirements
-- **Quality Checkpoints**: Establish inspection points and acceptance criteria
+#### 1.2 Engineering Standards & Capabilities
+- **Design Standards**: Define company engineering capabilities and design parameters
+- **Technical Specifications**: Establish standard material grades, tolerances, and quality requirements
+- **Engineering Workflows**: Configure approval processes for custom designs
+- **Cost Estimation Models**: Set up engineering-driven cost calculation methodologies
 
-#### 1.3 Bill of Materials (BOMs)
-- **BOM Structure**: Create hierarchical component relationships
-- **Component Specifications**: Define material requirements and specifications
-- **Cost Roll-up**: Configure pricing and cost calculation methods
-- **Version Control**: Set up BOM revision management
+#### 1.3 Manufacturing Routings
+- **Custom Routing Definition**: Create flexible production process workflows for unique designs
+- **Operation Setup**: Define individual manufacturing operations with engineering time estimates
+- **Resource Allocation**: Configure machines, work centers, and specialized labor requirements
+- **Quality Checkpoints**: Establish engineering-driven inspection points and acceptance criteria
 
-#### 1.4 Item Master Setup
-- **Item Categories**: Organize items by type (raw materials, components, finished goods)
-- **Item Specifications**: Define technical specifications and properties
-- **Supplier Information**: Link items to approved suppliers
-- **Inventory Parameters**: Set reorder points, safety stock, and lead times
+#### 1.4 Bill of Materials (BOMs)
+- **Engineering-Driven BOM Structure**: Create hierarchical component relationships from design
+- **Component Specifications**: Define material requirements based on engineering analysis
+- **Cost Roll-up**: Configure engineering-driven pricing and cost calculation methods
+- **Version Control**: Set up BOM revision management with engineering change control
+
+#### 1.5 Item Master Setup
+- **Item Categories**: Organize items by type (raw materials, custom components, finished goods)
+- **Engineering Specifications**: Define technical specifications and material properties
+- **Supplier Information**: Link items to approved suppliers with engineering qualifications
+- **Inventory Parameters**: Set reorder points, safety stock, and engineering-driven lead times
+
+#### 1.6 Cost Structure Setup
+- **Engineering Labor Rates**: Configure hourly rates for different engineering disciplines
+- **Material Cost Models**: Set up pricing structures for custom and standard materials
+- **Overhead Allocation**: Define engineering and manufacturing overhead distribution
+- **Profit Margin Models**: Establish quotation pricing strategies and margins
 
 ---
 
-### **Part 2: End-to-End Manufacturing Journey** ⭐ **WORKFLOW DEMONSTRATION**
+### **Part 2: End-to-End ETO Journey** ⭐ **ENGINEERING-DRIVEN WORKFLOW DEMONSTRATION**
 *Duration: 25-30 minutes*
 
 #### 2.1 Receive RFQ (Request for Quote)
-- **Customer Submission**: Customer submits RFQ through portal
-- **Requirements Capture**: System captures technical specifications and quantities
-- **Document Management**: Attach relevant drawings and specifications
-- **Workflow Initiation**: Route to appropriate engineering and sales teams
+- **Customer Submission**: Customer submits RFQ through portal with technical requirements
+- **Engineering Requirements Capture**: System captures detailed technical specifications and drawings
+- **Document Management**: Attach engineering drawings, specifications, and customer requirements
+- **Engineering Workflow Initiation**: Route to appropriate engineering teams for analysis
 
-#### 2.2 RFQ → Quotation Conversion
-- **Engineering Review**: Technical team analyzes requirements against drawings
-- **BOM Generation**: System creates Bill of Materials from engineering drawings
-- **Cost Calculation**: Automated cost estimation using current BOM pricing
-- **Quotation Assembly**: Generate comprehensive quotation with detailed breakdown
+#### 2.2 Engineering Analysis & Design
+- **Technical Feasibility Review**: Engineering team analyzes requirements against capabilities
+- **Design Development**: Create or modify engineering drawings and specifications
+- **Material Selection**: Choose appropriate materials based on engineering requirements
+- **Manufacturing Feasibility**: Validate production capability for custom design
 
-#### 2.3 Quotation Sent to Customer
-- **Professional Formatting**: System generates professional quotation document
-- **Cost Transparency**: Detailed cost breakdown by component and operation
-- **Terms & Conditions**: Include delivery timeline, payment terms, and validity
-- **Customer Communication**: Send via customer portal with tracking
+#### 2.3 RFQ → Quotation Conversion
+- **Engineering-Driven BOM Generation**: System creates Bill of Materials from engineering analysis
+- **Detailed Cost Calculation**: Automated cost estimation using engineering labor and material costs
+- **Manufacturing Time Estimation**: Calculate production time based on engineering routing
+- **Quotation Assembly**: Generate comprehensive quotation with engineering breakdown
 
-#### 2.4 Receive Purchase Order from Customer
-- **Order Confirmation**: Customer submits formal purchase order
-- **Order Validation**: System validates against quotation terms
-- **Document Processing**: Convert customer PO to internal sales order
-- **Project Initiation**: Begin production planning and material procurement
+#### 2.4 Quotation Review & Approval
+- **Engineering Review**: Technical team validates quotation accuracy and feasibility
+- **Management Approval**: Review pricing, margins, and delivery commitments
+- **Risk Assessment**: Evaluate technical and commercial risks
+- **Final Quotation Preparation**: Prepare customer-ready quotation document
 
-#### 2.5 Purchase Order → Sales Order Conversion
-- **Internal Order Creation**: Generate sales order with production requirements
-- **Material Planning**: Calculate material requirements and lead times
-- **Resource Planning**: Allocate production capacity and resources
-- **Timeline Planning**: Establish production schedule and milestones
+#### 2.5 Quotation Sent to Customer
+- **Professional Engineering Format**: System generates professional quotation with technical details
+- **Engineering Transparency**: Detailed cost breakdown by component, operation, and engineering effort
+- **Technical Specifications**: Include engineering drawings, material specifications, and quality standards
+- **Terms & Conditions**: Include delivery timeline, payment terms, and engineering change procedures
 
-#### 2.6 Sales Order → Work Order Conversion
-- **Material Availability Check**: Verify all materials are procured and available
-- **Work Order Generation**: Create production work orders with routing details
-- **Operation Sequencing**: Break down work order into individual operations
-- **Resource Scheduling**: Assign machines, tools, and labor to operations
+#### 2.6 Customer Negotiation & Engineering Adjustments
+- **Customer Feedback Integration**: Capture customer requirements and design modifications
+- **Engineering Change Management**: Process design changes and update cost estimates
+- **Revised Quotation**: Generate updated quotations for customer approval
+- **Final Agreement**: Reach agreement on technical specifications and pricing
 
-#### 2.7 Work Order Operations & Routing Tracking
-- **Production Start**: Begin manufacturing operations according to routing
-- **Progress Tracking**: Monitor operation completion in real-time
-- **Quality Control**: Execute inspection points and quality checks
-- **Issue Management**: Handle production issues and deviations
+#### 2.7 Receive Purchase Order from Customer
+- **Order Confirmation**: Customer submits formal purchase order with final specifications
+- **Engineering Validation**: System validates against final quotation terms and engineering specs
+- **Document Processing**: Convert customer PO to internal sales order with engineering release
+- **Project Initiation**: Begin detailed engineering and production planning
 
-#### 2.8 Work Order Completion
-- **Final Assembly**: Complete all manufacturing operations
-- **Quality Final Inspection**: Conduct final quality control checks
-- **Documentation**: Complete production records and certificates
-- **Inventory Update**: Update finished goods inventory
+#### 2.8 Purchase Order → Sales Order Conversion
+- **Engineering Release Process**: Finalize engineering drawings and specifications
+- **Internal Order Creation**: Generate sales order with complete engineering requirements
+- **Material Planning**: Calculate material requirements based on final engineering design
+- **Resource Planning**: Allocate production capacity and specialized engineering resources
 
-#### 2.9 Invoice Creation from Work Order
-- **Cost Reconciliation**: Compare actual costs to estimated costs
-- **Invoice Generation**: Create customer invoice with final pricing
-- **Documentation**: Include delivery proof and quality certificates
+#### 2.9 Engineering Release & Production Planning
+- **Final Design Approval**: Complete engineering review and approval process
+- **Production Documentation**: Generate complete manufacturing documentation
+- **Quality Plan Development**: Establish inspection and testing procedures
+- **Production Schedule**: Create detailed production timeline with engineering milestones
+
+#### 2.10 Sales Order → Work Order Conversion
+- **Material Availability Check**: Verify all custom materials are procured and available
+- **Work Order Generation**: Create production work orders with engineering routing details
+- **Operation Sequencing**: Break down work order into individual engineering-driven operations
+- **Resource Scheduling**: Assign specialized machines, tools, and engineering labor
+
+#### 2.11 Work Order Operations & Routing Tracking
+- **Production Start**: Begin manufacturing operations according to engineering routing
+- **Engineering Oversight**: Monitor production against engineering specifications
+- **Progress Tracking**: Track operation completion with engineering quality checkpoints
+- **Issue Management**: Handle production issues with engineering support
+
+#### 2.12 Work Order Completion
+- **Final Assembly**: Complete all manufacturing operations per engineering design
+- **Engineering Quality Final Inspection**: Conduct final quality control against engineering specs
+- **Documentation**: Complete production records, engineering certificates, and compliance docs
+- **Inventory Update**: Update finished goods inventory with engineering specifications
+
+#### 2.13 Invoice Creation from Work Order
+- **Engineering Cost Reconciliation**: Compare actual costs to engineering estimates
+- **Invoice Generation**: Create customer invoice with final engineering-driven pricing
+- **Documentation**: Include delivery proof, quality certificates, and engineering documentation
 - **Financial Integration**: Update accounting and payment tracking
 
 ---
 
 ## 🔧 Technical Implementation Highlights
 
-### System Integration ⭐ **PROTOTYPE FOCUS**
-- **Unified Database**: Single source of truth for all data with focus on early-stage modules
-- **API Architecture**: Seamless module integration between quotation, engineering, BOM, and procurement
-- **Real-time Updates**: Live data synchronization across core modules with functional integration to later stages
+### System Integration ⭐ **ETO PROTOTYPE FOCUS**
+- **Engineering-Centric Database**: Single source of truth for all engineering data and specifications
+- **API Architecture**: Seamless integration between engineering, quotation, BOM, and procurement modules
+- **Real-time Updates**: Live data synchronization across core engineering modules with functional integration to later stages
 
-### User Experience ⭐ **PROTOTYPE FOCUS**
-- **Responsive Design**: Works on desktop, tablet, and mobile with optimized workflows for early stages
-- **Intuitive Interface**: Role-based dashboards and workflows focused on engineering and procurement teams
-- **Accessibility**: WCAG compliant for all users with specialized interfaces for technical teams
+### User Experience ⭐ **ETO PROTOTYPE FOCUS**
+- **Engineering-First Design**: Role-based dashboards optimized for engineering and technical teams
+- **Responsive Interface**: Works on desktop, tablet, and mobile with specialized engineering workflows
+- **Accessibility**: WCAG compliant with specialized interfaces for engineering and technical teams
 
-### Security & Compliance ⭐ **PROTOTYPE FOCUS**
-- **Role-based Access**: Granular permissions and security for engineering and procurement workflows
-- **Data Encryption**: Secure transmission and storage of technical documents and cost data
-- **Audit Logging**: Complete activity tracking and compliance for design and planning processes
+### Security & Compliance ⭐ **ETO PROTOTYPE FOCUS**
+- **Engineering Data Security**: Granular permissions for engineering documents and specifications
+- **Data Encryption**: Secure transmission and storage of engineering drawings and technical data
+- **Audit Logging**: Complete activity tracking for engineering changes and approvals
 
 ---
 
 ## 📊 Demo Dashboard Views
 
-### Part 1: Setup & Configuration Views
-- **System Configuration**: Platform setup and parameter management
-- **Master Data Management**: Customer, routing, BOM, and item setup
-- **User Management**: Role and permission configuration
-- **Integration Settings**: API and external system connections
+### Part 1: ETO Setup & Configuration Views
+- **Engineering Standards Configuration**: Platform setup and engineering parameter management
+- **Master Data Management**: Customer, routing, BOM, and item setup with engineering focus
+- **User Management**: Role and permission configuration for engineering teams
+- **Integration Settings**: API and external system connections for engineering tools
 
-### Part 2: Operational Dashboard Views
-- **Order Pipeline**: Current RFQs, quotations, and orders
-- **Production Status**: Real-time work order progress
-- **Material Status**: Inventory levels and procurement status
-- **Financial Summary**: Revenue, costs, and profitability
+### Part 2: ETO Operational Dashboard Views
+- **Engineering Pipeline**: Current RFQs, engineering analysis, and quotation development
+- **Production Status**: Real-time work order progress with engineering oversight
+- **Material Status**: Inventory levels and procurement status for custom materials
+- **Financial Summary**: Revenue, engineering costs, and profitability analysis
 
 ---
 
-## 🎯 Key Benefits Demonstrated
+## 🎯 Key ETO Benefits Demonstrated
 
 ### Part 1: Foundation Benefits
-- **System Flexibility**: Easy configuration for different manufacturing environments
-- **Data Integrity**: Centralized master data management
-- **Scalability**: Platform grows with business needs
-- **User Adoption**: Intuitive setup and configuration processes
+- **Engineering Flexibility**: Easy configuration for different ETO manufacturing environments
+- **Data Integrity**: Centralized engineering data management and version control
+- **Scalability**: Platform grows with engineering complexity and business needs
+- **User Adoption**: Intuitive setup for engineering and technical teams
 
-### Part 2: Workflow Benefits
-- **Complete Traceability**: Every step documented and traceable
-- **Cost Control**: Real-time cost monitoring and variance analysis
-- **Efficiency Gains**: Automated workflows reduce manual errors
-- **Quality Assurance**: Structured processes and validation checkpoints
+### Part 2: ETO Workflow Benefits
+- **Complete Engineering Traceability**: Every design decision documented and traceable
+- **Engineering Cost Control**: Real-time cost monitoring with engineering-driven estimates
+- **Efficiency Gains**: Automated engineering workflows reduce design-to-production time
+- **Quality Assurance**: Structured engineering processes and validation checkpoints
 
 ---
 
-## 📈 Success Metrics
+## 📈 ETO Success Metrics
 
 ### Part 1: Setup Metrics
-- **Configuration Time**: 50% faster platform setup compared to traditional systems
-- **Data Accuracy**: 99%+ accuracy in master data setup
-- **User Training**: 70% reduction in training time for new users
+- **Engineering Configuration Time**: 50% faster platform setup for ETO environments
+- **Data Accuracy**: 99%+ accuracy in engineering data and specification setup
+- **User Training**: 70% reduction in training time for engineering teams
 
 ### Part 2: Operational Metrics
-- **Lead Time Reduction**: 30% faster from RFQ to production start
-- **Cost Accuracy**: 95%+ accuracy in cost estimates
-- **Quality Improvement**: 40% reduction in production errors
+- **Engineering Lead Time**: 30% faster from RFQ to engineering release
+- **Cost Accuracy**: 95%+ accuracy in engineering-driven cost estimates
+- **Quality Improvement**: 40% reduction in engineering-related production errors
+- **Customer Satisfaction**: Improved accuracy in meeting customer technical requirements
 
 ---
 
-*This demo showcases the complete integration and value proposition of the MRP platform through a structured two-part approach: first establishing the foundation, then demonstrating the complete end-to-end manufacturing workflow. The prototype emphasizes the early stages of the manufacturing process while maintaining functional representation of later stages to demonstrate the complete journey.*
+## 🏭 Engineer-to-Order Business Characteristics
+
+### **Custom Engineering Requirements**
+- Every customer order requires unique engineering design and analysis
+- Technical specifications drive material selection and manufacturing processes
+- Engineering labor and expertise are significant cost components
+- Design changes during quotation process are common and must be managed
+
+### **Engineering-Driven Cost Structure**
+- Engineering labor costs are major pricing factors
+- Material costs vary significantly based on custom specifications
+- Manufacturing complexity drives production time and cost estimates
+- Overhead allocation must account for engineering department costs
+
+### **Quality and Compliance Focus**
+- Engineering specifications define quality standards and acceptance criteria
+- Regulatory compliance requirements drive design and documentation needs
+- Engineering change control is critical for maintaining quality and traceability
+- Customer approval processes often require engineering documentation
+
+---
+
+*This demo showcases the complete integration and value proposition of the ETO MRP platform through a structured two-part approach: first establishing the engineering foundation, then demonstrating the complete engineering-driven manufacturing workflow. The prototype emphasizes the critical engineering stages of the ETO process while maintaining functional representation of later stages to demonstrate the complete journey from quotation to sales order to production completion.*

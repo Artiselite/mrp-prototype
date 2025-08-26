@@ -5,52 +5,65 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react'
+import { Textarea } from "@/components/ui/textarea"
+import { ArrowLeft, Save } from 'lucide-react'
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-export default function CreateDrawingPage() {
+import { useDatabaseContext } from "@/components/database-provider"
+
+export default function CreateEngineeringProjectPage() {
+  const router = useRouter()
+  const { useEngineeringProjects, useCustomers } = useDatabaseContext()
+  const { createProject } = useEngineeringProjects()
+  const { customers } = useCustomers()
+
   const [formData, setFormData] = useState({
-    quotationId: "",
-    drawingType: "",
-    specifications: "",
-    engineer: "",
+    projectNumber: "",
+    customerId: "",
+    title: "",
+    description: "",
+    projectType: "Custom Design" as const,
+    priority: "Medium" as const,
+    estimatedHours: 0,
+    estimatedCost: 0,
+    startDate: "",
     dueDate: "",
-    priority: "medium",
-    notes: ""
+    assignedEngineer: "",
+    projectManager: "",
+    customerRequirements: "",
+    technicalSpecifications: "",
+    constraints: [] as string[],
+    risks: [] as string[],
+    deliverables: [] as string[],
   })
 
-  const [uploadedFiles, setUploadedFiles] = useState([])
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    try {
+      const selectedCustomer = customers.find(c => c.id === formData.customerId)
+      if (!selectedCustomer) {
+        throw new Error("Customer not found")
+      }
 
-  const quotations = [
-    { id: "QUO-2024-001", customer: "ABC Steel Works", project: "Industrial Warehouse Frame", status: "Approved" },
-    { id: "QUO-2024-002", customer: "Metro Construction", project: "Bridge Support Beams", status: "Approved" },
-    { id: "QUO-2024-003", customer: "Industrial Corp", project: "Custom Fabricated Brackets", status: "Approved" }
-  ]
-
-  const drawingStandards = [
-    { name: "AISC Steel Construction Manual", version: "15th Edition" },
-    { name: "AWS D1.1 Structural Welding Code", version: "2020" },
-    { name: "ASTM A36 Standard Specification", version: "Current" },
-    { name: "Company Drawing Standards", version: "v2.1" }
-  ]
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+      const newProject = await createProject({
+        ...formData,
+        customerName: selectedCustomer.name,
+        status: "Draft",
+        actualHours: 0,
+        actualCost: 0,
+        revision: "Rev A",
+      })
+      
+      router.push(`/engineering/${newProject.id}`)
+    } catch (error) {
+      console.error("Failed to create project:", error)
+    }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    setUploadedFiles(prev => [...prev, ...files.map(file => ({ name: file.name, size: file.size, type: file.type }))])
-  }
 
-  const selectedQuotation = quotations.find(q => q.id === formData.quotationId)
-
-  const handleSave = (action: "draft" | "review" | "submit") => {
-    console.log("Saving drawing:", { ...formData, uploadedFiles, action })
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,292 +71,201 @@ export default function CreateDrawingPage() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-4">
-              <Link href="/engineering">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Engineering
-                </Button>
+            <div>
+              <Link href="/engineering" className="text-sm text-blue-600 hover:text-blue-800 mb-2 block">
+                <ArrowLeft className="w-4 h-4 inline mr-1" />
+                Back to Engineering
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Create Engineering Drawing</h1>
-                <p className="text-sm text-gray-600">Create technical drawings from approved quotations</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleSave("draft")}>
-                <Save className="w-4 h-4 mr-2" />
-                Save as Draft
-              </Button>
-              <Button variant="outline" onClick={() => handleSave("review")}>
-                <Save className="w-4 h-4 mr-2" />
-                Submit for Review
-              </Button>
-              <Button onClick={() => handleSave("submit")}>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Create Drawing
-              </Button>
+              <h1 className="text-2xl font-bold text-gray-900">Create Project</h1>
+              <p className="text-sm text-gray-600">Set up a new project</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-3 gap-6">
-          {/* Main Form */}
-          <div className="col-span-2 space-y-6">
-            {/* Source Quotation */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Source Quotation</CardTitle>
-                <CardDescription>Select the approved quotation for this drawing</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="quotation">Approved Quotation *</Label>
-                  <Select value={formData.quotationId} onValueChange={(value) => handleInputChange("quotationId", value)}>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>Project identification and customer details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="projectNumber">Project Number</Label>
+                  <Input
+                    id="projectNumber"
+                    value={formData.projectNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, projectNumber: e.target.value }))}
+                    placeholder="PROJECT-2024-XXX"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerId">Customer</Label>
+                  <Select value={formData.customerId} onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select approved quotation" />
+                      <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
                     <SelectContent>
-                      {quotations.map((quotation) => (
-                        <SelectItem key={quotation.id} value={quotation.id}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{quotation.id} - {quotation.customer}</span>
-                            <Badge className="ml-2 bg-green-100 text-green-800">{quotation.status}</Badge>
-                          </div>
+                      {customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {selectedQuotation && (
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900">{selectedQuotation.project}</h4>
-                    <p className="text-sm text-blue-700">Customer: {selectedQuotation.customer}</p>
-                    <p className="text-sm text-blue-700">Status: {selectedQuotation.status}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Drawing Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Drawing Specifications</CardTitle>
-                <CardDescription>Technical details and drawing requirements</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="drawingType">Drawing Type *</Label>
-                    <Select value={formData.drawingType} onValueChange={(value) => handleInputChange("drawingType", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select drawing type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="assembly">Structural Assembly Drawing</SelectItem>
-                        <SelectItem value="detail">Detail Drawing</SelectItem>
-                        <SelectItem value="shop">Shop Drawing</SelectItem>
-                        <SelectItem value="fabrication">Fabrication Drawing</SelectItem>
-                        <SelectItem value="erection">Erection Drawing</SelectItem>
-                        <SelectItem value="connection">Connection Detail</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Priority Level</Label>
-                    <Select value={formData.priority} onValueChange={(value) => handleInputChange("priority", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low Priority</SelectItem>
-                        <SelectItem value="medium">Medium Priority</SelectItem>
-                        <SelectItem value="high">High Priority</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+              <div>
+                <Label htmlFor="title">Project Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter project title"
+                  required
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="specifications">Technical Specifications *</Label>
-                  <Textarea 
-                    id="specifications" 
-                    placeholder="Steel grades, connection types, tolerances, welding specifications, surface treatments, etc."
-                    rows={4}
-                    value={formData.specifications}
-                    onChange={(e) => handleInputChange("specifications", e.target.value)}
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the custom product or solution to be engineered"
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    required
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="engineer">Assigned Engineer *</Label>
-                    <Select value={formData.engineer} onValueChange={(value) => handleInputChange("engineer", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select engineer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="john">John Smith - Structural Design</SelectItem>
-                        <SelectItem value="sarah">Sarah Johnson - Mechanical Design</SelectItem>
-                        <SelectItem value="mike">Mike Davis - Fabrication Engineering</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dueDate">Target Completion Date *</Label>
-                    <Input 
-                      id="dueDate" 
-                      type="date"
-                      value={formData.dueDate}
-                      onChange={(e) => handleInputChange("dueDate", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* File Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Drawing Files</CardTitle>
-                <CardDescription>Upload CAD files, sketches, and reference documents</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="mt-4">
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <Button variant="outline" asChild>
-                        <span>Choose Files</span>
-                      </Button>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        multiple
-                        accept=".dwg,.dxf,.pdf,.jpg,.png,.step,.iges"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                      />
-                    </label>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Supported formats: DWG, DXF, PDF, JPG, PNG, STEP, IGES
-                    </p>
-                  </div>
-                </div>
-
-                {uploadedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Uploaded Files</Label>
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm">{file.name}</span>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Additional Notes */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Information</CardTitle>
-                <CardDescription>Special instructions and notes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Engineering Notes</Label>
-                  <Textarea 
-                    id="notes" 
-                    placeholder="Special requirements, design considerations, review instructions, etc."
-                    rows={3}
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                <div>
+                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                    required
                   />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Drawing Standards */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Applicable Standards</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {drawingStandards.map((standard, index) => (
-                    <div key={index} className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium">{standard.name}</p>
-                        <p className="text-xs text-gray-500">{standard.version}</p>
-                      </div>
-                    </div>
-                  ))}
+          {/* Project Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Details</CardTitle>
+              <CardDescription>Requirements and specifications for the project</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="customerRequirements">Customer Requirements</Label>
+                <Textarea
+                  id="customerRequirements"
+                  value={formData.customerRequirements}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customerRequirements: e.target.value }))}
+                  placeholder="Document customer requirements and functional specifications"
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="technicalSpecifications">Technical Specifications</Label>
+                <Textarea
+                  id="technicalSpecifications"
+                  value={formData.technicalSpecifications}
+                  onChange={(e) => setFormData(prev => ({ ...prev, technicalSpecifications: e.target.value }))}
+                  placeholder="Technical specifications and design requirements"
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="assignedEngineer">Assigned Engineer</Label>
+                  <Input
+                    id="assignedEngineer"
+                    value={formData.assignedEngineer}
+                    onChange={(e) => setFormData(prev => ({ ...prev, assignedEngineer: e.target.value }))}
+                    placeholder="Engineer name"
+                    required
+                  />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Drawing Checklist */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Drawing Checklist</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {[
-                    "Title block completed",
-                    "Dimensions and tolerances specified",
-                    "Material specifications noted",
-                    "Welding symbols applied",
-                    "Surface finish requirements",
-                    "Assembly sequence defined",
-                    "Quality control points marked"
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  ))}
+                <div>
+                  <Label htmlFor="projectManager">Project Manager</Label>
+                  <Input
+                    id="projectManager"
+                    value={formData.projectManager}
+                    onChange={(e) => setFormData(prev => ({ ...prev, projectManager: e.target.value }))}
+                    placeholder="Manager name"
+                    required
+                  />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <FileText className="w-4 h-4 mr-2" />
-                  View Quotation Details
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  Check Material Availability
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import CAD Template
-                </Button>
-              </CardContent>
-            </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="estimatedHours">Estimated Hours</Label>
+                  <Input
+                    id="estimatedHours"
+                    type="number"
+                    value={formData.estimatedHours}
+                    onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: parseInt(e.target.value) || 0 }))}
+                    placeholder="0"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="estimatedCost">Estimated Cost ($)</Label>
+                  <Input
+                    id="estimatedCost"
+                    type="number"
+                    value={formData.estimatedCost}
+                    onChange={(e) => setFormData(prev => ({ ...prev, estimatedCost: parseInt(e.target.value) || 0 }))}
+                    placeholder="0"
+                    min="0"
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+
+
+          {/* Submit */}
+          <div className="flex justify-end gap-4">
+            <Link href="/engineering">
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </Link>
+            <Button type="submit" className="flex items-center gap-2">
+              <Save className="w-4 h-4" />
+              Create Project
+            </Button>
           </div>
-        </div>
+        </form>
       </main>
     </div>
   )

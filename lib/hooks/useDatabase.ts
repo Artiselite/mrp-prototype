@@ -6,10 +6,15 @@ import type {
   Quotation,
   SalesOrder,
   EngineeringDrawing,
+  EngineeringProject,
+  EngineeringChange,
   BillOfMaterials,
+  BillOfQuantities,
   ProductionWorkOrder,
   Invoice,
   PurchaseOrder,
+  Item,
+  Location,
 } from "../types"
 
 // Database hook for easy state management
@@ -405,6 +410,216 @@ export function useDatabase() {
     }
   }
 
+  // Item hooks
+  const useItems = () => {
+    const [items, setItems] = useState<Item[]>([])
+
+    const refreshItems = useCallback(() => {
+      setItems(db.getItems())
+    }, [])
+
+    const createItem = useCallback((item: Omit<Item, "id" | "createdAt" | "updatedAt">) => {
+      const newItem = db.createItem(item)
+      refreshItems()
+      return newItem
+    }, [refreshItems])
+
+    const updateItem = useCallback((id: string, updates: Partial<Item>) => {
+      const updated = db.updateItem(id, updates)
+      if (updated) refreshItems()
+      return updated
+    }, [refreshItems])
+
+    const deleteItem = useCallback((id: string) => {
+      const success = db.deleteItem(id)
+      if (success) refreshItems()
+      return success
+    }, [refreshItems])
+
+    useEffect(() => {
+      if (isInitialized) {
+        refreshItems()
+      }
+    }, [isInitialized, refreshItems])
+
+    return {
+      items,
+      refreshItems,
+      createItem,
+      updateItem,
+      deleteItem,
+    }
+  }
+
+  // Location hooks
+  const useLocations = () => {
+    const [locations, setLocations] = useState<Location[]>([])
+
+    const refreshLocations = useCallback(() => {
+      setLocations(db.getLocations())
+    }, [])
+
+    const createLocation = useCallback((location: Omit<Location, "id" | "createdAt" | "updatedAt">) => {
+      const newLocation = db.createLocation(location)
+      refreshLocations()
+      return newLocation
+    }, [refreshLocations])
+
+    const updateLocation = useCallback((id: string, updates: Partial<Location>) => {
+      const updated = db.updateLocation(id, updates)
+      if (updated) refreshLocations()
+      return updated
+    }, [refreshLocations])
+
+    const deleteLocation = useCallback((id: string) => {
+      const success = db.deleteLocation(id)
+      if (success) refreshLocations()
+      return success
+    }, [refreshLocations])
+
+    useEffect(() => {
+      if (isInitialized) {
+        refreshLocations()
+      }
+    }, [isInitialized, refreshLocations])
+
+    return {
+      locations,
+      refreshLocations,
+      createLocation,
+      updateLocation,
+      deleteLocation,
+    }
+  }
+
+  // Engineering Project hooks
+  const useEngineeringProjects = () => {
+    const [projects, setProjects] = useState<EngineeringProject[]>([])
+
+    const refreshProjects = useCallback(() => {
+      setProjects(db.getEngineeringProjects())
+    }, [])
+
+    const createProject = useCallback((project: Omit<EngineeringProject, "id" | "createdAt" | "updatedAt">) => {
+      const newProject = db.createEngineeringProject(project)
+      refreshProjects()
+      return newProject
+    }, [refreshProjects])
+
+    const updateProject = useCallback((id: string, updates: Partial<EngineeringProject>) => {
+      const updated = db.updateEngineeringProject(id, updates)
+      if (updated) refreshProjects()
+      return updated
+    }, [refreshProjects])
+
+    const deleteProject = useCallback((id: string) => {
+      const success = db.deleteEngineeringProject(id)
+      if (success) refreshProjects()
+      return success
+    }, [refreshProjects])
+
+    useEffect(() => {
+      if (isInitialized) {
+        refreshProjects()
+      }
+    }, [isInitialized, refreshProjects])
+
+    return {
+      projects,
+      refreshProjects,
+      createProject,
+      updateProject,
+      deleteProject,
+    }
+  }
+
+  // Engineering Change hooks
+  const useEngineeringChanges = () => {
+    const [changes, setChanges] = useState<EngineeringChange[]>([])
+
+    const refreshChanges = useCallback(() => {
+      setChanges(db.getEngineeringChanges())
+    }, [])
+
+    const createChange = useCallback((change: Omit<EngineeringChange, "id" | "createdAt" | "updatedAt">) => {
+      const newChange = db.createEngineeringChange(change)
+      refreshChanges()
+      return newChange
+    }, [refreshChanges])
+
+    const updateChange = useCallback((id: string, updates: Partial<EngineeringChange>) => {
+      const updated = db.updateEngineeringChange(id, updates)
+      if (updated) refreshChanges()
+      return updated
+    }, [refreshChanges])
+
+    const deleteChange = useCallback((id: string) => {
+      const success = db.deleteEngineeringChange(id)
+      if (success) refreshChanges()
+      return success
+    }, [refreshChanges])
+
+    useEffect(() => {
+      if (isInitialized) {
+        refreshChanges()
+      }
+    }, [isInitialized, refreshChanges])
+
+    return {
+      changes,
+      refreshChanges,
+      createChange,
+      updateChange,
+      deleteChange,
+    }
+  }
+
+  // Bill of Quantities hooks
+  const useBillsOfQuantities = () => {
+    const [boqs, setBoqs] = useState<BillOfQuantities[]>([])
+
+    const refreshBoqs = useCallback(() => {
+      setBoqs(db.getBillsOfQuantities())
+    }, [])
+
+    const createBoq = useCallback((boq: Omit<BillOfQuantities, "id" | "createdAt" | "updatedAt">) => {
+      const newBoq = db.createBillOfQuantities(boq)
+      refreshBoqs()
+      return newBoq
+    }, [refreshBoqs])
+
+    const updateBoq = useCallback((boq: BillOfQuantities) => {
+      const updated = db.updateBillOfQuantities(boq.id, boq)
+      if (updated) refreshBoqs()
+      return updated
+    }, [refreshBoqs])
+
+    const deleteBoq = useCallback((id: string) => {
+      const success = db.deleteBillOfQuantities(id)
+      if (success) refreshBoqs()
+      return success
+    }, [refreshBoqs])
+
+    const getBOQById = useCallback((id: string) => {
+      return boqs.find(boq => boq.id === id)
+    }, [boqs])
+
+    useEffect(() => {
+      if (isInitialized) {
+        refreshBoqs()
+      }
+    }, [isInitialized, refreshBoqs])
+
+    return {
+      boqs,
+      refreshBoqs,
+      createBoq,
+      updateBoq,
+      deleteBoq,
+      getBOQById,
+    }
+  }
+
   // Utility functions
   const clearDatabase = useCallback(() => {
     db.clearDatabase()
@@ -432,10 +647,15 @@ export function useDatabase() {
     useQuotations,
     useSalesOrders,
     useEngineeringDrawings,
+    useEngineeringProjects,
+    useEngineeringChanges,
     useBillsOfMaterials,
+    useBillsOfQuantities,
     useProductionWorkOrders,
     useInvoices,
     usePurchaseOrders,
+    useItems,
+    useLocations,
     
     // Utilities
     clearDatabase,

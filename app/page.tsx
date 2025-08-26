@@ -1,258 +1,289 @@
 "use client"
 
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  FileText,
-  Wrench,
-  Package,
-  Factory,
-  Receipt,
-  Users,
-  ShoppingCart,
-  ClipboardList,
+import { 
+  Users, 
+  Building2, 
+  FileText, 
+  ShoppingCart, 
+  Wrench, 
+  ClipboardList, 
+  Calculator,
+  Factory, 
+  Receipt, 
   TrendingUp,
-  AlertTriangle,
-  Building2,
+  Box,
+  MapPin,
+  Package
 } from "lucide-react"
 import { useDatabaseContext } from "@/components/database-provider"
-import { DatabaseManager } from "@/components/database-manager"
 
-export default function Dashboard() {
-  const {
-    useQuotations,
-    useSalesOrders,
-    useEngineeringDrawings,
+export default function DashboardPage() {
+  const { 
+    useCustomers, 
+    useSuppliers, 
+    useQuotations, 
+    useSalesOrders, 
+    useEngineeringDrawings, 
     useBillsOfMaterials,
-    useProductionWorkOrders,
-    useInvoices,
-    useCustomers,
-    useSuppliers,
-    usePurchaseOrders
+    useBillsOfQuantities,
+    useProductionWorkOrders, 
+    useInvoices, 
+    usePurchaseOrders 
   } = useDatabaseContext()
 
-  const { quotations } = useQuotations()
-  const { salesOrders } = useSalesOrders()
-  const { drawings: engineeringProjects } = useEngineeringDrawings()
-  const { boms: billsOfMaterials } = useBillsOfMaterials()
-  const { workOrders: productionOrders } = useProductionWorkOrders()
-  const { invoices } = useInvoices()
   const { customers } = useCustomers()
   const { suppliers } = useSuppliers()
+  const { quotations } = useQuotations()
+  const { salesOrders } = useSalesOrders()
+  const { drawings: engineeringDrawings } = useEngineeringDrawings()
+  const { boms: billsOfMaterials } = useBillsOfMaterials()
+  const { boqs: billsOfQuantities } = useBillsOfQuantities()
+  const { workOrders: productionWorkOrders } = useProductionWorkOrders()
+  const { invoices } = useInvoices()
   const { purchaseOrders } = usePurchaseOrders()
 
-  // Calculate summary statistics
   const stats = {
-    activeQuotations: quotations.filter((q) => q.status !== "Rejected").length,
-    activeSalesOrders: salesOrders.filter((so) => so.status !== "Cancelled" && so.status !== "Delivered").length,
-    activeProduction: productionOrders.filter((p) => p.status === "In Progress").length,
-    pendingInvoices: invoices.filter((i) => i.status === "Sent").length,
-    activeCustomers: customers.filter((c) => c.status === "Active").length,
-    activeSuppliers: suppliers.filter((s) => s.status === "Active").length,
-    pendingPOs: purchaseOrders.filter((po) => po.status === "Sent" || po.status === "Acknowledged").length,
+    totalCustomers: customers.length,
+    activeCustomers: customers.filter(c => c.status === "Active").length,
+    totalSuppliers: suppliers.length,
+    activeSuppliers: suppliers.filter(s => s.status === "Active").length,
+    totalQuotations: quotations.length,
+    pendingQuotations: quotations.filter(q => q.status === "Sent").length,
+    totalSalesOrders: salesOrders.length,
+    activeSalesOrders: salesOrders.filter(so => so.status === "In Production").length,
+    totalEngineeringDrawings: engineeringDrawings.length,
+    totalBillsOfMaterials: billsOfMaterials.length,
+    totalBillsOfQuantities: billsOfQuantities.length,
+    totalProductionWorkOrders: productionWorkOrders.length,
+    activeProductionWorkOrders: productionWorkOrders.filter(pwo => pwo.status === "In Progress").length,
+    totalInvoices: invoices.length,
+    pendingInvoices: invoices.filter(i => i.status === "Sent").length,
+    totalPurchaseOrders: purchaseOrders.length,
+    activePurchaseOrders: purchaseOrders.filter(po => po.status === "Sent").length
   }
 
   const modules = [
     {
-      title: "Quotations",
-      description: "Manage customer quotes and proposals",
-      icon: FileText,
-      href: "/quotations",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      count: stats.activeQuotations,
-      status: "Active Quotes",
-    },
-    {
-      title: "Sales Orders",
-      description: "Customer orders and delivery tracking",
-      icon: ClipboardList,
-      href: "/sales-orders",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      count: stats.activeSalesOrders,
-      status: "Active Orders",
-    },
-    {
-      title: "Engineering",
-      description: "Project design and documentation",
-      icon: Wrench,
-      href: "/engineering",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      status: "Active Projects",
-    },
-    {
-      title: "Bill of Materials",
-      description: "Material requirements and specifications",
-      icon: Package,
-      href: "/bom",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      status: "Active BOMs",
-    },
-    {
-      title: "Production",
-      description: "Manufacturing and work orders",
-      icon: Factory,
-      href: "/production",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-      count: stats.activeProduction,
-      status: "In Progress",
-    },
-    {
-      title: "Invoicing",
-      description: "Billing and payment tracking",
-      icon: Receipt,
-      href: "/invoicing",
-      color: "text-pink-600",
-      bgColor: "bg-pink-50",
-      count: stats.pendingInvoices,
-      status: "Pending Payment",
-    },
-    {
-      title: "Customers",
-      description: "Customer relationship management",
+      name: "Customers",
+      description: "Manage customer relationships and information",
       icon: Users,
       href: "/customers",
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      count: stats.activeCustomers,
-      status: "Active Customers",
+      count: stats.totalCustomers,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
     },
     {
-      title: "Suppliers",
-      description: "Supplier relationship and procurement management",
+      name: "Suppliers",
+      description: "Manage supplier relationships and procurement",
       icon: Building2,
       href: "/suppliers",
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      count: stats.activeSuppliers,
-      status: "Active Suppliers",
+      count: stats.totalSuppliers,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
     },
     {
-      title: "Procurement",
-      description: "Purchase orders and supplier management",
-      icon: ShoppingCart,
-      href: "/procurement",
-      color: "text-teal-600",
-      bgColor: "bg-teal-50",
-      count: stats.pendingPOs,
-      status: "Pending Orders",
+      name: "Items",
+      description: "Manage inventory items and materials",
+      icon: Box,
+      href: "/items",
+      count: 0, // TODO: Implement useItems hook
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
     },
+    {
+      name: "Locations",
+      description: "Manage warehouse locations and storage areas",
+      icon: MapPin,
+      href: "/locations",
+      count: 5, // TODO: Implement useLocations hook
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      name: "Inventory",
+      description: "Manage inventory movements and bulk operations",
+      icon: Package,
+      href: "/inventory",
+      count: 0, // TODO: Implement useItems hook for total count
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50"
+    },
+    {
+      name: "Quotations",
+      description: "Create and manage customer quotations",
+      icon: FileText,
+      href: "/quotations",
+      count: stats.totalQuotations,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50"
+    },
+    {
+      name: "Sales Orders",
+      description: "Process and track customer sales orders",
+      icon: ShoppingCart,
+      href: "/sales-orders",
+      count: stats.totalSalesOrders,
+      color: "text-pink-600",
+      bgColor: "bg-pink-50"
+    },
+    {
+      name: "Engineering",
+      description: "Manage engineering drawings and specifications",
+      icon: Wrench,
+      href: "/engineering",
+      count: stats.totalEngineeringDrawings,
+      color: "text-gray-600",
+      bgColor: "bg-gray-50"
+    },
+    {
+      name: "Bills of Materials",
+      description: "Create and manage product BOMs",
+      icon: ClipboardList,
+      href: "/bom",
+      count: stats.totalBillsOfMaterials,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-50"
+    },
+    {
+      name: "Bill of Quantities",
+      description: "Cost estimation and quantity takeoffs",
+      icon: Calculator,
+      href: "/boq",
+      count: stats.totalBillsOfQuantities,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50"
+    },
+    {
+      name: "Production",
+      description: "Manage production work orders and scheduling",
+      icon: Factory,
+      href: "/production",
+      count: stats.totalProductionWorkOrders,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50"
+    },
+    {
+      name: "Invoicing",
+      description: "Generate and track customer invoices",
+      icon: Receipt,
+      href: "/invoicing",
+      count: stats.totalInvoices,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50"
+    },
+    {
+      name: "Procurement",
+      description: "Manage purchase orders and procurement",
+      icon: TrendingUp,
+      href: "/procurement",
+      count: stats.totalPurchaseOrders,
+      color: "text-rose-600",
+      bgColor: "bg-rose-50"
+    }
   ]
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Steel MRP Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manufacturing Resource Planning System</p>
+          <h1 className="text-3xl font-bold text-gray-900">MRP System Dashboard</h1>
+          <p className="text-gray-600 mt-2">Manufacturing Resource Planning and Management</p>
         </div>
 
-        {/* Key Metrics */}
+        {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="w-6 h-6 text-blue-600" />
                 </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Customers</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Sales Order Value</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Building2 className="w-6 h-6 text-green-600" />
                 </div>
-                <ClipboardList className="w-8 h-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Suppliers</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalSuppliers}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Box className="w-6 h-6 text-purple-600" />
                 </div>
-                <Factory className="w-8 h-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Items</p>
+                  <p className="text-2xl font-bold text-gray-900">5</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Customers</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+              <div className="flex items-center">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <MapPin className="w-6 h-6 text-orange-600" />
                 </div>
-                <Users className="w-8 h-8 text-indigo-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Locations</p>
+                  <p className="text-2xl font-bold text-gray-900">5</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                Recent Activity & Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Sales Order SO-2024-001 in production</p>
-                    <p className="text-sm text-gray-600">ABC Manufacturing Corp - Steel Frame Assembly</p>
+        {/* Modules Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {modules.map((module) => {
+            const IconComponent = module.icon
+            return (
+              <Card key={module.name} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className={`p-2 rounded-lg ${module.bgColor}`}>
+                      <IconComponent className={`w-6 h-6 ${module.color}`} />
+                    </div>
+                    <Badge variant="secondary">{module.count}</Badge>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">In Progress</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">PO-2024-002 shipped</p>
-                    <p className="text-sm text-gray-600">Industrial Hardware Inc - Expected delivery Feb 15</p>
-                  </div>
-                  <Badge className="bg-yellow-100 text-yellow-800">Shipping</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Sales Order SO-2024-002 confirmed</p>
-                    <p className="text-sm text-gray-600">XYZ Construction LLC - Structural Beams</p>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-800">Confirmed</Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Invoice INV-2024-001 sent</p>
-                    <p className="text-sm text-gray-600">ABC Manufacturing Corp - Due March 28</p>
-                  </div>
-                  <Badge className="bg-purple-100 text-purple-800">Pending</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+                </CardHeader>
+                <CardContent>
+                  <h3 className="font-semibold text-lg mb-2">{module.name}</h3>
+                  <p className="text-gray-600 text-sm mb-4">{module.description}</p>
+                  <a
+                    href={module.href}
+                    className={`inline-flex items-center text-sm font-medium ${module.color} hover:underline`}
+                  >
+                    View {module.name}
+                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </a>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

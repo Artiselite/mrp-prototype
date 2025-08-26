@@ -8,7 +8,7 @@ import { useDatabaseContext } from "@/components/database-provider"
 import { Trash2, Edit, Save, X } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Customer, Supplier, Quotation, SalesOrder, EngineeringDrawing, BillOfMaterials, ProductionWorkOrder, Invoice, PurchaseOrder } from "@/lib/types"
+import { Customer, Supplier, Quotation, SalesOrder, EngineeringDrawing, BillOfMaterials, ProductionWorkOrder, Invoice, PurchaseOrder, Item, Location } from "@/lib/types"
 
 export default function DemoPage() {
   const {
@@ -20,7 +20,9 @@ export default function DemoPage() {
     useBillsOfMaterials,
     useProductionWorkOrders,
     useInvoices,
-    usePurchaseOrders
+    usePurchaseOrders,
+    useItems,
+    useLocations
   } = useDatabaseContext()
 
   const { customers, createCustomer, updateCustomer, deleteCustomer } = useCustomers()
@@ -32,6 +34,8 @@ export default function DemoPage() {
   const { workOrders, createWorkOrder, updateWorkOrder, deleteWorkOrder } = useProductionWorkOrders()
   const { invoices, createInvoice, updateInvoice, deleteInvoice } = useInvoices()
   const { purchaseOrders, createPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder } = usePurchaseOrders()
+  const { items, createItem, updateItem, deleteItem } = useItems()
+  const { locations, createLocation, updateLocation, deleteLocation } = useLocations()
 
   const [editingCustomer, setEditingCustomer] = useState<string | null>(null)
   const [editingSupplier, setEditingSupplier] = useState<string | null>(null)
@@ -42,11 +46,13 @@ export default function DemoPage() {
   const [editingWorkOrder, setEditingWorkOrder] = useState<string | null>(null)
   const [editingInvoice, setEditingInvoice] = useState<string | null>(null)
   const [editingPurchaseOrder, setEditingPurchaseOrder] = useState<string | null>(null)
+  const [editingItem, setEditingItem] = useState<string | null>(null)
+  const [editingLocation, setEditingLocation] = useState<string | null>(null)
 
   // Helper function to render edit form for customers
   const renderCustomerEditForm = (customer: Customer) => {
     if (editingCustomer !== customer.id) return null
-    
+
     return (
       <TableRow key={`edit-${customer.id}`} className="bg-blue-50">
         <TableCell colSpan={8}>
@@ -209,7 +215,7 @@ export default function DemoPage() {
   // Helper function to render edit form for suppliers
   const renderSupplierEditForm = (supplier: Supplier) => {
     if (editingSupplier !== supplier.id) return null
-    
+
     return (
       <TableRow key={`edit-${supplier.id}`} className="bg-green-50">
         <TableCell colSpan={8}>
@@ -413,7 +419,7 @@ export default function DemoPage() {
     )
   }
 
-  // Helper function to render edit form for quotations
+    // Helper function to render edit form for quotations
   const renderQuotationEditForm = (quotation: Quotation) => {
     if (editingQuotation !== quotation.id) return null
     
@@ -514,6 +520,220 @@ export default function DemoPage() {
     )
   }
 
+  // Helper function to render edit form for locations
+  const renderLocationEditForm = (location: Location) => {
+    if (editingLocation !== location.id) return null
+    
+    return (
+      <TableRow key={`edit-${location.id}`} className="bg-emerald-50">
+        <TableCell colSpan={13}>
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                <Input
+                  defaultValue={location.code}
+                  id={`location-code-${location.id}`}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <Input
+                  defaultValue={location.name}
+                  id={`location-name-${location.id}`}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  defaultValue={location.type}
+                  id={`location-type-${location.id}`}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="Warehouse">Warehouse</option>
+                  <option value="Rack">Rack</option>
+                  <option value="Bin">Bin</option>
+                  <option value="Office">Office</option>
+                  <option value="Outdoor">Outdoor</option>
+                  <option value="Specialized">Specialized</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  defaultValue={location.status}
+                  id={`location-status-${location.id}`}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                <Input
+                  defaultValue={location.capacity}
+                  id={`location-capacity-${location.id}`}
+                  className="w-full"
+                  type="number"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Utilization</label>
+                <Input
+                  defaultValue={location.currentUtilization}
+                  id={`location-utilization-${location.id}`}
+                  className="w-full"
+                  type="number"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  const updatedLocation: Partial<Location> = {
+                    code: (document.getElementById(`location-code-${location.id}`) as HTMLInputElement).value,
+                    name: (document.getElementById(`location-name-${location.id}`) as HTMLInputElement).value,
+                    type: (document.getElementById(`location-type-${location.id}`) as HTMLSelectElement).value as "Warehouse" | "Rack" | "Bin" | "Office" | "Outdoor" | "Specialized",
+                    status: (document.getElementById(`location-status-${location.id}`) as HTMLSelectElement).value as "Active" | "Inactive" | "Maintenance" | "Closed",
+                    capacity: parseInt((document.getElementById(`location-capacity-${location.id}`) as HTMLInputElement).value),
+                    currentUtilization: parseInt((document.getElementById(`location-utilization-${location.id}`) as HTMLInputElement).value),
+                    updatedAt: new Date().toISOString()
+                  }
+                  updateLocation(location.id, updatedLocation)
+                  setEditingLocation(null)
+                }}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setEditingLocation(null)}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
+    )
+  }
+
+  // Helper function to render edit form for items
+  const renderItemEditForm = (item: Item) => {
+    if (editingItem !== item.id) return null
+    
+    return (
+      <TableRow key={`edit-${item.id}`} className="bg-cyan-50">
+        <TableCell colSpan={8}>
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Part Number</label>
+                <Input
+                  defaultValue={item.partNumber}
+                  id={`item-part-${item.id}`}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <Input
+                  defaultValue={item.name}
+                  id={`item-name-${item.id}`}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  defaultValue={item.category}
+                  id={`item-category-${item.id}`}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="Raw Materials">Raw Materials</option>
+                  <option value="Components">Components</option>
+                  <option value="Finished Goods">Finished Goods</option>
+                  <option value="Packaging">Packaging</option>
+                  <option value="Tools">Tools</option>
+                  <option value="Supplies">Supplies</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  defaultValue={item.status}
+                  id={`item-status-${item.id}`}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Discontinued">Discontinued</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Cost</label>
+                <Input
+                  defaultValue={item.unitCost}
+                  id={`item-cost-${item.id}`}
+                  className="w-full"
+                  type="number"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Stock</label>
+                <Input
+                  defaultValue={item.currentStock}
+                  id={`item-stock-${item.id}`}
+                  className="w-full"
+                  type="number"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  const updatedItem: Partial<Item> = {
+                    partNumber: (document.getElementById(`item-part-${item.id}`) as HTMLInputElement).value,
+                    name: (document.getElementById(`item-name-${item.id}`) as HTMLInputElement).value,
+                    category: (document.getElementById(`item-category-${item.id}`) as HTMLSelectElement).value as "Raw Materials" | "Components" | "Finished Goods" | "Packaging" | "Tools" | "Supplies",
+                    status: (document.getElementById(`item-status-${item.id}`) as HTMLSelectElement).value as "Active" | "Inactive" | "Discontinued",
+                    unitCost: parseFloat((document.getElementById(`item-cost-${item.id}`) as HTMLInputElement).value),
+                    currentStock: parseInt((document.getElementById(`item-stock-${item.id}`) as HTMLInputElement).value),
+                    updatedAt: new Date().toISOString()
+                  }
+                  updateItem(item.id, updatedItem)
+                  setEditingItem(null)
+                }}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setEditingItem(null)}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -566,6 +786,14 @@ export default function DemoPage() {
                 <div className="text-2xl font-bold text-teal-600">{purchaseOrders.length}</div>
                 <div className="text-sm text-teal-800">Purchase Orders</div>
               </div>
+              <div className="text-center p-4 bg-cyan-50 rounded-lg">
+                <div className="text-2xl font-bold text-cyan-600">{items.length}</div>
+                <div className="text-sm text-cyan-800">Items</div>
+              </div>
+              <div className="text-center p-4 bg-emerald-50 rounded-lg">
+                <div className="text-2xl font-bold text-emerald-600">{locations.length}</div>
+                <div className="text-sm text-emerald-800">Locations</div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -595,6 +823,8 @@ export default function DemoPage() {
               <p>• Customers in DB: {customers.length}</p>
               <p>• Suppliers in DB: {suppliers.length}</p>
               <p>• Quotations in DB: {quotations.length}</p>
+              <p>• Items in DB: {items.length}</p>
+              <p>• Locations in DB: {locations.length}</p>
               <p>• All localStorage keys: {Object.keys(localStorage).filter(key => key.startsWith('mrp_prototype_')).join(', ')}</p>
             </div>
 
@@ -610,7 +840,9 @@ export default function DemoPage() {
                   boms,
                   workOrders,
                   invoices,
-                  purchaseOrders
+                  purchaseOrders,
+                  items,
+                  locations
                 }
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
                 const url = URL.createObjectURL(blob)
@@ -641,6 +873,8 @@ export default function DemoPage() {
                     workOrders.forEach(workOrder => deleteWorkOrder(workOrder.id))
                     invoices.forEach(invoice => deleteInvoice(invoice.id))
                     purchaseOrders.forEach(po => deletePurchaseOrder(po.id))
+                    items.forEach(item => deleteItem(item.id))
+                    locations.forEach(location => deleteLocation(location.id))
                   }
                 }}
               >
@@ -685,6 +919,14 @@ export default function DemoPage() {
                     if (data.workOrders) data.workOrders.forEach((workOrder: ProductionWorkOrder) => createWorkOrder(workOrder))
                     if (data.invoices) data.invoices.forEach((invoice: Invoice) => createInvoice(invoice))
                     if (data.purchaseOrders) data.purchaseOrders.forEach((po: PurchaseOrder) => createPurchaseOrder(po))
+                    if (data.items) data.items.forEach((item: any) => {
+                      const { id, createdAt, updatedAt, ...itemData } = item
+                      createItem(itemData)
+                    })
+                    if (data.locations) data.locations.forEach((location: any) => {
+                      const { id, createdAt, updatedAt, ...locationData } = location
+                      createLocation(locationData)
+                    })
                     e.target.value = ''
                     alert('Data imported successfully!')
                   } catch (error) {
@@ -708,6 +950,14 @@ export default function DemoPage() {
                       if (data.workOrders) data.workOrders.forEach((workOrder: ProductionWorkOrder) => createWorkOrder(workOrder))
                       if (data.invoices) data.invoices.forEach((invoice: Invoice) => createInvoice(invoice))
                       if (data.purchaseOrders) data.purchaseOrders.forEach((po: PurchaseOrder) => createPurchaseOrder(po))
+                      if (data.items) data.items.forEach((item: any) => {
+                        const { id, createdAt, updatedAt, ...itemData } = item
+                        createItem(itemData)
+                      })
+                      if (data.locations) data.locations.forEach((location: any) => {
+                        const { id, createdAt, updatedAt, ...locationData } = location
+                        createLocation(locationData)
+                      })
                       textarea.value = ''
                       alert('Data imported successfully!')
                     } catch (error) {
@@ -734,9 +984,11 @@ export default function DemoPage() {
 
         {/* Tabs for Data Tables */}
         <Tabs defaultValue="customers" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="customers">Customers</TabsTrigger>
             <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
+            <TabsTrigger value="items">Items</TabsTrigger>
+            <TabsTrigger value="locations">Locations</TabsTrigger>
             <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="engineering">Engineering</TabsTrigger>
             <TabsTrigger value="production">Production</TabsTrigger>
@@ -792,7 +1044,7 @@ export default function DemoPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                                         {editingCustomer && customers.find(c => c.id === editingCustomer) && renderCustomerEditForm(customers.find(c => c.id === editingCustomer)!)}
+                    {editingCustomer && customers.find(c => c.id === editingCustomer) && renderCustomerEditForm(customers.find(c => c.id === editingCustomer)!)}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -849,7 +1101,121 @@ export default function DemoPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                                         {editingSupplier && suppliers.find(s => s.id === editingSupplier) && renderSupplierEditForm(suppliers.find(s => s.id === editingSupplier)!)}
+                    {editingSupplier && suppliers.find(s => s.id === editingSupplier) && renderSupplierEditForm(suppliers.find(s => s.id === editingSupplier)!)}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Items Tab */}
+          <TabsContent value="items">
+            <Card>
+              <CardHeader>
+                <CardTitle>Items ({items.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Part Number</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Unit Cost</TableHead>
+                      <TableHead>Current Stock</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.flatMap((item) => [
+                      <TableRow key={item.id}>
+                        <TableCell className="font-mono text-sm text-gray-500">{item.id}</TableCell>
+                        <TableCell className="font-medium">{item.partNumber}</TableCell>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.category}</TableCell>
+                        <TableCell>${item.unitCost.toFixed(2)}</TableCell>
+                        <TableCell>{item.currentStock}</TableCell>
+                        <TableCell>{item.status}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingItem(item.id)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteItem(item.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>,
+                      renderItemEditForm(item)
+                    ])}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Locations Tab */}
+          <TabsContent value="locations">
+            <Card>
+              <CardHeader>
+                <CardTitle>Locations ({locations.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>City</TableHead>
+                      <TableHead>Utilization</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {locations.flatMap((location) => [
+                      <TableRow key={location.id}>
+                        <TableCell className="font-mono text-sm text-gray-500">{location.id}</TableCell>
+                        <TableCell className="font-medium">{location.code}</TableCell>
+                        <TableCell>{location.name}</TableCell>
+                        <TableCell>{location.type}</TableCell>
+                        <TableCell>{location.city}</TableCell>
+                        <TableCell>{location.currentUtilization}%</TableCell>
+                        <TableCell>{location.status}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingLocation(location.id)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteLocation(location.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>,
+                      renderLocationEditForm(location)
+                    ])}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -1261,6 +1627,7 @@ export default function DemoPage() {
               <p>• <strong>Clear Data:</strong> Use the Clear Data button to remove all data (use with caution)</p>
               <p>• <strong>Persistent Storage:</strong> All data is automatically saved to localStorage</p>
               <p>• <strong>Data Overview:</strong> The overview above shows the total count of all entities in the database</p>
+              <p>• <strong>New Entities:</strong> Items (inventory) and Locations (storage) are now fully integrated into the database system</p>
             </div>
           </CardContent>
         </Card>

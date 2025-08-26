@@ -1,35 +1,60 @@
 "use client"
 
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  Home,
+  Database,
+  Menu,
+  LogOut,
+  Users,
+  Building2,
+  FileText,
+  ShoppingCart,
+  Wrench,
+  ClipboardList,
+  Factory,
+  Receipt,
+  TrendingUp,
+  Box,
+  MapPin,
+  Package,
+  User,
+  Calculator,
+  X
+} from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { FileText, ClipboardList, Wrench, Package, Factory, Receipt, Users, Building2, ShoppingCart, Menu, X, User, LogOut, Home, Database } from "lucide-react"
-import { useState } from "react"
-import { DatabaseStatus } from "./database-provider"
 
 const navigation = [
-  // { name: "Dashboard", href: "/", icon: Home },
-  { name: "Quotations", href: "/quotations", icon: FileText },
-  { name: "Sales Orders", href: "/sales-orders", icon: ClipboardList },
-  { name: "Engineering", href: "/engineering", icon: Wrench },
-  { name: "BOM", href: "/bom", icon: Package },
-  { name: "Production", href: "/production", icon: Factory },
-  { name: "Invoicing", href: "/invoicing", icon: Receipt },
+  { name: "Dashboard", href: "/", icon: Home },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Suppliers", href: "/suppliers", icon: Building2 },
-  { name: "Procurement", href: "/procurement", icon: ShoppingCart },
+  { name: "Items", href: "/items", icon: Box },
+  { name: "Locations", href: "/locations", icon: MapPin },
+  { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "Quotations", href: "/quotations", icon: FileText },
+  { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+  { name: "Engineering", href: "/engineering", icon: Wrench },
+  { name: "BOM", href: "/bom", icon: ClipboardList },
+  { name: "BOQ", href: "/boq", icon: Calculator },
+  { name: "Production", href: "/production", icon: Factory },
+  { name: "Invoicing", href: "/invoicing", icon: Receipt },
+  { name: "Procurement", href: "/procurement", icon: TrendingUp },
   { name: "Database", href: "/demo", icon: Database },
 ]
 
-export function Navbar() {
+export default function Navbar() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
     <>
-      <DatabaseStatus />
       <nav className="bg-white shadow-sm border-b">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
@@ -37,7 +62,7 @@ export function Navbar() {
                   MRP
                 </Link>
               </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <div className="hidden xl:ml-6 xl:flex xl:space-x-2 overflow-hidden">
                 {navigation.map((item) => {
                   const Icon = item.icon
                   return (
@@ -45,13 +70,13 @@ export function Navbar() {
                       key={item.name}
                       href={item.href}
                       className={cn(
-                        "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium",
+                        "inline-flex items-center px-1 pt-1 border-b-2 text-xs font-medium whitespace-nowrap flex-shrink-0",
                         pathname === item.href
                           ? "border-blue-500 text-gray-900"
                           : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
                       )}
                     >
-                      {Icon && <Icon className="w-4 h-4 mr-2" />}
+                      {Icon && <Icon className="w-3 h-3 mr-1" />}
                       {item.name}
                     </Link>
                   )
@@ -80,7 +105,7 @@ export function Navbar() {
               </div>
 
               {/* Mobile Menu Button */}
-              <div className="-mr-2 flex items-center sm:hidden">
+              <div className="-mr-2 flex items-center xl:hidden">
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"

@@ -1,107 +1,152 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Edit, Download, Package, Calculator, FileText, AlertTriangle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Edit, Download, Package, Calculator, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-export default function BOMDetailPage({ params }: { params: { id: string } }) {
-  const [bom] = useState({
-    id: "BOM-2024-001",
-    drawingId: "DWG-2024-001",
-    project: "Industrial Warehouse Frame",
-    customer: "ABC Steel Works",
-    status: "Approved",
-    totalCost: "$89,450",
-    materialCount: 15,
-    dateCreated: "2024-01-12",
-    dateApproved: "2024-01-15",
-    approvedBy: "John Smith",
-    notes: "All materials meet AISC specifications. Lead times confirmed with suppliers."
-  })
+import { useDatabaseContext } from "@/components/database-provider"
+import type { BillOfMaterials, BOMItem } from "@/lib/types"
 
-  const [materials] = useState([
-    { 
-      id: 1, 
-      item: "W12x65 Beam", 
-      quantity: 8, 
-      unit: "20 ft", 
-      steelGrade: "A992", 
-      unitCost: 2450, 
-      totalCost: 19600,
-      supplier: "Steel Supply Co.",
-      leadTime: "2 weeks",
-      availability: "In Stock"
-    },
-    { 
-      id: 2, 
-      item: "W8x31 Column", 
-      quantity: 12, 
-      unit: "16 ft", 
-      steelGrade: "A992", 
-      unitCost: 1280, 
-      totalCost: 15360,
-      supplier: "Metro Steel",
-      leadTime: "3 weeks",
-      availability: "Order Required"
-    },
-    { 
-      id: 3, 
-      item: "Angle L4x4x1/2", 
-      quantity: 50, 
-      unit: "8 ft", 
-      steelGrade: "A36", 
-      unitCost: 85, 
-      totalCost: 4250,
-      supplier: "Steel Supply Co.",
-      leadTime: "1 week",
-      availability: "In Stock"
-    },
-    { 
-      id: 4, 
-      item: "Plate 1/2x12x20", 
-      quantity: 8, 
-      unit: "each", 
-      steelGrade: "A572", 
-      unitCost: 450, 
-      totalCost: 3600,
-      supplier: "Industrial Metals",
-      leadTime: "2 weeks",
-      availability: "Limited Stock"
-    },
-    { 
-      id: 5, 
-      item: "Bolts 3/4x6 A325", 
-      quantity: 200, 
-      unit: "each", 
-      steelGrade: "A325", 
-      unitCost: 12, 
-      totalCost: 2400,
-      supplier: "Fastener World",
-      leadTime: "1 week",
-      availability: "In Stock"
+interface BOMDetailsPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
+  const router = useRouter()
+  const { 
+    useBillsOfMaterials, 
+    useEngineeringProjects, 
+    useEngineeringDrawings,
+    useBillsOfQuantities,
+    isInitialized 
+  } = useDatabaseContext()
+  
+  const { boms } = useBillsOfMaterials()
+  const { projects = [] } = useEngineeringProjects()
+  const { drawings = [] } = useEngineeringDrawings()
+  const { boqs = [] } = useBillsOfQuantities()
+  
+  const [bom, setBom] = useState<BillOfMaterials | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Load BOM data
+  useEffect(() => {
+    const loadBom = async () => {
+      try {
+        if (!isInitialized) return
+        
+        const resolvedParams = await params
+        const bomId = resolvedParams.id
+        
+        const foundBom = boms.find(b => b.id === bomId)
+        
+        if (!foundBom) {
+          setError("BOM not found")
+          setLoading(false)
+          return
+        }
+        
+        setBom(foundBom)
+        setError(null)
+      } catch (err) {
+        console.error("Error loading BOM:", err)
+        setError("Failed to load BOM")
+      } finally {
+        setLoading(false)
+      }
     }
-  ])
 
-  const [costBreakdown] = useState([
-    { category: "Structural Steel", amount: 42810, percentage: 47.8 },
-    { category: "Plates & Sheets", amount: 15600, percentage: 17.4 },
-    { category: "Fasteners", amount: 8900, percentage: 9.9 },
-    { category: "Welding Materials", amount: 6750, percentage: 7.5 },
-    { category: "Hardware", amount: 4200, percentage: 4.7 },
-    { category: "Miscellaneous", amount: 11190, percentage: 12.5 }
-  ])
+    loadBom()
+  }, [isInitialized, params, boms])
 
-  const [procurementStatus] = useState([
-    { supplier: "Steel Supply Co.", items: 8, totalValue: 28450, status: "Ordered", orderDate: "2024-01-16" },
-    { supplier: "Metro Steel", items: 3, totalValue: 22100, status: "Quote Requested", orderDate: null },
-    { supplier: "Industrial Metals", items: 2, totalValue: 18900, status: "In Review", orderDate: null },
-    { supplier: "Fastener World", items: 2, totalValue: 3200, status: "Ready to Order", orderDate: null }
-  ])
+  // Get related data
+  const relatedProject = bom?.engineeringProjectId ? projects.find(p => p.id === bom.engineeringProjectId) : null
+  const relatedDrawing = bom?.engineeringDrawingId ? drawings.find(d => d.id === bom.engineeringDrawingId) : null
+  const relatedBoq = bom?.boqId ? boqs.find(q => q.id === bom.boqId) : null
+
+  // Calculate cost breakdown by category
+  const getCostBreakdown = () => {
+    if (!bom?.items) return []
+    
+    const breakdown = bom.items.reduce((acc, item) => {
+      const category = item.category || 'Miscellaneous'
+      const total = item.totalCost || (item.quantity * item.unitCost)
+      
+      if (!acc[category]) {
+        acc[category] = 0
+      }
+      acc[category] += total
+      return acc
+    }, {} as Record<string, number>)
+
+    const totalCost = Object.values(breakdown).reduce((sum, cost) => sum + cost, 0)
+    
+    return Object.entries(breakdown).map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: totalCost > 0 ? (amount / totalCost) * 100 : 0
+    })).sort((a, b) => b.amount - a.amount)
+  }
+
+  // Get supplier breakdown
+  const getSupplierBreakdown = () => {
+    if (!bom?.items) return []
+    
+    const suppliers = bom.items.reduce((acc, item) => {
+      const supplier = item.supplier || 'Unknown Supplier'
+      if (!acc[supplier]) {
+        acc[supplier] = { items: 0, totalValue: 0 }
+      }
+      acc[supplier].items += 1
+      acc[supplier].totalValue += item.totalCost || (item.quantity * item.unitCost)
+      return acc
+    }, {} as Record<string, { items: number; totalValue: number }>)
+
+    return Object.entries(suppliers).map(([supplier, data]) => ({
+      supplier,
+      items: data.items,
+      totalValue: data.totalValue,
+      status: "Pending", // Default status since we don't track procurement status yet
+      orderDate: null
+    })).sort((a, b) => b.totalValue - a.totalValue)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Loading BOM details...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !bom) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">BOM Not Found</h2>
+          <p className="text-gray-600 mb-4">{error || "The requested BOM could not be found."}</p>
+          <Button onClick={() => router.push('/bom')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to BOMs
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const costBreakdown = getCostBreakdown()
+  const supplierBreakdown = getSupplierBreakdown()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -144,12 +189,20 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
               </Link>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">{bom.id}</h1>
-                  <Badge className={getStatusColor(bom.status)}>
-                    {bom.status}
+                  <h1 className="text-2xl font-bold text-gray-900">{bom.bomNumber}</h1>
+                  <Badge className={getStatusColor(bom.status || "Draft")}>
+                    {bom.status || "Draft"}
                   </Badge>
+                  {bom.bomType && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                      {bom.bomType.toUpperCase()}
+                    </Badge>
+                  )}
                 </div>
-                <p className="text-sm text-gray-600">{bom.project} - {bom.customer}</p>
+                <p className="text-sm text-gray-600">
+                  {bom.productName}
+                  {relatedProject && ` - ${relatedProject.projectNumber}`}
+                </p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -157,10 +210,12 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
                 <Download className="w-4 h-4 mr-2" />
                 Export BOM
               </Button>
-              <Button variant="outline">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit BOM
-              </Button>
+              <Link href={`/bom/${bom.id}/edit`}>
+                <Button variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit BOM
+                </Button>
+              </Link>
               <Button>
                 <Package className="w-4 h-4 mr-2" />
                 Create Work Order
@@ -199,31 +254,50 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
                           <TableHead>Unit Cost</TableHead>
                           <TableHead>Total Cost</TableHead>
                           <TableHead>Supplier</TableHead>
-                          <TableHead>Availability</TableHead>
+                          <TableHead>Category</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {materials.map((material) => (
-                          <TableRow key={material.id}>
-                            <TableCell className="font-medium">{material.item}</TableCell>
-                            <TableCell>{material.quantity}</TableCell>
-                            <TableCell>{material.unit}</TableCell>
+                        {bom.items?.map((item) => (
+                          <TableRow key={item.id}>
                             <TableCell>
-                              <Badge variant="outline">{material.steelGrade}</Badge>
-                            </TableCell>
-                            <TableCell>${material.unitCost.toLocaleString()}</TableCell>
-                            <TableCell className="font-medium">${material.totalCost.toLocaleString()}</TableCell>
-                            <TableCell>{material.supplier}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {getAvailabilityIcon(material.availability)}
-                                <Badge className={getStatusColor(material.availability)}>
-                                  {material.availability}
-                                </Badge>
+                              <div>
+                                <p className="font-medium">{item.description}</p>
+                                {item.partNumber && (
+                                  <p className="text-xs text-gray-500">{item.partNumber}</p>
+                                )}
+                                {item.itemNumber && (
+                                  <p className="text-xs text-gray-500">Item: {item.itemNumber}</p>
+                                )}
                               </div>
                             </TableCell>
+                            <TableCell>{item.quantity}</TableCell>
+                            <TableCell>{item.unit}</TableCell>
+                            <TableCell>
+                              {item.materialGrade ? (
+                                <Badge variant="outline">{item.materialGrade}</Badge>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>${item.unitCost.toLocaleString()}</TableCell>
+                            <TableCell className="font-medium">
+                              ${(item.totalCost || (item.quantity * item.unitCost)).toLocaleString()}
+                            </TableCell>
+                            <TableCell>{item.supplier || '-'}</TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(item.category)}>
+                                {item.category}
+                              </Badge>
+                            </TableCell>
                           </TableRow>
-                        ))}
+                        )) || (
+                          <TableRow>
+                            <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                              No items found in this BOM
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -265,23 +339,23 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
                       <div className="space-y-4">
                         <div className="flex justify-between">
                           <span>Material Cost:</span>
-                          <span className="font-medium">$78,450</span>
+                          <span className="font-medium">${bom.totalCost?.toLocaleString() || '0'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Handling (5%):</span>
-                          <span className="font-medium">$3,923</span>
+                          <span>Items Count:</span>
+                          <span className="font-medium">{bom.itemCount || bom.items?.length || 0}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Waste Allowance (3%):</span>
-                          <span className="font-medium">$2,354</span>
+                          <span>Version:</span>
+                          <span className="font-medium">{bom.version}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Contingency (6%):</span>
-                          <span className="font-medium">$4,723</span>
+                          <span>Revision:</span>
+                          <span className="font-medium">{bom.revision}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-4">
                           <span>Total BOM Cost:</span>
-                          <span>{bom.totalCost}</span>
+                          <span>${bom.totalCost?.toLocaleString() || '0'}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -308,7 +382,7 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {procurementStatus.map((supplier, index) => (
+                        {supplierBreakdown.map((supplier, index) => (
                           <TableRow key={index}>
                             <TableCell className="font-medium">{supplier.supplier}</TableCell>
                             <TableCell>{supplier.items} items</TableCell>
@@ -341,36 +415,80 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Source Drawing</label>
-                          <p className="mt-1 font-medium">{bom.drawingId}</p>
+                          <label className="text-sm font-medium text-gray-500">BOM Number</label>
+                          <p className="mt-1 font-medium">{bom.bomNumber}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Project</label>
-                          <p className="mt-1">{bom.project}</p>
+                          <label className="text-sm font-medium text-gray-500">Product Name</label>
+                          <p className="mt-1">{bom.productName}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Customer</label>
-                          <p className="mt-1">{bom.customer}</p>
+                          <label className="text-sm font-medium text-gray-500">BOM Type</label>
+                          <p className="mt-1">
+                            {bom.bomType ? (
+                              <Badge variant="outline">{bom.bomType.toUpperCase()}</Badge>
+                            ) : (
+                              <span className="text-gray-400">Not specified</span>
+                            )}
+                          </p>
                         </div>
+                        {relatedProject && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Engineering Project</label>
+                            <p className="mt-1">
+                              <Link href={`/engineering/${relatedProject.id}`} className="text-blue-600 hover:underline">
+                                {relatedProject.projectNumber} - {relatedProject.title}
+                              </Link>
+                            </p>
+                          </div>
+                        )}
+                        {relatedDrawing && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Source Drawing</label>
+                            <p className="mt-1">
+                              <Link href={`/engineering/${relatedDrawing.projectId}`} className="text-blue-600 hover:underline">
+                                {relatedDrawing.drawingNumber} - {relatedDrawing.title}
+                              </Link>
+                            </p>
+                          </div>
+                        )}
+                        {relatedBoq && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Source BOQ</label>
+                            <p className="mt-1">
+                              <Link href={`/boq/${relatedBoq.id}`} className="text-blue-600 hover:underline">
+                                {relatedBoq.boqNumber} - {relatedBoq.title}
+                              </Link>
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-4">
                         <div>
                           <label className="text-sm font-medium text-gray-500">Date Created</label>
-                          <p className="mt-1">{bom.dateCreated}</p>
+                          <p className="mt-1">{new Date(bom.createdAt).toLocaleDateString()}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Approved By</label>
-                          <p className="mt-1">{bom.approvedBy}</p>
+                          <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                          <p className="mt-1">{new Date(bom.updatedAt).toLocaleDateString()}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Date Approved</label>
-                          <p className="mt-1">{bom.dateApproved}</p>
+                          <label className="text-sm font-medium text-gray-500">Version</label>
+                          <p className="mt-1">{bom.version}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Revision</label>
+                          <p className="mt-1">{bom.revision}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Created By</label>
+                          <p className="mt-1">{bom.createdBy || 'Unknown'}</p>
                         </div>
                       </div>
                     </div>
                     <div className="mt-6">
                       <label className="text-sm font-medium text-gray-500">Notes</label>
-                      <p className="mt-1 text-gray-700">{bom.notes}</p>
+                      <p className="mt-1 text-gray-700">{bom.notes || 'No notes provided'}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -387,18 +505,22 @@ export default function BOMDetailPage({ params }: { params: { id: string } }) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-gray-500">TOTAL MATERIALS</label>
-                  <p className="text-lg font-bold">{bom.materialCount}</p>
+                  <label className="text-xs font-medium text-gray-500">TOTAL ITEMS</label>
+                  <p className="text-lg font-bold">{bom.itemCount || bom.items?.length || 0}</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">TOTAL COST</label>
-                  <p className="text-lg font-bold">{bom.totalCost}</p>
+                  <p className="text-lg font-bold">${bom.totalCost?.toLocaleString() || '0'}</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">STATUS</label>
-                  <Badge className={getStatusColor(bom.status)}>
-                    {bom.status}
+                  <Badge className={getStatusColor(bom.status || "Draft")}>
+                    {bom.status || "Draft"}
                   </Badge>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">VERSION</label>
+                  <p className="text-lg font-bold">{bom.version} (Rev. {bom.revision})</p>
                 </div>
               </CardContent>
             </Card>

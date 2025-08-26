@@ -1,7 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { Navbar } from "@/components/navbar"
+import Navbar from "@/components/navbar"
 import { DatabaseProvider } from "@/components/database-provider"
 import "./globals.css"
 

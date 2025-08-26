@@ -14,6 +14,8 @@ export interface Customer {
   creditLimit: number
   paymentTerms: string
   totalOrders: number
+  engineeringStandards?: string[]
+  qualityRequirements?: string[]
   createdAt: string
   updatedAt: string
 }
@@ -52,6 +54,15 @@ export interface QuotationItem {
   deliveryDate: string
   specifications: string
   isNewItem?: boolean
+  engineeringHours?: number
+  engineeringRate?: number
+  engineeringCost?: number
+  materialCost?: number
+  laborCost?: number
+  overheadCost?: number
+  profitMargin?: number
+  bomId?: string
+  drawingId?: string
 }
 
 export interface Quotation {
@@ -61,15 +72,50 @@ export interface Quotation {
   quotationNumber: string
   title: string
   description: string
-  status: "Draft" | "Sent" | "Approved" | "Rejected" | "Expired"
+  status: "Draft" | "Under Review" | "Sent" | "Customer Review" | "Negotiation" | "Approved" | "Rejected" | "Expired"
   items: QuotationItem[]
   subtotal: number
+  engineeringCost: number
+  materialCost: number
+  laborCost: number
+  overheadCost: number
+  profitMargin: number
   tax: number
   total: number
   validUntil: string
   createdAt: string
   updatedAt: string
   revision: string
+  engineeringProjectId?: string
+  salesPerson: string
+  engineeringReviewer?: string
+  managementApprover?: string
+  customerRequirements: string
+  technicalSpecifications: string
+  deliveryTerms: string
+  paymentTerms: string
+  warrantyTerms: string
+  notes?: string
+  changeHistory: QuotationChange[]
+}
+
+// Quotation Change Management
+export interface QuotationChange {
+  id: string
+  changeNumber: string
+  quotationId: string
+  changeType: "Scope" | "Pricing" | "Timeline" | "Specifications" | "Terms"
+  reason: string
+  description: string
+  impact: string
+  costImpact: number
+  scheduleImpact: number
+  requestedBy: string
+  reviewedBy?: string
+  approvedBy?: string
+  customerApproved?: boolean
+  createdAt: string
+  updatedAt: string
   notes?: string
 }
 
@@ -117,6 +163,7 @@ export interface SalesOrder {
 export interface EngineeringDrawing {
   id: string
   projectId: string
+  projectNumber: string
   drawingNumber: string
   title: string
   description: string
@@ -137,12 +184,41 @@ export interface EngineeringDrawing {
     height: number
     weight: number
   }
+  tolerances?: string
+  surfaceFinish?: string
+  weldingSpecs?: string
+  qualityStandards: string[]
+  inspectionPoints: string[]
+  notes?: string
+  changeHistory: EngineeringChange[]
+}
+
+// Engineering Change Management
+export interface EngineeringChange {
+  id: string
+  changeNumber: string
+  drawingId: string
+  changeType: "Design" | "Material" | "Process" | "Specification" | "Documentation"
+  priority: "Low" | "Medium" | "High" | "Critical"
+  status: "Proposed" | "Under Review" | "Approved" | "Rejected" | "Implemented"
+  reason: string
+  description: string
+  impact: string
+  costImpact: number
+  scheduleImpact: number
+  proposedBy: string
+  reviewedBy?: string
+  approvedBy?: string
+  implementationDate?: string
+  createdAt: string
+  updatedAt: string
   notes?: string
 }
 
 // Bill of Materials types
 export interface BOMItem {
   id: string
+  itemNumber: string
   partNumber: string
   description: string
   quantity: number
@@ -151,27 +227,85 @@ export interface BOMItem {
   totalCost: number
   supplier: string
   leadTime: number
-  category: string
+  category: "Raw Material" | "Structural Steel" | "Steel Plate" | "Piping" | "Pipe Fittings" | "Fabricated" | "Hardware" | "General"
+  materialGrade?: string
   specifications?: string
+  boqItemId?: string
 }
 
 export interface BillOfMaterials {
   id: string
   bomNumber: string
-  title: string
   productName: string
-  description: string
+  description?: string
   status: "Draft" | "Under Review" | "Approved" | "Released" | "Obsolete"
   version: string
+  bomType: "EBOM" | "MBOM" | "PBOM"
   items: BOMItem[]
   totalCost: number
+  itemCount: number
   createdBy: string
-  approvedBy: string
+  approvedBy?: string
   createdAt: string
   updatedAt: string
   revision: string
+  engineeringProjectId?: string
   engineeringDrawingId?: string
+  boqId?: string
   notes?: string
+}
+
+// Bill of Quantities (BOQ) types
+export interface BOQItem {
+  id: string
+  itemNumber: string
+  description: string
+  quantity: number
+  unit: string
+  unitRate: number
+  totalAmount: number
+  category: "Material" | "Labor" | "Equipment" | "Subcontract" | "Other"
+  specifications?: string
+  remarks?: string
+  bomItemId?: string
+  // ETO-specific fields
+  workPackage?: string // High-level work description
+  engineeringStatus?: "Pending" | "In Design" | "Design Complete" | "BOM Generated"
+  bomId?: string // Generated BOM reference
+  designComplexity?: "Low" | "Medium" | "High" | "Critical"
+  requiredDrawings?: string[] // Required engineering drawings
+}
+
+export interface BillOfQuantities {
+  id: string
+  boqNumber: string
+  title: string
+  projectName: string
+  description: string
+  status: "Draft" | "Under Review" | "Approved" | "Final" | "Revised"
+  version: string
+  items: BOQItem[]
+  materialCost: number
+  laborCost: number
+  equipmentCost: number
+  subcontractCost: number
+  otherCost: number
+  totalCost: number
+  createdBy: string
+  approvedBy?: string
+  createdAt: string
+  updatedAt: string
+  revision: string
+  engineeringProjectId?: string
+  engineeringDrawingId?: string
+  bomId?: string
+  notes?: string
+  // ETO-specific fields
+  etoStatus?: "BOQ Submitted" | "Engineering Design" | "BOM Generation" | "Manufacturing Ready"
+  engineeringProgress?: number // 0-100 percentage
+  generatedBOMs?: string[] // Array of BOM IDs generated from this BOQ
+  contractReference?: string // Client contract reference
+  workPackages?: string[] // High-level work packages
 }
 
 // Production Work Order types
@@ -278,4 +412,84 @@ export interface ProcurementItem {
   urgency: "Low" | "Medium" | "High" | "Critical"
   requestedDate: string
   notes: string
+}
+
+// Item types
+export interface Item {
+  id: string
+  partNumber: string
+  name: string
+  category: string
+  description: string
+  unit: string
+  unitCost: number
+  minStock: number
+  maxStock: number
+  currentStock: number
+  leadTime: number
+  supplier: string
+  location: string
+  status: "Active" | "Inactive" | "Discontinued"
+  specifications: string
+  createdAt: string
+  updatedAt: string
+  notes?: string
+}
+
+// Location types
+export interface Location {
+  id: string
+  code: string
+  name: string
+  type: "Warehouse" | "Rack" | "Bin" | "Office" | "Outdoor" | "Specialized"
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  country: string
+  contactPerson: string
+  phone: string
+  email: string
+  capacity: number
+  currentUtilization: number
+  temperature: string
+  humidity: string
+  securityLevel: "Low" | "Medium" | "High" | "Restricted"
+  status: "Active" | "Inactive" | "Maintenance" | "Closed"
+  createdAt: string
+  updatedAt: string
+  items: number
+  value: number
+  notes?: string
+}
+
+// Engineering Project types - Simplified for ETO workflow
+export interface EngineeringProject {
+  id: string
+  projectNumber: string
+  customerId: string
+  customerName: string
+  title: string
+  description: string
+  status: "Draft" | "Under Review" | "Approved" | "In Progress" | "On Hold" | "Completed"
+  priority: "Low" | "Medium" | "High" | "Critical"
+  projectType: "Custom Design" | "Modification" | "Standard Product" | "Prototype"
+  estimatedHours: number
+  actualHours: number
+  estimatedCost: number
+  actualCost: number
+  startDate: string
+  dueDate: string
+  completionDate?: string
+  assignedEngineer: string
+  projectManager: string
+  customerRequirements: string
+  technicalSpecifications: string
+  constraints: string[]
+  risks: string[]
+  deliverables: string[]
+  createdAt: string
+  updatedAt: string
+  revision: string
+  notes?: string
 }

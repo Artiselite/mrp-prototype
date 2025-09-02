@@ -1383,6 +1383,26 @@ export const items: Item[] = [
     createdAt: "2024-01-11T08:00:00Z",
     updatedAt: "2024-01-11T08:00:00Z",
     notes: "Surface preparation chemical"
+  },
+  {
+    id: "6",
+    partNumber: "FG-006",
+    name: "Custom Steel I-Beam Assembly",
+    category: "Finished Goods",
+    description: "Completed W12x26 I-beam with connection plates",
+    unit: "EA",
+    unitCost: 450.00,
+    minStock: 2,
+    maxStock: 20,
+    currentStock: 8,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Warehouse A, Finished Goods Bay",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, 20ft length, primed finish",
+    createdAt: "2024-02-20T08:00:00Z",
+    updatedAt: "2024-02-20T08:00:00Z",
+    notes: "Ready-to-ship finished product from production"
   }
 ]
 

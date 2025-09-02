@@ -2307,7 +2307,6 @@ export const items: Item[] = [
   },
   {
     id: "6",
-<<<<<<< Current (Your changes)
     partNumber: "STL-006",
     name: "W12x26 Steel I-Beam",
     category: "Structural Steel",
@@ -2405,7 +2404,6 @@ export const items: Item[] = [
     createdAt: "2024-02-15T08:00:00Z",
     updatedAt: "2024-02-20T10:00:00Z",
     notes: "For bridge girder and structural connections"
-=======
     partNumber: "FG-006",
     name: "Custom Steel I-Beam Assembly",
     category: "Finished Goods",
@@ -2423,7 +2421,6 @@ export const items: Item[] = [
     createdAt: "2024-02-20T08:00:00Z",
     updatedAt: "2024-02-20T08:00:00Z",
     notes: "Ready-to-ship finished product from production"
->>>>>>> Incoming (Background Agent changes)
   }
 ]
 

@@ -375,6 +375,9 @@ const EngineeringBarChart = ({ data, title, yAxisLabel }: { data: any[], title: 
                         />
                     </div>
                 </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Items</p>
+                  <p className="text-2xl font-bold text-gray-900">6</p>
             ))}
         </div>
     </div>
@@ -389,6 +392,7 @@ const DemandSupplyPieChart = ({ data, title }: { data: any[], title: string }) =
                     <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
                     <span className="text-gray-600">{item.level}:</span>
                     <span className="font-medium">{item.count} ({item.percentage}%)</span>
+
                 </div>
             ))}
         </div>

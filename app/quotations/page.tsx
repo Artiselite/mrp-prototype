@@ -9,14 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Search, Filter, Eye, Edit, FileText, Calculator, Settings, DollarSign, Clock } from 'lucide-react'
+import { Plus, Search, Filter, Eye, Edit, FileText, Calculator, Settings, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { useDatabaseContext } from '@/components/database-provider'
 
 function QuotationsContent() {
-  const { useQuotations, useEngineeringProjects } = useDatabaseContext()
-  const { quotations } = useQuotations()
-  const { projects } = useEngineeringProjects()
-  const [filteredQuotations, setFilteredQuotations] = useState(quotations)
+  const { quotations, engineeringDrawings, isInitialized } = useDatabaseContext()
+  const [filteredQuotations, setFilteredQuotations] = useState(quotations || [])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
@@ -25,14 +23,14 @@ function QuotationsContent() {
 
     if (searchTerm) {
       filtered = filtered.filter(q =>
-        q.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.id.toLowerCase().includes(searchTerm.toLowerCase())
+        q?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q?.id?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(q => q.status === statusFilter)
+      filtered = filtered.filter(q => getWorkflowStage(q) === statusFilter)
     }
 
     setFilteredQuotations(filtered)
@@ -53,14 +51,52 @@ function QuotationsContent() {
   }
 
   const getEngineeringStatus = (quotation: any) => {
-    if (quotation.engineeringReviewer && quotation.managementApprover) {
+    if (quotation?.engineeringReviewer && quotation?.managementApprover) {
       return 'Fully Approved'
-    } else if (quotation.engineeringReviewer) {
+    } else if (quotation?.engineeringReviewer) {
       return 'Engineering Approved'
-    } else if (quotation.engineeringProjectId) {
+    } else if (quotation?.engineeringProjectId) {
       return 'Engineering In Progress'
     } else {
       return 'No Engineering'
+    }
+  }
+
+  const getBOQStatus = (quotation: any) => {
+    if (quotation?.boqGenerated) {
+      return 'BOQ Generated'
+    } else if (quotation?.engineeringDrawingCreated) {
+      return 'Drawing Complete'
+    } else if (quotation?.engineeringProjectId) {
+      return 'Engineering In Progress'
+    } else {
+      return 'Not Started'
+    }
+  }
+
+  const getBOQStatusColor = (status: string) => {
+    switch (status) {
+      case 'BOQ Generated': return 'bg-green-100 text-green-800'
+      case 'Drawing Complete': return 'bg-blue-100 text-blue-800'
+      case 'Engineering In Progress': return 'bg-yellow-100 text-yellow-800'
+      case 'Not Started': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getWorkflowStage = (quotation: any) => {
+    if (quotation?.status === 'Approved' && quotation?.poReceived) {
+      return 'PO Received'
+    } else if (quotation?.sentToCustomer) {
+      return 'Customer Review'
+    } else if (quotation?.boqGenerated) {
+      return 'Ready to Send'
+    } else if (quotation?.engineeringDrawingCreated) {
+      return 'BOQ Pending'
+    } else if (quotation?.engineeringProjectId) {
+      return 'Engineering'
+    } else {
+      return 'Draft'
     }
   }
 
@@ -75,17 +111,30 @@ function QuotationsContent() {
   }
 
   const stats = {
-    total: quotations.length,
-    draft: quotations.filter(q => q.status === 'Draft').length,
-    underReview: quotations.filter(q => q.status === 'Under Review').length,
-    sent: quotations.filter(q => q.status === 'Sent').length,
-    customerReview: quotations.filter(q => q.status === 'Customer Review').length,
-    negotiation: quotations.filter(q => q.status === 'Negotiation').length,
-    approved: quotations.filter(q => q.status === 'Approved').length,
-    rejected: quotations.filter(q => q.status === 'Rejected').length,
-    expired: quotations.filter(q => q.status === 'Expired').length,
-    totalValue: quotations.reduce((sum, q) => sum + q.total, 0),
-    engineeringProjects: quotations.filter(q => q.engineeringProjectId).length,
+    total: quotations?.length || 0,
+    draft: quotations?.filter(q => getWorkflowStage(q) === 'Draft').length || 0,
+    engineering: quotations?.filter(q => getWorkflowStage(q) === 'Engineering').length || 0,
+    boqPending: quotations?.filter(q => getWorkflowStage(q) === 'BOQ Pending').length || 0,
+    readyToSend: quotations?.filter(q => getWorkflowStage(q) === 'Ready to Send').length || 0,
+    customerReview: quotations?.filter(q => getWorkflowStage(q) === 'Customer Review').length || 0,
+    poReceived: quotations?.filter(q => getWorkflowStage(q) === 'PO Received').length || 0,
+    approved: quotations?.filter(q => q?.status === 'Approved').length || 0,
+    rejected: quotations?.filter(q => q?.status === 'Rejected').length || 0,
+    totalValue: quotations?.reduce((sum, q) => sum + (q?.total || 0), 0) || 0,
+    engineeringProjects: quotations?.filter(q => q?.engineeringProjectId).length || 0,
+    boqGenerated: quotations?.filter(q => getBOQStatus(q) === 'BOQ Generated').length || 0,
+  }
+
+  // Show loading state if not initialized
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading quotations...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -146,12 +195,12 @@ function QuotationsContent() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Engineering Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.engineeringProjects}</p>
+                  <p className="text-sm font-medium text-gray-600">BOQ Generated</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.boqGenerated}</p>
                 </div>
-                                        <div className="p-3 bg-purple-100 rounded-full">
-                          <Settings className="w-6 h-6 text-purple-600" />
-                        </div>
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <Calculator className="w-6 h-6 text-purple-600" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -160,11 +209,11 @@ function QuotationsContent() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Review</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.underReview + stats.customerReview}</p>
+                  <p className="text-sm font-medium text-gray-600">In Engineering</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.engineering + stats.boqPending}</p>
                 </div>
                 <div className="p-3 bg-yellow-100 rounded-full">
-                  <Clock className="w-6 h-6 text-yellow-600" />
+                  <Settings className="w-6 h-6 text-yellow-600" />
                 </div>
               </div>
             </CardContent>
@@ -191,15 +240,15 @@ function QuotationsContent() {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="all">All Stages</SelectItem>
                   <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="Under Review">Under Review</SelectItem>
-                  <SelectItem value="Sent">Sent</SelectItem>
+                  <SelectItem value="Engineering">Engineering</SelectItem>
+                  <SelectItem value="BOQ Pending">BOQ Pending</SelectItem>
+                  <SelectItem value="Ready to Send">Ready to Send</SelectItem>
                   <SelectItem value="Customer Review">Customer Review</SelectItem>
-                  <SelectItem value="Negotiation">Negotiation</SelectItem>
+                  <SelectItem value="PO Received">PO Received</SelectItem>
                   <SelectItem value="Approved">Approved</SelectItem>
                   <SelectItem value="Rejected">Rejected</SelectItem>
-                  <SelectItem value="Expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -222,9 +271,9 @@ function QuotationsContent() {
                   <TableHead>Quotation ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Project</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Workflow Stage</TableHead>
                   <TableHead>Engineering Status</TableHead>
-                  <TableHead>Cost Breakdown</TableHead>
+                  <TableHead>BOQ Status</TableHead>
                   <TableHead>Created Date</TableHead>
                   <TableHead>Valid Until</TableHead>
                   <TableHead>Total</TableHead>
@@ -232,17 +281,17 @@ function QuotationsContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredQuotations.map((quotation) => (
+                {filteredQuotations?.map((quotation) => (
                   <TableRow key={quotation.id}>
                     <TableCell className="font-medium">
-                      {quotation.quotationNumber}
+                      {quotation?.quotationNumber}
                     </TableCell>
-                    <TableCell>{quotation.customerName}</TableCell>
+                    <TableCell>{quotation?.customerName}</TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{quotation.title}</p>
-                        <p className="text-sm text-gray-500">{quotation.description}</p>
-                        {quotation.engineeringProjectId && (
+                        <p className="font-medium">{quotation?.title}</p>
+                        <p className="text-sm text-gray-500">{quotation?.description}</p>
+                        {quotation?.engineeringProjectId && (
                           <Badge variant="outline" className="text-xs mt-1">
                             Engineering Project: {quotation.engineeringProjectId}
                           </Badge>
@@ -250,8 +299,8 @@ function QuotationsContent() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(quotation.status)}>
-                        {quotation.status}
+                      <Badge className={getStatusColor(getWorkflowStage(quotation))}>
+                        {getWorkflowStage(quotation)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -260,42 +309,35 @@ function QuotationsContent() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm space-y-1">
-                        {quotation.engineeringCost > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Settings className="w-3 h-3 text-purple-600" />
-                            <span>${quotation.engineeringCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {quotation.materialCost > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Calculator className="w-3 h-3 text-blue-600" />
-                            <span>${quotation.materialCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {quotation.laborCost > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-green-600" />
-                            <span>${quotation.laborCost.toLocaleString()}</span>
-                          </div>
-                        )}
-                      </div>
+                      <Badge className={getBOQStatusColor(getBOQStatus(quotation))}>
+                        {getBOQStatus(quotation)}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{quotation.createdAt}</TableCell>
-                    <TableCell>{quotation.validUntil}</TableCell>
-                    <TableCell className="font-medium">${quotation.total.toLocaleString()}</TableCell>
+                    <TableCell>{quotation?.createdAt}</TableCell>
+                    <TableCell>{quotation?.validUntil}</TableCell>
+                    <TableCell className="font-medium">${quotation?.total?.toLocaleString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Link href={`/quotations/${quotation.id}`}>
+                        <Link href={`/quotations/${quotation?.id}`}>
                           <Button variant="ghost" size="sm" title="View Details">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </Link>
-                        <Link href={`/quotations/${quotation.id}/edit`}>
+                        <Link href={`/quotations/${quotation?.id}/edit`}>
                           <Button variant="ghost" size="sm" title="Edit Quotation">
                             <Edit className="w-4 h-4" />
                           </Button>
                         </Link>
+                        {getBOQStatus(quotation) === 'BOQ Generated' && (
+                          <Button variant="ghost" size="sm" title="View BOQ">
+                            <Calculator className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {getWorkflowStage(quotation) === 'PO Received' && (
+                          <Button variant="ghost" size="sm" title="Convert to Sales Order">
+                            <Settings className="w-4 h-4" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="sm" title="Download PDF">
                           <FileText className="w-4 h-4" />
                         </Button>
@@ -305,7 +347,7 @@ function QuotationsContent() {
                 ))}
               </TableBody>
             </Table>
-            {filteredQuotations.length === 0 && (
+            {(!filteredQuotations || filteredQuotations.length === 0) && (
               <div className="text-center py-8">
                 <p className="text-gray-500">No quotations found matching your criteria.</p>
               </div>

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Save, Plus, X, Calculator, Wrench, ArrowRight } from 'lucide-react'
+import { ArrowLeft, Save, Plus, X, Calculator, ArrowRight } from 'lucide-react'
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -19,25 +19,28 @@ import type { BOQItem } from "@/lib/types"
 export default function CreateBOQPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { useBillsOfQuantities, useEngineeringProjects, useEngineeringDrawings, useBillsOfMaterials, isInitialized } = useDatabaseContext()
+  const { useBillsOfQuantities, useEngineeringDrawings, useQuotations, useItems, isInitialized } = useDatabaseContext()
   const { createBoq } = useBillsOfQuantities()
-  const { projects = [] } = useEngineeringProjects()
   const { drawings = [] } = useEngineeringDrawings()
-  const { boms = [] } = useBillsOfMaterials()
+  const { quotations = [], updateQuotation } = useQuotations()
+  const { items: masterItems = [] } = useItems()
 
   const [formData, setFormData] = useState({
     boqNumber: "",
     title: "",
     projectName: "",
     description: "",
-    engineeringProjectId: "none",
     engineeringDrawingId: "none",
-    bomId: "none",
+    quotationId: "none",
     createdBy: "",
+    // ETO workflow fields
+    contractReference: "",
+    workflowStage: "BOQ Submitted" as const,
   })
 
   const [items, setItems] = useState<Omit<BOQItem, "id">[]>([])
   const [newItem, setNewItem] = useState({
+    selectedItemId: "",
     itemNumber: "",
     description: "",
     quantity: 0,
@@ -46,9 +49,6 @@ export default function CreateBOQPage() {
     category: "Material" as BOQItem["category"],
     specifications: "",
     remarks: "",
-    workPackage: "",
-    engineeringStatus: "Pending" as BOQItem["engineeringStatus"],
-    designComplexity: "Medium" as BOQItem["designComplexity"],
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,9 +66,7 @@ export default function CreateBOQPage() {
       const newBoq = await createBoq({
         ...formData,
         // Convert "none" values back to empty strings or undefined
-        engineeringProjectId: formData.engineeringProjectId === "none" ? undefined : formData.engineeringProjectId,
         engineeringDrawingId: formData.engineeringDrawingId === "none" ? undefined : formData.engineeringDrawingId,
-        bomId: formData.bomId === "none" ? undefined : formData.bomId,
         status: "Draft",
         version: "1.0",
         items: items.map((item, index) => ({
@@ -82,7 +80,23 @@ export default function CreateBOQPage() {
         otherCost,
         totalCost,
         revision: "Rev A",
+        // ETO workflow fields
+        etoStatus: "BOQ Submitted",
+        engineeringProgress: 25, // BOQ created represents 25% progress
       })
+
+      // Update linked quotation if selected
+      if (formData.quotationId !== "none") {
+        const quotation = quotations.find(q => q.id === formData.quotationId)
+        if (quotation) {
+          updateQuotation(formData.quotationId, {
+            boqGenerated: true,
+            boqId: newBoq.id,
+            workflowStage: "Ready to Send",
+            updatedAt: new Date().toISOString(),
+          })
+        }
+      }
 
       router.push(`/boq/${newBoq.id}`)
     } catch (error) {
@@ -98,6 +112,7 @@ export default function CreateBOQPage() {
         totalAmount,
       }])
       setNewItem({
+        selectedItemId: "",
         itemNumber: "",
         description: "",
         quantity: 0,
@@ -106,15 +121,113 @@ export default function CreateBOQPage() {
         category: "Material",
         specifications: "",
         remarks: "",
-        workPackage: "",
-        engineeringStatus: "Pending",
-        designComplexity: "Medium",
       })
     }
   }
 
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index))
+  }
+
+  const handleItemSelection = (itemId: string) => {
+    if (!itemId || itemId === "") {
+      // Clear item fields when no item is selected
+      setNewItem(prev => ({
+        ...prev,
+        selectedItemId: "",
+        itemNumber: "",
+        description: "",
+        unit: "",
+        unitRate: 0,
+        specifications: "",
+      }))
+      return
+    }
+
+    setNewItem(prev => ({ ...prev, selectedItemId: itemId }))
+
+    if (!masterItems || !Array.isArray(masterItems)) {
+      return
+    }
+
+    const selectedItem = masterItems.find(item => item && item.id === itemId)
+    if (selectedItem) {
+      setNewItem(prev => ({
+        ...prev,
+        itemNumber: selectedItem.partNumber || "",
+        description: selectedItem.name || "",
+        unit: selectedItem.unit || "",
+        unitRate: selectedItem.unitCost || 0,
+        specifications: selectedItem.specifications || "",
+        category: selectedItem.category === "Raw Materials" ? "Material" :
+          selectedItem.category === "Finished Goods" ? "Material" :
+            selectedItem.category === "Services" ? "Labor" : "Material",
+      }))
+    }
+  }
+
+  const handleQuotationSelection = (selectedQuotationId: string) => {
+    setFormData(prev => ({ ...prev, quotationId: selectedQuotationId }))
+
+    if (selectedQuotationId === "none") {
+      // Clear auto-populated data when "No Quotation" is selected
+      setFormData(prev => ({
+        ...prev,
+        boqNumber: "",
+        title: "",
+        projectName: "",
+        description: "",
+        contractReference: "",
+        createdBy: "",
+        engineeringDrawingId: "none",
+      }))
+      setItems([])
+      return
+    }
+
+    // Auto-populate from selected quotation
+    const quotation = quotations.find(q => q.id === selectedQuotationId)
+    if (quotation) {
+      // Auto-generate BOQ number based on quotation
+      const boqNumber = `BOQ-${quotation.quotationNumber.replace('Q', '')}`
+
+      setFormData(prev => ({
+        ...prev,
+        boqNumber,
+        title: `BOQ for ${quotation.title}`,
+        projectName: quotation.title,
+        description: `Bill of Quantities for ${quotation.title} - ${quotation.description}`,
+        contractReference: quotation.quotationNumber,
+        createdBy: quotation.salesPerson || "Current User",
+      }))
+
+      // Pre-populate BOQ items from quotation items
+      if (quotation.items && quotation.items.length > 0) {
+        const boqItems = quotation.items.map((quotItem, index) => ({
+          itemNumber: `${index + 1}.0`,
+          description: quotItem.description,
+          quantity: quotItem.quantity,
+          unit: "EA", // Default unit, can be changed
+          unitRate: quotItem.unitPrice,
+          totalAmount: quotItem.totalPrice,
+          category: "Material" as BOQItem["category"],
+          specifications: quotItem.specifications || "",
+          remarks: `From Quotation: ${quotation.quotationNumber}`,
+        }))
+        setItems(boqItems)
+      }
+
+      // Find linked engineering drawing if available
+      if (quotation.engineeringProjectId && drawings.length > 0) {
+        const linkedDrawing = drawings.find(d => d.projectId === quotation.engineeringProjectId)
+        if (linkedDrawing) {
+          setFormData(prev => ({
+            ...prev,
+            engineeringDrawingId: linkedDrawing.id,
+          }))
+        }
+      }
+    }
   }
 
   const getCategoryColor = (category: BOQItem["category"]) => {
@@ -128,25 +241,14 @@ export default function CreateBOQPage() {
     }
   }
 
-  const getEngineeringStatusColor = (status: string) => {
-    switch (status) {
-      case "Pending": return "bg-gray-100 text-gray-800"
-      case "In Design": return "bg-yellow-100 text-yellow-800"
-      case "Design Complete": return "bg-blue-100 text-blue-800"
-      case "BOM Generated": return "bg-green-100 text-green-800"
-      default: return "bg-gray-100 text-gray-800"
-    }
-  }
-
   const totalCost = items?.reduce((sum, item) => sum + (item.totalAmount || 0), 0) || 0
 
   // Pre-populate form based on URL parameters
   useEffect(() => {
-    if (!drawings || !boms || !projects) return
+    if (!drawings || !quotations) return
 
     const drawingId = searchParams.get('drawingId')
-    const bomId = searchParams.get('bomId')
-    const projectId = searchParams.get('projectId')
+    const quotationId = searchParams.get('quotationId')
 
     if (drawingId && drawings.length > 0) {
       const drawing = drawings.find(d => d.id === drawingId)
@@ -161,50 +263,63 @@ export default function CreateBOQPage() {
       }
     }
 
-    if (bomId && boms.length > 0) {
-      const bom = boms.find(b => b.id === bomId)
-      if (bom && bom.items) {
+    if (quotationId && quotations.length > 0) {
+      const quotation = quotations.find(q => q.id === quotationId)
+      if (quotation) {
+        // Auto-generate BOQ number based on quotation
+        const boqNumber = `BOQ-${quotation.quotationNumber.replace('Q', '')}`
+
         setFormData(prev => ({
           ...prev,
-          bomId: bomId,
-          title: `BOQ for ${bom.title}`,
-          projectName: bom.productName,
-          description: `Bill of Quantities based on ${bom.title} - ${bom.description}`,
+          quotationId: quotationId,
+          boqNumber,
+          title: `BOQ for ${quotation.title}`,
+          projectName: quotation.title,
+          description: `Bill of Quantities for ${quotation.title} - ${quotation.description}`,
+          contractReference: quotation.quotationNumber,
+          createdBy: quotation.salesPerson || "Current User",
         }))
 
-        // Pre-populate items from BOM
-        const bomItems = bom.items.map((bomItem, index) => ({
-          itemNumber: `${index + 1}.1`,
-          description: `${bomItem.description} - Material`,
-          quantity: bomItem.quantity,
-          unit: bomItem.unit,
-          unitRate: bomItem.unitCost,
-          totalAmount: bomItem.totalCost,
-          category: "Material" as BOQItem["category"],
-          specifications: bomItem.specifications || "",
-          remarks: `From BOM: ${bom.bomNumber}`,
-          bomItemId: bomItem.id,
-        }))
-        setItems(bomItems)
-      }
-    }
+        // Pre-populate BOQ items from quotation items
+        if (quotation.items && quotation.items.length > 0) {
+          const boqItems = quotation.items.map((quotItem, index) => ({
+            itemNumber: `${index + 1}.0`,
+            description: quotItem.description,
+            quantity: quotItem.quantity,
+            unit: "EA", // Default unit, can be changed
+            unitRate: quotItem.unitPrice,
+            totalAmount: quotItem.totalPrice,
+            category: "Material" as BOQItem["category"],
+            specifications: quotItem.specifications || "",
+            remarks: `From Quotation: ${quotation.quotationNumber}`,
+          }))
+          setItems(boqItems)
+        }
 
-    if (projectId && projects.length > 0) {
-      const project = projects.find(p => p.id === projectId)
-      if (project) {
-        setFormData(prev => ({
-          ...prev,
-          engineeringProjectId: projectId,
-          title: `BOQ for ${project.title}`,
-          projectName: project.title,
-          description: `Bill of Quantities for ${project.title} - ${project.description}`,
-        }))
+        // Find linked engineering drawing if available
+        if (quotation.engineeringProjectId && drawings.length > 0) {
+          const linkedDrawing = drawings.find(d => d.projectId === quotation.engineeringProjectId)
+          if (linkedDrawing) {
+            setFormData(prev => ({
+              ...prev,
+              engineeringDrawingId: linkedDrawing.id,
+            }))
+          }
+        }
       }
     }
-  }, [searchParams, drawings, boms, projects])
+  }, [searchParams, drawings, quotations])
+
+  // Debug logging
+  console.log('BOQ Create Debug:', {
+    isInitialized,
+    drawings: drawings ? `array(${drawings.length})` : drawings,
+    quotations: quotations ? `array(${quotations.length})` : quotations,
+    masterItems: masterItems ? `array(${masterItems.length})` : masterItems
+  })
 
   // Show loading state while database is initializing
-  if (!isInitialized || !projects || !drawings || !boms) {
+  if (!isInitialized || !Array.isArray(drawings) || !Array.isArray(quotations) || !Array.isArray(masterItems)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -234,6 +349,63 @@ export default function CreateBOQPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ETO Workflow Context */}
+        {formData.quotationId !== "none" && quotations.length > 0 && (
+          <Card className="mb-6 bg-green-50 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-900 flex items-center gap-2">
+                <Calculator className="w-5 h-5" />
+                Workflow Progress
+              </CardTitle>
+              <CardDescription className="text-green-700">
+                Creating BOQ as part of Engineer-to-Order workflow
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Quotation Created</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Engineering Drawing</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-blue-600">BOQ Generation</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                  <span className="text-sm text-gray-500">Send to Customer</span>
+                </div>
+              </div>
+              {(() => {
+                const quotation = quotations.find(q => q.id === formData.quotationId)
+                return quotation && (
+                  <div className="mt-4 p-3 bg-white rounded border">
+                    <h4 className="font-medium text-green-900">Source Quotation Details</h4>
+                    <div className="grid grid-cols-3 gap-4 mt-2 text-sm">
+                      <div>
+                        <span className="font-medium">Quotation:</span> {quotation.quotationNumber}
+                      </div>
+                      <div>
+                        <span className="font-medium">Customer:</span> {quotation.customerName}
+                      </div>
+                      <div>
+                        <span className="font-medium">Value:</span> ${quotation.total.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <Card>
@@ -250,16 +422,6 @@ export default function CreateBOQPage() {
                     value={formData.boqNumber}
                     onChange={(e) => setFormData(prev => ({ ...prev, boqNumber: e.target.value }))}
                     placeholder="BOQ-2024-XXX"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="createdBy">Created By</Label>
-                  <Input
-                    id="createdBy"
-                    value={formData.createdBy}
-                    onChange={(e) => setFormData(prev => ({ ...prev, createdBy: e.target.value }))}
-                    placeholder="Enter your name"
                     required
                   />
                 </div>
@@ -299,55 +461,85 @@ export default function CreateBOQPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="engineeringProjectId">Engineering Project (Optional)</Label>
-                  <Select value={formData.engineeringProjectId} onValueChange={(value) => setFormData(prev => ({ ...prev, engineeringProjectId: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {projects && Array.isArray(projects) && projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.projectNumber} - {project.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Source Selection */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-lg font-medium text-blue-900 mb-3">Source Selection</h3>
+                <p className="text-sm text-blue-700 mb-4">Link this BOQ to an existing quotation</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="quotationId">Source Quotation (Recommended)</Label>
+                    <Select key="quotation-select" value={formData.quotationId} onValueChange={handleQuotationSelection}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select quotation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No Quotation</SelectItem>
+                        {quotations && Array.isArray(quotations) && quotations.length > 0 ? (
+                          quotations
+                            .filter(q => {
+                              if (!q || !q.id) return false
+                              if (q.status === 'Rejected' || q.status === 'Expired') return false
+                              return true
+                            })
+                            .map((quotation) => {
+                              const quotationNumber = quotation.quotationNumber || 'N/A'
+                              const title = quotation.title || 'Untitled'
+                              const customerName = quotation.customerName || 'Unknown'
+                              const displayText = `${quotationNumber} - ${title} (${customerName})`
+
+                              return (
+                                <SelectItem key={`quotation-${quotation.id}`} value={quotation.id}>
+                                  {displayText}
+                                </SelectItem>
+                              )
+                            })
+                        ) : (
+                          <SelectItem value="loading-quotations" disabled>
+                            {quotations && quotations.length === 0 ? "No quotations available" : "Loading quotations..."}
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Selecting a quotation will auto-populate BOQ details and items
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="contractReference">Contract Reference</Label>
+                    <Input
+                      id="contractReference"
+                      value={formData.contractReference}
+                      onChange={(e) => setFormData(prev => ({ ...prev, contractReference: e.target.value }))}
+                      placeholder="Customer contract/PO reference"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="engineeringDrawingId">Engineering Drawing (Optional)</Label>
-                  <Select value={formData.engineeringDrawingId} onValueChange={(value) => setFormData(prev => ({ ...prev, engineeringDrawingId: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select drawing" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {drawings && Array.isArray(drawings) && drawings.map((drawing) => (
-                        <SelectItem key={drawing.id} value={drawing.id}>
-                          {drawing.drawingNumber} - {drawing.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="bomId">BOM Reference (Optional)</Label>
-                  <Select value={formData.bomId} onValueChange={(value) => setFormData(prev => ({ ...prev, bomId: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select BOM" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {boms && Array.isArray(boms) && boms.map((bom) => (
-                        <SelectItem key={bom.id} value={bom.id}>
-                          {bom.bomNumber} - {bom.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="engineeringDrawingId">Engineering Drawing (Optional)</Label>
+                <Select key="drawing-select" value={formData.engineeringDrawingId} onValueChange={(value) => setFormData(prev => ({ ...prev, engineeringDrawingId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select drawing" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {drawings && Array.isArray(drawings) && drawings.length > 0 ? (
+                      drawings
+                        .filter(drawing => drawing && drawing.id && drawing.drawingNumber && drawing.title)
+                        .map((drawing) => (
+                          <SelectItem key={drawing.id} value={drawing.id}>
+                            {drawing.drawingNumber} - {drawing.title}
+                          </SelectItem>
+                        ))
+                    ) : (
+                      <SelectItem value="loading-drawings" disabled>
+                        {drawings && drawings.length === 0 ? "No drawings available" : "Loading drawings..."}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -367,6 +559,38 @@ export default function CreateBOQPage() {
               {/* Add New Item Form */}
               <div className="p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-medium mb-4">Add New Item</h3>
+
+                {/* Item Master Selection */}
+                {isInitialized && (
+                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Label htmlFor="itemMaster">Select Item from Master (Recommended)</Label>
+                    <Select key="item-master-select" value={newItem.selectedItemId} onValueChange={handleItemSelection}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose from item master or enter manually below" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual-entry">Manual Entry</SelectItem>
+                        {masterItems && Array.isArray(masterItems) && masterItems.length > 0 ? (
+                          masterItems
+                            .filter(item => item && item.id && item.partNumber && item.name)
+                            .map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.partNumber} - {item.name} ({item.category || 'No Category'})
+                              </SelectItem>
+                            ))
+                        ) : (
+                          <SelectItem value="loading" disabled>
+                            {masterItems && masterItems.length === 0 ? "No items available" : "Loading items..."}
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Selecting an item will auto-populate details below
+                    </p>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   <div>
                     <Label htmlFor="itemNumber">Item No.</Label>
@@ -378,12 +602,15 @@ export default function CreateBOQPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="itemDescription">Description</Label>
+                    <Label htmlFor="itemDescription">
+                      Description {newItem.selectedItemId && <span className="text-xs text-blue-600">(Auto-populated)</span>}
+                    </Label>
                     <Input
                       id="itemDescription"
                       value={newItem.description}
                       onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Item description"
+                      className={newItem.selectedItemId ? "bg-blue-50 border-blue-200" : ""}
                     />
                   </div>
                   <div>
@@ -399,16 +626,21 @@ export default function CreateBOQPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="unit">Unit</Label>
+                    <Label htmlFor="unit">
+                      Unit {newItem.selectedItemId && <span className="text-xs text-blue-600">(Auto-populated)</span>}
+                    </Label>
                     <Input
                       id="unit"
                       value={newItem.unit}
                       onChange={(e) => setNewItem(prev => ({ ...prev, unit: e.target.value }))}
                       placeholder="EA, LF, SQ FT"
+                      className={newItem.selectedItemId ? "bg-blue-50 border-blue-200" : ""}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="unitRate">Unit Rate ($)</Label>
+                    <Label htmlFor="unitRate">
+                      Unit Rate ($) {newItem.selectedItemId && <span className="text-xs text-blue-600">(Auto-populated)</span>}
+                    </Label>
                     <Input
                       id="unitRate"
                       type="number"
@@ -417,13 +649,14 @@ export default function CreateBOQPage() {
                       placeholder="0.00"
                       min="0"
                       step="0.01"
+                      className={newItem.selectedItemId ? "bg-blue-50 border-blue-200" : ""}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
                     <Label htmlFor="category">Category</Label>
-                    <Select value={newItem.category} onValueChange={(value: BOQItem["category"]) => setNewItem(prev => ({ ...prev, category: value }))}>
+                    <Select key="category-select" value={newItem.category} onValueChange={(value: BOQItem["category"]) => setNewItem(prev => ({ ...prev, category: value }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -455,53 +688,6 @@ export default function CreateBOQPage() {
                     />
                   </div>
                 </div>
-                
-                {/* ETO-specific fields */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="md:col-span-3">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2 flex items-center gap-2">
-                      <Wrench className="w-4 h-4" />
-                      ETO Engineering Fields
-                    </h4>
-                  </div>
-                  <div>
-                    <Label htmlFor="workPackage">Work Package</Label>
-                    <Input
-                      id="workPackage"
-                      value={newItem.workPackage}
-                      onChange={(e) => setNewItem(prev => ({ ...prev, workPackage: e.target.value }))}
-                      placeholder="e.g., Structural Steel Installation"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="engineeringStatus">Engineering Status</Label>
-                    <Select value={newItem.engineeringStatus} onValueChange={(value) => setNewItem(prev => ({ ...prev, engineeringStatus: value as BOQItem["engineeringStatus"] }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="In Design">In Design</SelectItem>
-                        <SelectItem value="Design Complete">Design Complete</SelectItem>
-                        <SelectItem value="BOM Generated">BOM Generated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="designComplexity">Design Complexity</Label>
-                    <Select value={newItem.designComplexity} onValueChange={(value) => setNewItem(prev => ({ ...prev, designComplexity: value as BOQItem["designComplexity"] }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
                 <div className="flex justify-between items-center mt-4">
                   <div className="text-sm text-gray-600">
                     Total Amount: <span className="font-medium">${(newItem.quantity * newItem.unitRate).toFixed(2)}</span>
@@ -526,7 +712,6 @@ export default function CreateBOQPage() {
                         <TableHead>Rate</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Category</TableHead>
-                        <TableHead>ETO Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -552,41 +737,15 @@ export default function CreateBOQPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-1">
-                              <Badge 
-                                variant="outline" 
-                                className={getEngineeringStatusColor(item.engineeringStatus || "Pending")}
-                              >
-                                {item.engineeringStatus || "Pending"}
-                              </Badge>
-                              {item.workPackage && (
-                                <p className="text-xs text-gray-500">{item.workPackage}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeItem(index)}
-                                className="text-red-600 hover:text-red-800"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                              {item.engineeringStatus === "Pending" && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-600 hover:text-blue-800"
-                                  title="Convert to BOM"
-                                >
-                                  <ArrowRight className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeItem(index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -604,17 +763,60 @@ export default function CreateBOQPage() {
             </CardContent>
           </Card>
 
+          {/* ETO Workflow Actions */}
+          {formData.quotationId !== "none" && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-blue-900">Next Steps in ETO Workflow</CardTitle>
+                <CardDescription className="text-blue-700">
+                  Simplified workflow: BOQ creation → Customer approval
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-3 bg-white rounded border">
+                    <h4 className="font-medium mb-2">1. Review BOQ</h4>
+                    <p className="text-sm text-gray-600 mb-3">Engineering review and approval of quantities and costs</p>
+                    <Badge variant="outline" className="text-xs">After Creation</Badge>
+                  </div>
+                  <div className="p-3 bg-white rounded border">
+                    <h4 className="font-medium mb-2">2. Send to Customer</h4>
+                    <p className="text-sm text-gray-600 mb-3">Update quotation and send to customer for approval</p>
+                    <Badge variant="outline" className="text-xs">Final Step</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Submit */}
-          <div className="flex justify-end gap-4">
-            <Link href="/boq">
-              <Button type="button" variant="outline">
-                Cancel
+          <div className="flex justify-between items-center">
+            <div>
+              {items.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">{items.length}</span> items •
+                  <span className="font-medium"> ${totalCost.toFixed(2)}</span> total value
+                </div>
+              )}
+            </div>
+            <div className="flex gap-4">
+              <Link href="/boq">
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </Link>
+              <Button
+                type="submit"
+                className="flex items-center gap-2"
+                disabled={items.length === 0}
+              >
+                <Save className="w-4 h-4" />
+                Create BOQ
+                {formData.quotationId !== "none" && (
+                  <span className="ml-1 text-xs opacity-75">& Update Quotation</span>
+                )}
               </Button>
-            </Link>
-            <Button type="submit" className="flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              Create BOQ
-            </Button>
+            </div>
           </div>
         </form>
       </main>

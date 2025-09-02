@@ -72,7 +72,7 @@ export interface Quotation {
   quotationNumber: string
   title: string
   description: string
-  status: "Draft" | "Under Review" | "Sent" | "Customer Review" | "Negotiation" | "Approved" | "Rejected" | "Expired"
+  status: "Draft" | "Under Review" | "Sent" | "Customer Review" | "Negotiation" | "Approved" | "Completed" | "Rejected" | "Expired"
   items: QuotationItem[]
   subtotal: number
   engineeringCost: number
@@ -97,6 +97,22 @@ export interface Quotation {
   warrantyTerms: string
   notes?: string
   changeHistory: QuotationChange[]
+  
+  // ETO Workflow fields
+  workflowStage?: "Draft" | "Engineering" | "BOQ Pending" | "Ready to Send" | "Customer Review" | "PO Received" | "Completed"
+  assignedEngineer?: string
+  estimatedEngineeringHours?: number
+  engineeringStatus?: "Not Started" | "In Progress" | "Drawing Complete" | "Review Required" | "Approved"
+  drawingRevision?: string
+  drawingNotes?: string
+  engineeringDrawingCreated?: boolean
+  boqGenerated?: boolean
+  boqId?: string
+  sentToCustomer?: boolean
+  customerFeedbackReceived?: boolean
+  poReceived?: boolean
+  convertedToSO?: boolean
+  soId?: string
 }
 
 // Quotation Change Management
@@ -159,6 +175,41 @@ export interface SalesOrder {
   notes?: string
 }
 
+// Engineering Approval types
+export interface DrawingApproval {
+  id: string
+  drawingId: string
+  role: "Lead Engineer" | "Production Manager" | "Quality Manager" | "Engineering Manager" | "Customer"
+  approverName: string
+  approverEmail?: string
+  status: "Pending" | "Approved" | "Rejected" | "Withdrawn"
+  approvedAt?: string
+  rejectedAt?: string
+  comments?: string
+  signature?: string
+  requiredForRelease: boolean
+  order: number // Approval sequence order
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DrawingComment {
+  id: string
+  drawingId: string
+  authorName: string
+  authorRole: string
+  commentType: "General" | "Technical Review" | "Quality Review" | "Production Review" | "Customer Feedback"
+  content: string
+  priority: "Low" | "Medium" | "High" | "Critical"
+  status: "Open" | "Resolved" | "Closed"
+  relatedApprovalId?: string
+  attachments?: string[]
+  createdAt: string
+  updatedAt: string
+  resolvedAt?: string
+  resolvedBy?: string
+}
+
 // Engineering types
 export interface EngineeringDrawing {
   id: string
@@ -191,6 +242,14 @@ export interface EngineeringDrawing {
   inspectionPoints: string[]
   notes?: string
   changeHistory: EngineeringChange[]
+  // Approval workflow fields
+  approvals?: DrawingApproval[]
+  comments?: DrawingComment[]
+  submittedForApprovalAt?: string
+  submittedBy?: string
+  approvalWorkflowStage?: "Not Submitted" | "Under Review" | "Awaiting Customer" | "Approved" | "Rejected"
+  finalApprovalAt?: string
+  finalApprovalBy?: string
 }
 
 // Engineering Change Management

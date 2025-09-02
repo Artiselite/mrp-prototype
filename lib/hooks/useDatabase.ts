@@ -15,6 +15,8 @@ import type {
   PurchaseOrder,
   Item,
   Location,
+  DrawingApproval,
+  DrawingComment,
 } from "../types"
 
 // Database hook for easy state management
@@ -22,6 +24,20 @@ export function useDatabase() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // State for all data
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [quotations, setQuotations] = useState<Quotation[]>([])
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([])
+  const [engineeringDrawings, setEngineeringDrawings] = useState<EngineeringDrawing[]>([])
+  const [billsOfMaterials, setBillsOfMaterials] = useState<BillOfMaterials[]>([])
+  const [billsOfQuantities, setBillsOfQuantities] = useState<BillOfQuantities[]>([])
+  const [productionWorkOrders, setProductionWorkOrders] = useState<ProductionWorkOrder[]>([])
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
+  const [items, setItems] = useState<Item[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
 
   // Initialize database
   useEffect(() => {
@@ -41,11 +57,26 @@ export function useDatabase() {
     initDB()
   }, [])
 
-  // Customer hooks
-  const useCustomers = () => {
-    const [customers, setCustomers] = useState<Customer[]>([])
+  // Refresh all data when database is initialized
+  useEffect(() => {
+    if (isInitialized) {
+      setCustomers(db.getCustomers())
+      setSuppliers(db.getSuppliers())
+      setQuotations(db.getQuotations())
+      setSalesOrders(db.getSalesOrders())
+      setEngineeringDrawings(db.getEngineeringDrawings())
+      setBillsOfMaterials(db.getBillsOfMaterials())
+      setBillsOfQuantities(db.getBillsOfQuantities())
+      setProductionWorkOrders(db.getProductionWorkOrders())
+      setInvoices(db.getInvoices())
+      setPurchaseOrders(db.getPurchaseOrders())
+      setItems(db.getItems())
+      setLocations(db.getLocations())
+    }
+  }, [isInitialized])
 
-    const refreshCustomers = useCallback(() => {
+  // Customer functions
+  const refreshCustomers = useCallback(() => {
       setCustomers(db.getCustomers())
     }, [])
 
@@ -67,25 +98,7 @@ export function useDatabase() {
       return success
     }, [refreshCustomers])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshCustomers()
-      }
-    }, [isInitialized, refreshCustomers])
-
-    return {
-      customers,
-      refreshCustomers,
-      createCustomer,
-      updateCustomer,
-      deleteCustomer,
-    }
-  }
-
-  // Supplier hooks
-  const useSuppliers = () => {
-    const [suppliers, setSuppliers] = useState<Supplier[]>([])
-
+  // Supplier functions
     const refreshSuppliers = useCallback(() => {
       setSuppliers(db.getSuppliers())
     }, [])
@@ -108,25 +121,7 @@ export function useDatabase() {
       return success
     }, [refreshSuppliers])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshSuppliers()
-      }
-    }, [isInitialized, refreshSuppliers])
-
-    return {
-      suppliers,
-      refreshSuppliers,
-      createSupplier,
-      updateSupplier,
-      deleteSupplier,
-    }
-  }
-
-  // Quotation hooks
-  const useQuotations = () => {
-    const [quotations, setQuotations] = useState<Quotation[]>([])
-
+  // Quotation functions
     const refreshQuotations = useCallback(() => {
       setQuotations(db.getQuotations())
     }, [])
@@ -149,25 +144,7 @@ export function useDatabase() {
       return success
     }, [refreshQuotations])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshQuotations()
-      }
-    }, [isInitialized, refreshQuotations])
-
-    return {
-      quotations,
-      refreshQuotations,
-      createQuotation,
-      updateQuotation,
-      deleteQuotation,
-    }
-  }
-
-  // Sales Order hooks
-  const useSalesOrders = () => {
-    const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([])
-
+  // Sales Order functions
     const refreshSalesOrders = useCallback(() => {
       setSalesOrders(db.getSalesOrders())
     }, [])
@@ -190,148 +167,99 @@ export function useDatabase() {
       return success
     }, [refreshSalesOrders])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshSalesOrders()
-      }
-    }, [isInitialized, refreshSalesOrders])
-
-    return {
-      salesOrders,
-      refreshSalesOrders,
-      createSalesOrder,
-      updateSalesOrder,
-      deleteSalesOrder,
-    }
-  }
-
-  // Engineering Drawing hooks
-  const useEngineeringDrawings = () => {
-    const [drawings, setDrawings] = useState<EngineeringDrawing[]>([])
-
-    const refreshDrawings = useCallback(() => {
-      setDrawings(db.getEngineeringDrawings())
+  // Engineering Drawing functions
+  const refreshEngineeringDrawings = useCallback(() => {
+    setEngineeringDrawings(db.getEngineeringDrawings())
     }, [])
 
-    const createDrawing = useCallback((drawing: Omit<EngineeringDrawing, "id" | "createdAt" | "updatedAt">) => {
+  const createEngineeringDrawing = useCallback((drawing: Omit<EngineeringDrawing, "id" | "createdAt" | "updatedAt">) => {
       const newDrawing = db.createEngineeringDrawing(drawing)
-      refreshDrawings()
+    refreshEngineeringDrawings()
       return newDrawing
-    }, [refreshDrawings])
+  }, [refreshEngineeringDrawings])
 
-    const updateDrawing = useCallback((id: string, updates: Partial<EngineeringDrawing>) => {
+  const updateEngineeringDrawing = useCallback((id: string, updates: Partial<EngineeringDrawing>) => {
       const updated = db.updateEngineeringDrawing(id, updates)
-      if (updated) refreshDrawings()
+    if (updated) refreshEngineeringDrawings()
       return updated
-    }, [refreshDrawings])
+  }, [refreshEngineeringDrawings])
 
-    const deleteDrawing = useCallback((id: string) => {
+  const deleteEngineeringDrawing = useCallback((id: string) => {
       const success = db.deleteEngineeringDrawing(id)
-      if (success) refreshDrawings()
+    if (success) refreshEngineeringDrawings()
       return success
-    }, [refreshDrawings])
+  }, [refreshEngineeringDrawings])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshDrawings()
-      }
-    }, [isInitialized, refreshDrawings])
-
-    return {
-      drawings,
-      refreshDrawings,
-      createDrawing,
-      updateDrawing,
-      deleteDrawing,
-    }
-  }
-
-  // Bill of Materials hooks
-  const useBillsOfMaterials = () => {
-    const [boms, setBoms] = useState<BillOfMaterials[]>([])
-
-    const refreshBoms = useCallback(() => {
-      setBoms(db.getBillsOfMaterials())
+  // Bill of Materials functions
+  const refreshBillsOfMaterials = useCallback(() => {
+    setBillsOfMaterials(db.getBillsOfMaterials())
     }, [])
 
-    const createBom = useCallback((bom: Omit<BillOfMaterials, "id" | "createdAt" | "updatedAt">) => {
+  const createBillOfMaterials = useCallback((bom: Omit<BillOfMaterials, "id" | "createdAt" | "updatedAt">) => {
       const newBom = db.createBillOfMaterials(bom)
-      refreshBoms()
+    refreshBillsOfMaterials()
       return newBom
-    }, [refreshBoms])
+  }, [refreshBillsOfMaterials])
 
-    const updateBom = useCallback((id: string, updates: Partial<BillOfMaterials>) => {
+  const updateBillOfMaterials = useCallback((id: string, updates: Partial<BillOfMaterials>) => {
       const updated = db.updateBillOfMaterials(id, updates)
-      if (updated) refreshBoms()
+    if (updated) refreshBillsOfMaterials()
       return updated
-    }, [refreshBoms])
+  }, [refreshBillsOfMaterials])
 
-    const deleteBom = useCallback((id: string) => {
+  const deleteBillOfMaterials = useCallback((id: string) => {
       const success = db.deleteBillOfMaterials(id)
-      if (success) refreshBoms()
+    if (success) refreshBillsOfMaterials()
       return success
-    }, [refreshBoms])
+  }, [refreshBillsOfMaterials])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshBoms()
-      }
-    }, [isInitialized, refreshBoms])
+  // Bill of Quantities functions
+  const refreshBillsOfQuantities = useCallback(() => {
+    setBillsOfQuantities(db.getBillsOfQuantities())
+  }, [])
 
-    return {
-      boms,
-      refreshBoms,
-      createBom,
-      updateBom,
-      deleteBom,
-    }
-  }
+  const createBillOfQuantities = useCallback((boq: Omit<BillOfQuantities, "id" | "createdAt" | "updatedAt">) => {
+    const newBoq = db.createBillOfQuantities(boq)
+    refreshBillsOfQuantities()
+    return newBoq
+  }, [refreshBillsOfQuantities])
 
-  // Production Work Order hooks
-  const useProductionWorkOrders = () => {
-    const [workOrders, setWorkOrders] = useState<ProductionWorkOrder[]>([])
+  const updateBillOfQuantities = useCallback((id: string, updates: Partial<BillOfQuantities>) => {
+    const updated = db.updateBillOfQuantities(id, updates)
+    if (updated) refreshBillsOfQuantities()
+    return updated
+  }, [refreshBillsOfQuantities])
 
-    const refreshWorkOrders = useCallback(() => {
-      setWorkOrders(db.getProductionWorkOrders())
+  const deleteBillOfQuantities = useCallback((id: string) => {
+    const success = db.deleteBillOfQuantities(id)
+    if (success) refreshBillsOfQuantities()
+    return success
+  }, [refreshBillsOfQuantities])
+
+  // Production Work Order functions
+  const refreshProductionWorkOrders = useCallback(() => {
+    setProductionWorkOrders(db.getProductionWorkOrders())
     }, [])
 
-    const createWorkOrder = useCallback((workOrder: Omit<ProductionWorkOrder, "id" | "createdAt" | "updatedAt">) => {
+  const createProductionWorkOrder = useCallback((workOrder: Omit<ProductionWorkOrder, "id" | "createdAt" | "updatedAt">) => {
       const newWorkOrder = db.createProductionWorkOrder(workOrder)
-      refreshWorkOrders()
+    refreshProductionWorkOrders()
       return newWorkOrder
-    }, [refreshWorkOrders])
+  }, [refreshProductionWorkOrders])
 
-    const updateWorkOrder = useCallback((id: string, updates: Partial<ProductionWorkOrder>) => {
+  const updateProductionWorkOrder = useCallback((id: string, updates: Partial<ProductionWorkOrder>) => {
       const updated = db.updateProductionWorkOrder(id, updates)
-      if (updated) refreshWorkOrders()
+    if (updated) refreshProductionWorkOrders()
       return updated
-    }, [refreshWorkOrders])
+  }, [refreshProductionWorkOrders])
 
-    const deleteWorkOrder = useCallback((id: string) => {
+  const deleteProductionWorkOrder = useCallback((id: string) => {
       const success = db.deleteProductionWorkOrder(id)
-      if (success) refreshWorkOrders()
+    if (success) refreshProductionWorkOrders()
       return success
-    }, [refreshWorkOrders])
+  }, [refreshProductionWorkOrders])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshWorkOrders()
-      }
-    }, [isInitialized, refreshWorkOrders])
-
-    return {
-      workOrders,
-      refreshWorkOrders,
-      createWorkOrder,
-      updateWorkOrder,
-      deleteWorkOrder,
-    }
-  }
-
-  // Invoice hooks
-  const useInvoices = () => {
-    const [invoices, setInvoices] = useState<Invoice[]>([])
-
+  // Invoice functions
     const refreshInvoices = useCallback(() => {
       setInvoices(db.getInvoices())
     }, [])
@@ -354,25 +282,7 @@ export function useDatabase() {
       return success
     }, [refreshInvoices])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshInvoices()
-      }
-    }, [isInitialized, refreshInvoices])
-
-    return {
-      invoices,
-      refreshInvoices,
-      createInvoice,
-      updateInvoice,
-      deleteInvoice,
-    }
-  }
-
-  // Purchase Order hooks
-  const usePurchaseOrders = () => {
-    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
-
+  // Purchase Order functions
     const refreshPurchaseOrders = useCallback(() => {
       setPurchaseOrders(db.getPurchaseOrders())
     }, [])
@@ -395,25 +305,7 @@ export function useDatabase() {
       return success
     }, [refreshPurchaseOrders])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshPurchaseOrders()
-      }
-    }, [isInitialized, refreshPurchaseOrders])
-
-    return {
-      purchaseOrders,
-      refreshPurchaseOrders,
-      createPurchaseOrder,
-      updatePurchaseOrder,
-      deletePurchaseOrder,
-    }
-  }
-
-  // Item hooks
-  const useItems = () => {
-    const [items, setItems] = useState<Item[]>([])
-
+  // Item functions
     const refreshItems = useCallback(() => {
       setItems(db.getItems())
     }, [])
@@ -436,25 +328,7 @@ export function useDatabase() {
       return success
     }, [refreshItems])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshItems()
-      }
-    }, [isInitialized, refreshItems])
-
-    return {
-      items,
-      refreshItems,
-      createItem,
-      updateItem,
-      deleteItem,
-    }
-  }
-
-  // Location hooks
-  const useLocations = () => {
-    const [locations, setLocations] = useState<Location[]>([])
-
+  // Location functions
     const refreshLocations = useCallback(() => {
       setLocations(db.getLocations())
     }, [])
@@ -477,189 +351,85 @@ export function useDatabase() {
       return success
     }, [refreshLocations])
 
-    useEffect(() => {
-      if (isInitialized) {
-        refreshLocations()
-      }
-    }, [isInitialized, refreshLocations])
-
-    return {
-      locations,
-      refreshLocations,
-      createLocation,
-      updateLocation,
-      deleteLocation,
-    }
-  }
-
-  // Engineering Project hooks
-  const useEngineeringProjects = () => {
-    const [projects, setProjects] = useState<EngineeringProject[]>([])
-
-    const refreshProjects = useCallback(() => {
-      setProjects(db.getEngineeringProjects())
-    }, [])
-
-    const createProject = useCallback((project: Omit<EngineeringProject, "id" | "createdAt" | "updatedAt">) => {
-      const newProject = db.createEngineeringProject(project)
-      refreshProjects()
-      return newProject
-    }, [refreshProjects])
-
-    const updateProject = useCallback((id: string, updates: Partial<EngineeringProject>) => {
-      const updated = db.updateEngineeringProject(id, updates)
-      if (updated) refreshProjects()
-      return updated
-    }, [refreshProjects])
-
-    const deleteProject = useCallback((id: string) => {
-      const success = db.deleteEngineeringProject(id)
-      if (success) refreshProjects()
-      return success
-    }, [refreshProjects])
-
-    useEffect(() => {
-      if (isInitialized) {
-        refreshProjects()
-      }
-    }, [isInitialized, refreshProjects])
-
-    return {
-      projects,
-      refreshProjects,
-      createProject,
-      updateProject,
-      deleteProject,
-    }
-  }
-
-  // Engineering Change hooks
-  const useEngineeringChanges = () => {
-    const [changes, setChanges] = useState<EngineeringChange[]>([])
-
-    const refreshChanges = useCallback(() => {
-      setChanges(db.getEngineeringChanges())
-    }, [])
-
-    const createChange = useCallback((change: Omit<EngineeringChange, "id" | "createdAt" | "updatedAt">) => {
-      const newChange = db.createEngineeringChange(change)
-      refreshChanges()
-      return newChange
-    }, [refreshChanges])
-
-    const updateChange = useCallback((id: string, updates: Partial<EngineeringChange>) => {
-      const updated = db.updateEngineeringChange(id, updates)
-      if (updated) refreshChanges()
-      return updated
-    }, [refreshChanges])
-
-    const deleteChange = useCallback((id: string) => {
-      const success = db.deleteEngineeringChange(id)
-      if (success) refreshChanges()
-      return success
-    }, [refreshChanges])
-
-    useEffect(() => {
-      if (isInitialized) {
-        refreshChanges()
-      }
-    }, [isInitialized, refreshChanges])
-
-    return {
-      changes,
-      refreshChanges,
-      createChange,
-      updateChange,
-      deleteChange,
-    }
-  }
-
-  // Bill of Quantities hooks
-  const useBillsOfQuantities = () => {
-    const [boqs, setBoqs] = useState<BillOfQuantities[]>([])
-
-    const refreshBoqs = useCallback(() => {
-      setBoqs(db.getBillsOfQuantities())
-    }, [])
-
-    const createBoq = useCallback((boq: Omit<BillOfQuantities, "id" | "createdAt" | "updatedAt">) => {
-      const newBoq = db.createBillOfQuantities(boq)
-      refreshBoqs()
-      return newBoq
-    }, [refreshBoqs])
-
-    const updateBoq = useCallback((boq: BillOfQuantities) => {
-      const updated = db.updateBillOfQuantities(boq.id, boq)
-      if (updated) refreshBoqs()
-      return updated
-    }, [refreshBoqs])
-
-    const deleteBoq = useCallback((id: string) => {
-      const success = db.deleteBillOfQuantities(id)
-      if (success) refreshBoqs()
-      return success
-    }, [refreshBoqs])
-
-    const getBOQById = useCallback((id: string) => {
-      return boqs.find(boq => boq.id === id)
-    }, [boqs])
-
-    useEffect(() => {
-      if (isInitialized) {
-        refreshBoqs()
-      }
-    }, [isInitialized, refreshBoqs])
-
-    return {
-      boqs,
-      refreshBoqs,
-      createBoq,
-      updateBoq,
-      deleteBoq,
-      getBOQById,
-    }
-  }
-
-  // Utility functions
-  const clearDatabase = useCallback(() => {
-    db.clearDatabase()
-    setIsInitialized(false)
-  }, [])
-
-  const exportDatabase = useCallback(() => {
-    return db.exportDatabase()
-  }, [])
-
-  const importDatabase = useCallback((data: Record<string, any>) => {
-    db.importDatabase(data)
-    setIsInitialized(false)
-  }, [])
-
   return {
-    // State
+    // Database status
     isInitialized,
     isLoading,
     error,
     
-    // Hooks
-    useCustomers,
-    useSuppliers,
-    useQuotations,
-    useSalesOrders,
-    useEngineeringDrawings,
-    useEngineeringProjects,
-    useEngineeringChanges,
-    useBillsOfMaterials,
-    useBillsOfQuantities,
-    useProductionWorkOrders,
-    useInvoices,
-    usePurchaseOrders,
-    useItems,
-    useLocations,
+    // Data
+    customers,
+    suppliers,
+    quotations,
+    salesOrders,
+    engineeringDrawings,
+    billsOfMaterials,
+    billsOfQuantities,
+    productionWorkOrders,
+    invoices,
+    purchaseOrders,
+    items,
+    locations,
     
-    // Utilities
-    clearDatabase,
-    exportDatabase,
-    importDatabase,
+    // Functions
+    refreshCustomers,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer,
+    
+    refreshSuppliers,
+    createSupplier,
+    updateSupplier,
+    deleteSupplier,
+    
+    refreshQuotations,
+    createQuotation,
+    updateQuotation,
+    deleteQuotation,
+    
+    refreshSalesOrders,
+    createSalesOrder,
+    updateSalesOrder,
+    deleteSalesOrder,
+    
+    refreshEngineeringDrawings,
+    createEngineeringDrawing,
+    updateEngineeringDrawing,
+    deleteEngineeringDrawing,
+    
+    refreshBillsOfMaterials,
+    createBillOfMaterials,
+    updateBillOfMaterials,
+    deleteBillOfMaterials,
+    
+    refreshBillsOfQuantities,
+    createBillOfQuantities,
+    updateBillOfQuantities,
+    deleteBillOfQuantities,
+    
+    refreshProductionWorkOrders,
+    createProductionWorkOrder,
+    updateProductionWorkOrder,
+    deleteProductionWorkOrder,
+    
+    refreshInvoices,
+    createInvoice,
+    updateInvoice,
+    deleteInvoice,
+    
+    refreshPurchaseOrders,
+    createPurchaseOrder,
+    updatePurchaseOrder,
+    deletePurchaseOrder,
+    
+    refreshItems,
+    createItem,
+    updateItem,
+    deleteItem,
+    
+    refreshLocations,
+    createLocation,
+    updateLocation,
+    deleteLocation,
   }
 }

@@ -50,12 +50,13 @@ export default function CreateBOMPage() {
         bomNumber: "",
         productName: "",
         version: "1.0",
-        bomType: "EBOM" as BillOfMaterials["bomType"],
-        status: "Draft" as BillOfMaterials["status"],
+        revision: "A",
+        status: "Draft",
+        bomType: "",
+        createdBy: "",
         engineeringProjectId: "none",
         engineeringDrawingId: "none",
         boqId: "none",
-        createdBy: "",
         notes: "",
     })
 
@@ -73,15 +74,14 @@ export default function CreateBOMPage() {
         specifications: "",
         supplier: "",
         leadTime: 0,
-        category: "Raw Material" as BOMItem["category"],
+        category: "Raw Material",
         boqItemId: "",
     })
-
-    const [selectedMasterItemId, setSelectedMasterItemId] = useState<string>("")
+    const [selectedMasterItemId, setSelectedMasterItemId] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
 
-    // Pre-populate from URL parameters
+    // Initialize form based on URL parameters or BOQ data
     useEffect(() => {
         if (!isInitialized) return
 
@@ -90,8 +90,11 @@ export default function CreateBOMPage() {
         const projectId = searchParams.get('projectId')
 
         if (boqId) {
+            console.log("BOQ ID from URL:", boqId)
+            console.log("Available BOQs:", boqs.map(b => ({ id: b.id, number: b.boqNumber })))
             const boq = boqs.find(b => b.id === boqId)
             if (boq) {
+                console.log("Found BOQ:", boq)
                 setSourceBoq(boq)
                 setFormData(prev => ({
                     ...prev,
@@ -101,6 +104,8 @@ export default function CreateBOMPage() {
                     engineeringProjectId: boq.engineeringProjectId || "none",
                     engineeringDrawingId: boq.engineeringDrawingId || "none",
                 }))
+            } else {
+                console.warn("BOQ not found with ID:", boqId)
             }
         }
 
@@ -136,7 +141,7 @@ export default function CreateBOMPage() {
                     throw new Error("All items must have a description")
                 }
                 if (item.quantity <= 0) {
-                    throw new Error("All items must have a quantity greater than 0")
+                    throw new Error("All items must have a positive quantity")
                 }
                 if (item.unitCost < 0) {
                     throw new Error("Unit cost cannot be negative")
@@ -145,6 +150,8 @@ export default function CreateBOMPage() {
 
             const bomData: Omit<BillOfMaterials, "id" | "createdAt" | "updatedAt"> = {
                 ...formData,
+                status: formData.status as BillOfMaterials["status"],
+                bomType: formData.bomType as BillOfMaterials["bomType"],
                 bomNumber: formData.bomNumber.trim(),
                 productName: formData.productName.trim(),
                 engineeringProjectId: formData.engineeringProjectId === "none" ? undefined : formData.engineeringProjectId,
@@ -179,7 +186,7 @@ export default function CreateBOMPage() {
                     bomId: newBom.id,
                 }))
 
-                await updateBoq(updatedBoq)
+                updateBoq(updatedBoq)
             }
 
             router.push(`/bom/${newBom.id}`)
@@ -203,34 +210,50 @@ export default function CreateBOMPage() {
     }
 
     const handleMasterItemSelect = (itemId: string) => {
+        if (itemId === "none") {
+            setSelectedMasterItemId("")
+            setNewItem(prev => ({
+                ...prev,
+                description: "",
+                partNumber: "",
+                unitCost: 0,
+                unit: "EA",
+                specifications: "",
+                supplier: "",
+                leadTime: 0,
+                category: "Raw Material",
+            }))
+            return
+        }
+
         const masterItem = masterItems.find(item => item.id === itemId)
         if (masterItem) {
-            setNewItem({
-                itemNumber: getNextItemNumber(),
+            setSelectedMasterItemId(itemId)
+            setNewItem(prev => ({
+                ...prev,
                 description: masterItem.name,
                 partNumber: masterItem.partNumber,
-                quantity: 1,
-                unit: masterItem.unit,
                 unitCost: masterItem.unitCost,
-                totalCost: masterItem.unitCost,
-                materialGrade: "",
+                unit: masterItem.unit,
                 specifications: masterItem.specifications,
                 supplier: masterItem.supplier,
                 leadTime: masterItem.leadTime,
                 category: masterItem.category as BOMItem["category"],
-                boqItemId: "",
-            })
-            setSelectedMasterItemId(itemId)
+                materialGrade: extractMaterialGrade(masterItem.specifications),
+            }))
         }
     }
 
     const addItem = () => {
-        if (!newItem.description || newItem.quantity <= 0) return
+        if (!newItem.description.trim()) return
 
-        const totalCost = newItem.quantity * newItem.unitCost
-        setItems([...items, { ...newItem, totalCost }])
+        const itemToAdd = {
+            ...newItem,
+            itemNumber: getNextItemNumber(),
+            totalCost: newItem.quantity * newItem.unitCost,
+        }
 
-        // Reset form
+        setItems([...items, itemToAdd])
         setNewItem({
             itemNumber: "",
             description: "",
@@ -243,7 +266,7 @@ export default function CreateBOMPage() {
             specifications: "",
             supplier: "",
             leadTime: 0,
-            category: "Raw Material" as BOMItem["category"],
+            category: "Raw Material",
             boqItemId: "",
         })
         setSelectedMasterItemId("")
@@ -255,165 +278,189 @@ export default function CreateBOMPage() {
 
     const convertBoqItemToBom = (boqItem: BOQItem) => {
         try {
-            // ETO Conversion Logic: High-level BOQ item → Detailed BOM components
-            const baseComponents = []
-
-            // Example conversion logic based on BOQ item description and work package
-            if (boqItem.workPackage?.toLowerCase().includes('structural steel') ||
-                boqItem.description.toLowerCase().includes('steel')) {
-
-                // Convert "20 MT structural steel" into detailed components
-                if (boqItem.description.toLowerCase().includes('beam')) {
-                    baseComponents.push({
-                        itemNumber: `${boqItem.itemNumber}.1`,
-                        description: `W12x26 Steel I-Beam`,
-                        partNumber: `STL-W12x26`,
-                        quantity: Math.ceil(boqItem.quantity * 2.5), // Estimate based on tonnage
-                        unit: "EA",
-                        unitCost: 245.00,
-                        totalCost: 0,
-                        materialGrade: "A992",
-                        specifications: "ASTM A992/A992M Grade 50",
-                        supplier: "Steel Supply Co.",
-                        leadTime: 14,
-                        category: "Structural Steel" as BOMItem["category"],
-                        boqItemId: boqItem.id,
-                    })
-
-                    baseComponents.push({
-                        itemNumber: `${boqItem.itemNumber}.2`,
-                        description: `Steel Channel C12x20.7`,
-                        partNumber: `STL-C12x20.7`,
-                        quantity: Math.ceil(boqItem.quantity * 6),
-                        unit: "EA",
-                        unitCost: 180.00,
-                        totalCost: 0,
-                        materialGrade: "A36",
-                        specifications: "ASTM A36/A36M",
-                        supplier: "Steel Supply Co.",
-                        leadTime: 14,
-                        category: "Structural Steel" as BOMItem["category"],
-                        boqItemId: boqItem.id,
-                    })
-
-                    baseComponents.push({
-                        itemNumber: `${boqItem.itemNumber}.3`,
-                        description: `Steel Plate 1/2" x 12" x 20"`,
-                        partNumber: `STL-PLT-0.5x12x20`,
-                        quantity: Math.ceil(boqItem.quantity * 15),
-                        unit: "EA",
-                        unitCost: 85.00,
-                        totalCost: 0,
-                        materialGrade: "A36",
-                        specifications: "ASTM A36/A36M Hot Rolled",
-                        supplier: "Steel Supply Co.",
-                        leadTime: 10,
-                        category: "Steel Plate" as BOMItem["category"],
-                        boqItemId: boqItem.id,
-                    })
-                }
-
-            } else if (boqItem.workPackage?.toLowerCase().includes('piping') ||
-                boqItem.description.toLowerCase().includes('pipe')) {
-
-                // Convert piping BOQ item into detailed pipe components
-                baseComponents.push({
+            console.log("Converting BOQ item:", boqItem)
+            console.log("Available master items:", masterItems.length)
+            
+            // Find matching items from the item master based on BOQ item description and category
+            const matchedItems = findMatchingMasterItems(boqItem)
+            
+            if (matchedItems.length === 0) {
+                console.warn("No matching items found for BOQ item:", boqItem.description)
+                // Create a placeholder BOM item if no matches found
+                return [{
                     itemNumber: `${boqItem.itemNumber}.1`,
-                    description: `6" CS Pipe ASTM A106 Grade B`,
-                    partNumber: `PIPE-6-A106-B`,
-                    quantity: Math.ceil(boqItem.quantity * 1.1), // 10% extra for waste
-                    unit: "FT",
-                    unitCost: 45.00,
-                    totalCost: 0,
-                    materialGrade: "A106 Grade B",
-                    specifications: "ASTM A106 Grade B Seamless",
-                    supplier: "Pipe & Valve Supply",
-                    leadTime: 21,
-                    category: "Piping" as BOMItem["category"],
-                    boqItemId: boqItem.id,
-                })
-
-                baseComponents.push({
-                    itemNumber: `${boqItem.itemNumber}.2`,
-                    description: `6" 90° Elbow ASTM A234 WPB`,
-                    partNumber: `ELB-6-90-WPB`,
-                    quantity: Math.ceil(boqItem.quantity / 25), // Estimate elbows per length
-                    unit: "EA",
-                    unitCost: 120.00,
-                    totalCost: 0,
-                    materialGrade: "A234 WPB",
-                    specifications: "ASTM A234 WPB Butt Weld",
-                    supplier: "Pipe & Valve Supply",
-                    leadTime: 28,
-                    category: "Pipe Fittings" as BOMItem["category"],
-                    boqItemId: boqItem.id,
-                })
-
-                baseComponents.push({
-                    itemNumber: `${boqItem.itemNumber}.3`,
-                    description: `6" ANSI B16.5 Flange`,
-                    partNumber: `FLG-6-B16.5`,
-                    quantity: Math.ceil(boqItem.quantity / 20),
-                    unit: "EA",
-                    unitCost: 95.00,
-                    totalCost: 0,
-                    materialGrade: "A105",
-                    specifications: "ANSI B16.5 Slip-On Flange",
-                    supplier: "Pipe & Valve Supply",
-                    leadTime: 21,
-                    category: "Pipe Fittings" as BOMItem["category"],
-                    boqItemId: boqItem.id,
-                })
-            } else {
-                // Generic conversion for other items
-                baseComponents.push({
-                    itemNumber: `${boqItem.itemNumber}.1`,
-                    description: boqItem.description,
-                    partNumber: `GEN-${boqItem.itemNumber.replace('.', '-')}`,
+                    description: `${boqItem.description} (No Master Item Match)`,
+                    partNumber: `PLACEHOLDER-${boqItem.id}`,
                     quantity: boqItem.quantity,
                     unit: boqItem.unit,
-                    unitCost: boqItem.unitRate * 0.7, // Assume 70% material cost
+                    unitCost: boqItem.unitRate,
                     totalCost: 0,
                     materialGrade: "",
-                    specifications: boqItem.specifications || "",
-                    supplier: "To Be Determined",
-                    leadTime: 30,
-                    category: "General" as BOMItem["category"],
+                    specifications: boqItem.specifications || "TBD - No master item found",
+                    supplier: "TBD",
+                    leadTime: 14,
+                    category: "Raw Material" as BOMItem["category"],
                     boqItemId: boqItem.id,
-                })
+                }]
             }
 
-            return baseComponents.map(comp => ({ ...comp, totalCost: comp.quantity * comp.unitCost }))
+            // Convert matched master items to BOM items with calculated quantities
+            const bomItems = matchedItems.map((matchItem, index) => {
+                const calculatedQuantity = calculateQuantityForItem(boqItem, matchItem.masterItem)
+                
+                return {
+                    itemNumber: `${boqItem.itemNumber}.${index + 1}`,
+                    description: matchItem.masterItem.name,
+                    partNumber: matchItem.masterItem.partNumber,
+                    quantity: calculatedQuantity,
+                    unit: matchItem.masterItem.unit,
+                    unitCost: matchItem.masterItem.unitCost,
+                    totalCost: 0, // Will be calculated later
+                    materialGrade: extractMaterialGrade(matchItem.masterItem.specifications),
+                    specifications: matchItem.masterItem.specifications,
+                    supplier: matchItem.masterItem.supplier,
+                    leadTime: matchItem.masterItem.leadTime,
+                    category: matchItem.masterItem.category as BOMItem["category"],
+                    boqItemId: boqItem.id,
+                }
+            })
+
+            console.log(`Converted BOQ item ${boqItem.itemNumber} to ${bomItems.length} BOM items`)
+            return bomItems
+
         } catch (error) {
-            console.error("Error converting BOQ item to BOM:", error)
-            // Return a default fallback item
+            console.error("Error converting BOQ item:", error)
+            // Return a fallback item to prevent crashes
             return [{
-                itemNumber: `${boqItem.itemNumber || 'X'}.1`,
-                description: `${boqItem.description} (Raw)`,
-                partNumber: `${boqItem.itemNumber || 'X'}-RAW`,
+                itemNumber: `${boqItem.itemNumber}.1`,
+                description: `Error Converting - ${boqItem.description}`,
+                partNumber: `ERROR-${boqItem.id}`,
                 quantity: boqItem.quantity,
                 unit: boqItem.unit,
                 unitCost: boqItem.unitRate,
-                totalCost: boqItem.quantity * boqItem.unitRate,
+                totalCost: 0,
                 materialGrade: "",
-                specifications: boqItem.specifications || "",
-                supplier: "",
+                specifications: "Error occurred during conversion",
+                supplier: "TBD",
                 leadTime: 14,
-                category: "General" as BOMItem["category"],
+                category: "Raw Material" as BOMItem["category"],
                 boqItemId: boqItem.id,
             }]
         }
     }
 
+    // Helper function to find matching master items for a BOQ item
+    const findMatchingMasterItems = (boqItem: BOQItem) => {
+        const matches: Array<{ masterItem: Item; matchScore: number }> = []
+        
+        masterItems.forEach(masterItem => {
+            const score = calculateMatchScore(boqItem, masterItem)
+            if (score > 0) {
+                matches.push({ masterItem, matchScore: score })
+            }
+        })
+
+        // Sort by match score (highest first) and return top matches
+        return matches
+            .sort((a, b) => b.matchScore - a.matchScore)
+            .slice(0, 3) // Return top 3 matches maximum
+    }
+
+    // Helper function to calculate how well a master item matches a BOQ item
+    const calculateMatchScore = (boqItem: BOQItem, masterItem: Item): number => {
+        let score = 0
+        
+        const boqDesc = boqItem.description.toLowerCase()
+        const boqSpecs = (boqItem.specifications || "").toLowerCase()
+        const itemName = masterItem.name.toLowerCase()
+        const itemDesc = masterItem.description.toLowerCase()
+        const itemSpecs = masterItem.specifications.toLowerCase()
+
+        // Direct keyword matching
+        const keywords = [
+            'steel', 'aluminum', 'pipe', 'bolt', 'plate', 'beam', 'channel', 
+            'weld', 'finish', 'fastener', 'material', 'raw'
+        ]
+        
+        keywords.forEach(keyword => {
+            if (boqDesc.includes(keyword) && (itemName.includes(keyword) || itemDesc.includes(keyword))) {
+                score += 20
+            }
+        })
+
+        // Category matching
+        if (boqItem.category === "Material" && masterItem.category === "Raw Material") {
+            score += 30
+        }
+        if (boqItem.category === "Labor" && masterItem.category === "Consumables") {
+            score += 15
+        }
+
+        // Specification matching
+        if (boqSpecs && itemSpecs) {
+            const specKeywords = ['a36', 'a992', 'grade', 'astm', '6061', 'schedule']
+            specKeywords.forEach(keyword => {
+                if (boqSpecs.includes(keyword) && itemSpecs.includes(keyword)) {
+                    score += 25
+                }
+            })
+        }
+
+        // Size/dimension matching (basic)
+        const sizePattern = /\d+["']\s*x\s*\d+["']|\d+["']|\d+\s*mm|\d+\s*inch/g
+        const boqSizes = boqDesc.match(sizePattern) || []
+        const itemSizes = itemName.match(sizePattern) || []
+        
+        if (boqSizes.length > 0 && itemSizes.length > 0) {
+            boqSizes.forEach(boqSize => {
+                if (itemSizes.some(itemSize => itemSize === boqSize)) {
+                    score += 15
+                }
+            })
+        }
+
+        return score
+    }
+
+    // Helper function to calculate quantity needed from master item for BOQ requirement
+    const calculateQuantityForItem = (boqItem: BOQItem, masterItem: Item): number => {
+        // Base quantity calculation - can be enhanced with more sophisticated logic
+        let baseQuantity = boqItem.quantity
+
+        // Unit conversion logic
+        if (boqItem.unit === "MT" && masterItem.unit === "EA") {
+            // Convert metric tons to pieces (rough estimation)
+            baseQuantity = Math.ceil(boqItem.quantity * 40) // Assume ~25kg per piece average
+        } else if (boqItem.unit === "M" && masterItem.unit === "FT") {
+            // Convert meters to feet
+            baseQuantity = Math.ceil(boqItem.quantity * 3.28084)
+        } else if (boqItem.unit === "M2" && masterItem.unit === "EA") {
+            // Convert square meters to pieces (plates/sheets)
+            baseQuantity = Math.ceil(boqItem.quantity / 4) // Assume 4 sq meters per piece
+        }
+
+        // Apply multipliers based on item type
+        if (masterItem.category === "Fasteners") {
+            baseQuantity = Math.ceil(baseQuantity * 10) // More fasteners needed
+        } else if (masterItem.category === "Consumables") {
+            baseQuantity = Math.ceil(baseQuantity * 1.5) // Add waste factor
+        }
+
+        return Math.max(1, baseQuantity) // Ensure at least 1
+    }
+
+    // Helper function to extract material grade from specifications
+    const extractMaterialGrade = (specifications: string): string => {
+        const gradeMatches = specifications.match(/A\d+|Grade\s+\d+|\d{4}-T\d+/i)
+        return gradeMatches ? gradeMatches[0] : ""
+    }
+
     const getCategoryColor = (category: string) => {
         switch (category) {
-            case "Structural Steel": return "bg-blue-100 text-blue-800"
-            case "Steel Plate": return "bg-indigo-100 text-indigo-800"
-            case "Piping": return "bg-green-100 text-green-800"
-            case "Pipe Fittings": return "bg-emerald-100 text-emerald-800"
-            case "Raw Material": return "bg-gray-100 text-gray-800"
-            case "Fabricated": return "bg-orange-100 text-orange-800"
-            case "Hardware": return "bg-purple-100 text-purple-800"
+            case "Raw Material": return "bg-blue-100 text-blue-800"
+            case "Fasteners": return "bg-green-100 text-green-800"
+            case "Consumables": return "bg-yellow-100 text-yellow-800"
+            case "Finishing": return "bg-purple-100 text-purple-800"
             default: return "bg-gray-100 text-gray-800"
         }
     }
@@ -422,26 +469,23 @@ export default function CreateBOMPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading...</p>
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
                 </div>
             </div>
         )
     }
 
-    const totalCost = items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0)
-
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-8">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Link href="/bom">
-                                <Button variant="ghost" size="sm">
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to BOMs
+                                <Button variant="ghost" size="icon">
+                                    <ArrowLeft className="w-4 h-4" />
                                 </Button>
                             </Link>
                             <div>
@@ -477,21 +521,24 @@ export default function CreateBOMPage() {
                         </div>
                     </div>
                 </div>
-            </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Error Alert */}
                 {submitError && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center">
-                            <X className="w-5 h-5 text-red-500 mr-2" />
-                            <p className="text-red-700 font-medium">Error</p>
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <X className="h-5 w-5 text-red-400" />
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Error Creating BOM</h3>
+                                <div className="mt-2 text-sm text-red-700">{submitError}</div>
+                            </div>
                         </div>
-                        <p className="mt-1 text-sm text-red-600">{submitError}</p>
                         <Button
-                            onClick={() => setSubmitError(null)}
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="mt-2 text-red-600 border-red-300 hover:bg-red-50"
+                            className="mt-2 text-red-600 hover:text-red-700"
+                            onClick={() => setSubmitError(null)}
                         >
                             Dismiss
                         </Button>
@@ -505,7 +552,7 @@ export default function CreateBOMPage() {
                             Standalone BOM
                         </TabsTrigger>
                         <TabsTrigger value="boq-conversion" className="flex items-center gap-2">
-                            <Wrench className="w-4 h-4" />
+                            <Calculator className="w-4 h-4" />
                             BOQ to BOM Conversion
                         </TabsTrigger>
                     </TabsList>
@@ -514,49 +561,52 @@ export default function CreateBOMPage() {
                     <TabsContent value="standalone" className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Package className="w-5 h-5" />
-                                    Create Standalone BOM
-                                </CardTitle>
-                                <CardDescription>Create a new BOM from scratch without BOQ conversion</CardDescription>
+                                <CardTitle>Basic Information</CardTitle>
+                                <CardDescription>Define the core BOM details</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="bomNumber">BOM Number</Label>
+                                        <Label htmlFor="bomNumber">BOM Number *</Label>
                                         <Input
                                             id="bomNumber"
                                             value={formData.bomNumber}
                                             onChange={(e) => setFormData(prev => ({ ...prev, bomNumber: e.target.value }))}
-                                            placeholder="BOM-2024-001"
+                                            placeholder="e.g., BOM-2024-001"
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="productName">Product Name</Label>
+                                        <Label htmlFor="productName">Product Name *</Label>
                                         <Input
                                             id="productName"
                                             value={formData.productName}
                                             onChange={(e) => setFormData(prev => ({ ...prev, productName: e.target.value }))}
-                                            placeholder="Custom Steel Assembly"
+                                            placeholder="e.g., Steel Frame Assembly"
                                         />
                                     </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div className="grid grid-cols-3 gap-4">
                                     <div>
                                         <Label htmlFor="version">Version</Label>
                                         <Input
                                             id="version"
                                             value={formData.version}
                                             onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-                                            placeholder="1.0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="revision">Revision</Label>
+                                        <Input
+                                            id="revision"
+                                            value={formData.revision}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, revision: e.target.value }))}
                                         />
                                     </div>
                                     <div>
                                         <Label htmlFor="bomType">BOM Type</Label>
-                                        <Select value={formData.bomType} onValueChange={(value) => setFormData(prev => ({ ...prev, bomType: value as BillOfMaterials["bomType"] }))}>
+                                        <Select value={formData.bomType} onValueChange={(value) => setFormData(prev => ({ ...prev, bomType: value }))}>
                                             <SelectTrigger>
-                                                <SelectValue />
+                                                <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="EBOM">Engineering BOM</SelectItem>
@@ -565,21 +615,10 @@ export default function CreateBOMPage() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="createdBy">Created By</Label>
-                                        <Input
-                                            id="createdBy"
-                                            value={formData.createdBy}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, createdBy: e.target.value }))}
-                                            placeholder="Engineer Name"
-                                        />
-                                    </div>
                                 </div>
-
-                                {/* Optional Links */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="engineeringProjectId">Engineering Project (Optional)</Label>
+                                        <Label htmlFor="engineeringProjectId">Engineering Project</Label>
                                         <Select value={formData.engineeringProjectId} onValueChange={(value) => setFormData(prev => ({ ...prev, engineeringProjectId: value }))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select project" />
@@ -588,14 +627,14 @@ export default function CreateBOMPage() {
                                                 <SelectItem value="none">None</SelectItem>
                                                 {projects.map((project) => (
                                                     <SelectItem key={project.id} value={project.id}>
-                                                        {project.projectNumber}
+                                                        {project.projectNumber} - {project.title}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div>
-                                        <Label htmlFor="engineeringDrawingId">Engineering Drawing (Optional)</Label>
+                                        <Label htmlFor="engineeringDrawingId">Engineering Drawing</Label>
                                         <Select value={formData.engineeringDrawingId} onValueChange={(value) => setFormData(prev => ({ ...prev, engineeringDrawingId: value }))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select drawing" />
@@ -611,159 +650,135 @@ export default function CreateBOMPage() {
                                         </Select>
                                     </div>
                                 </div>
+                                <div>
+                                    <Label htmlFor="createdBy">Created By</Label>
+                                    <Input
+                                        id="createdBy"
+                                        value={formData.createdBy}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, createdBy: e.target.value }))}
+                                        placeholder="Enter creator name"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="notes">Notes</Label>
+                                    <Textarea
+                                        id="notes"
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                                        placeholder="Additional notes or comments"
+                                        rows={3}
+                                    />
+                                </div>
                             </CardContent>
                         </Card>
 
-                        {/* Item Master Selection */}
+                        {/* Add Items Section */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Add BOM Items</CardTitle>
-                                <CardDescription>Select items from the item master and specify quantities</CardDescription>
+                                <CardDescription>Select items from the master catalog to add to this BOM</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                    <h4 className="font-medium">Select Item from Master</h4>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label htmlFor="masterItem">Select Item from Master Catalog</Label>
+                                    <Select value={selectedMasterItemId} onValueChange={handleMasterItemSelect}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Choose an item from master catalog" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">Manual Entry (No Master Item)</SelectItem>
+                                            {masterItems.map((item) => (
+                                                <SelectItem key={item.id} value={item.id}>
+                                                    {item.partNumber} - {item.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
+                                {/* Item Details Preview */}
+                                {selectedMasterItemId && (
+                                    <div className="p-4 bg-blue-50 rounded-lg">
+                                        <h4 className="font-medium text-blue-900 mb-2">Master Item Details:</h4>
+                                        {(() => {
+                                            const item = masterItems.find(i => i.id === selectedMasterItemId)
+                                            return item ? (
+                                                <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
+                                                    <div><span className="font-medium">Part Number:</span> {item.partNumber}</div>
+                                                    <div><span className="font-medium">Category:</span> {item.category}</div>
+                                                    <div><span className="font-medium">Unit Cost:</span> ${item.unitCost.toFixed(2)}</div>
+                                                    <div><span className="font-medium">Supplier:</span> {item.supplier}</div>
+                                                    <div className="col-span-2"><span className="font-medium">Description:</span> {item.description}</div>
+                                                </div>
+                                            ) : null
+                                        })()}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="masterItem">Item Master</Label>
-                                        <Select value={selectedMasterItemId} onValueChange={handleMasterItemSelect}>
+                                        <Label htmlFor="itemDescription">Description *</Label>
+                                        <Input
+                                            id="itemDescription"
+                                            value={newItem.description}
+                                            onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                                            placeholder="Item description"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="itemPartNumber">Part Number</Label>
+                                        <Input
+                                            id="itemPartNumber"
+                                            value={newItem.partNumber}
+                                            onChange={(e) => setNewItem(prev => ({ ...prev, partNumber: e.target.value }))}
+                                            placeholder="Part number"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <Label htmlFor="itemQuantity">Quantity *</Label>
+                                        <Input
+                                            id="itemQuantity"
+                                            type="number"
+                                            min="1"
+                                            value={newItem.quantity}
+                                            onChange={(e) => setNewItem(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="itemUnit">Unit</Label>
+                                        <Select value={newItem.unit} onValueChange={(value) => setNewItem(prev => ({ ...prev, unit: value }))}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select an item from master" />
+                                                <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {masterItems.filter(item => item.status === "Active").map((item) => (
-                                                    <SelectItem key={item.id} value={item.id}>
-                                                        <div className="flex justify-between items-center w-full">
-                                                            <span className="font-medium">{item.partNumber} - {item.name}</span>
-                                                            <span className="text-sm text-gray-500 ml-2">{item.category}</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
+                                                <SelectItem value="EA">Each</SelectItem>
+                                                <SelectItem value="FT">Feet</SelectItem>
+                                                <SelectItem value="LB">Pounds</SelectItem>
+                                                <SelectItem value="GAL">Gallons</SelectItem>
+                                                <SelectItem value="M">Meters</SelectItem>
+                                                <SelectItem value="KG">Kilograms</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
-
-                                    {selectedMasterItemId && (
-                                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                            <h5 className="font-medium text-blue-900 mb-2">Selected Item Details</h5>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                                <div>
-                                                    <span className="font-medium">Part Number:</span> {newItem.partNumber}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Description:</span> {newItem.description}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Category:</span> {newItem.category}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Unit:</span> {newItem.unit}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Unit Cost:</span> ${newItem.unitCost.toFixed(2)}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Supplier:</span> {newItem.supplier}
-                                                </div>
-                                            </div>
-                                            {newItem.specifications && (
-                                                <div className="mt-2">
-                                                    <span className="font-medium">Specifications:</span> {newItem.specifications}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {selectedMasterItemId && (
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div>
-                                                    <Label htmlFor="quantity">Quantity Required</Label>
-                                                    <Input
-                                                        id="quantity"
-                                                        type="number"
-                                                        value={newItem.quantity}
-                                                        onChange={(e) => setNewItem(prev => ({
-                                                            ...prev,
-                                                            quantity: parseFloat(e.target.value) || 0,
-                                                            totalCost: (parseFloat(e.target.value) || 0) * prev.unitCost
-                                                        }))}
-                                                        min="0"
-                                                        step="0.01"
-                                                        placeholder="10"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="unitCostOverride">Unit Cost Override (Optional)</Label>
-                                                    <Input
-                                                        id="unitCostOverride"
-                                                        type="number"
-                                                        value={newItem.unitCost}
-                                                        onChange={(e) => setNewItem(prev => ({
-                                                            ...prev,
-                                                            unitCost: parseFloat(e.target.value) || 0,
-                                                            totalCost: prev.quantity * (parseFloat(e.target.value) || 0)
-                                                        }))}
-                                                        min="0"
-                                                        step="0.01"
-                                                        placeholder="Use master cost"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="materialGrade">Material Grade (Optional)</Label>
-                                                    <Input
-                                                        id="materialGrade"
-                                                        value={newItem.materialGrade}
-                                                        onChange={(e) => setNewItem(prev => ({ ...prev, materialGrade: e.target.value }))}
-                                                        placeholder="A992"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex justify-between items-center pt-2">
-                                                <div className="text-sm text-gray-600">
-                                                    Total Cost: <span className="font-medium">${(newItem.quantity * newItem.unitCost).toFixed(2)}</span>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        onClick={() => {
-                                                            setSelectedMasterItemId("")
-                                                            setNewItem({
-                                                                itemNumber: "",
-                                                                description: "",
-                                                                partNumber: "",
-                                                                quantity: 1,
-                                                                unit: "EA",
-                                                                unitCost: 0,
-                                                                totalCost: 0,
-                                                                materialGrade: "",
-                                                                specifications: "",
-                                                                supplier: "",
-                                                                leadTime: 0,
-                                                                category: "Raw Material" as BOMItem["category"],
-                                                                boqItemId: "",
-                                                            })
-                                                        }}
-                                                        variant="outline"
-                                                    >
-                                                        Clear
-                                                    </Button>
-                                                    <Button onClick={addItem} disabled={!selectedMasterItemId || newItem.quantity <= 0}>
-                                                        <Plus className="w-4 h-4 mr-2" />
-                                                        Add to BOM
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {masterItems.length === 0 && (
-                                        <div className="text-center py-8">
-                                            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-gray-500 mb-2">No items found in master</p>
-                                            <p className="text-sm text-gray-400">Add items to the item master first</p>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <Label htmlFor="itemUnitCost">Unit Cost</Label>
+                                        <Input
+                                            id="itemUnitCost"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={newItem.unitCost}
+                                            onChange={(e) => setNewItem(prev => ({ ...prev, unitCost: parseFloat(e.target.value) || 0 }))}
+                                        />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <Button onClick={addItem} disabled={!newItem.description.trim()} className="w-full">
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Add Item
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -823,13 +838,12 @@ export default function CreateBOMPage() {
                                                             <div className="flex-1">
                                                                 <p className="font-medium">{item.itemNumber}: {item.description}</p>
                                                                 <p className="text-sm text-gray-600">{item.quantity} {item.unit} @ ${item.unitRate.toFixed(2)}</p>
+                                                                <p className="text-sm text-gray-500">{item.specifications}</p>
                                                                 <div className="flex gap-2 mt-1">
-                                                                    {item.workPackage && (
-                                                                        <Badge variant="outline" className="text-xs">{item.workPackage}</Badge>
-                                                                    )}
-                                                                    <Badge
-                                                                        className={`text-xs ${item.engineeringStatus === "BOM Generated" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
-                                                                    >
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        {item.category}
+                                                                    </Badge>
+                                                                    <Badge variant="outline" className="text-xs">
                                                                         {item.engineeringStatus || "Pending"}
                                                                     </Badge>
                                                                 </div>
@@ -843,8 +857,7 @@ export default function CreateBOMPage() {
                                                                 variant="outline"
                                                                 disabled={item.engineeringStatus === "BOM Generated"}
                                                             >
-                                                                <ArrowRight className="w-4 h-4 mr-1" />
-                                                                Convert
+                                                                <ArrowRight className="w-4 h-4" />
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -858,13 +871,11 @@ export default function CreateBOMPage() {
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Select BOQ for Conversion</CardTitle>
-                                    <CardDescription>Choose a BOQ to convert to BOM or create a standalone BOM</CardDescription>
+                                    <CardDescription>Choose a BOQ to convert into a detailed BOM</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-center py-8">
-                                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                        <p className="text-gray-600 mb-4">No BOQ selected for conversion</p>
-                                        <div className="space-y-2">
+                                    <div className="space-y-4">
+                                        <div>
                                             <div>
                                                 <Label htmlFor="boqId">Select BOQ to Convert</Label>
                                                 <Select value={formData.boqId} onValueChange={(value) => {
@@ -875,12 +886,21 @@ export default function CreateBOMPage() {
                                                             setSourceBoq(boq)
                                                             setFormData(prev => ({
                                                                 ...prev,
+                                                                boqId: boq.id,
                                                                 productName: `BOM for ${boq.projectName}`,
                                                                 bomNumber: `BOM-${boq.boqNumber.replace('BOQ-', '')}`,
                                                                 engineeringProjectId: boq.engineeringProjectId || "none",
                                                                 engineeringDrawingId: boq.engineeringDrawingId || "none",
                                                             }))
                                                         }
+                                                    } else {
+                                                        setSourceBoq(null)
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            boqId: "none",
+                                                            productName: "",
+                                                            bomNumber: "",
+                                                        }))
                                                     }
                                                 }}>
                                                     <SelectTrigger>
@@ -910,123 +930,83 @@ export default function CreateBOMPage() {
                             <CardHeader>
                                 <CardTitle>BOM Items ({items.length})</CardTitle>
                                 <CardDescription>
-                                    {sourceBoq ? "Items converted from BOQ" : "Manually added items"}
+                                    Review and modify the items that will be included in the BOM
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Item</TableHead>
-                                            <TableHead>Description</TableHead>
-                                            <TableHead>Qty</TableHead>
-                                            <TableHead>Unit Cost</TableHead>
-                                            <TableHead>Total</TableHead>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {items.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>
-                                                    <div>
-                                                        <p className="font-medium">{item.itemNumber}</p>
-                                                        {item.partNumber && (
-                                                            <p className="text-xs text-gray-500">{item.partNumber}</p>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div>
-                                                        <p className="font-medium">{item.description}</p>
-                                                        {item.materialGrade && (
-                                                            <p className="text-xs text-gray-500">Grade: {item.materialGrade}</p>
-                                                        )}
-                                                        {item.specifications && (
-                                                            <p className="text-xs text-gray-500">{item.specifications}</p>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>{item.quantity} {item.unit}</TableCell>
-                                                <TableCell>${item.unitCost.toFixed(2)}</TableCell>
-                                                <TableCell className="font-medium">${(item.quantity * item.unitCost).toFixed(2)}</TableCell>
-                                                <TableCell>
-                                                    <Badge className={getCategoryColor(item.category)}>
-                                                        {item.category}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => removeItem(index)}
-                                                        className="text-red-600 hover:text-red-800"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </Button>
-                                                </TableCell>
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-20">Item #</TableHead>
+                                                <TableHead>Description</TableHead>
+                                                <TableHead>Part Number</TableHead>
+                                                <TableHead className="w-20">Qty</TableHead>
+                                                <TableHead className="w-16">Unit</TableHead>
+                                                <TableHead className="w-24">Unit Cost</TableHead>
+                                                <TableHead className="w-24">Total Cost</TableHead>
+                                                <TableHead>Category</TableHead>
+                                                <TableHead className="w-16">Actions</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-
-                                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                    <div className="flex justify-between text-lg font-bold">
-                                        <span>Total BOM Cost:</span>
-                                        <span>${totalCost.toLocaleString()}</span>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {items.map((item, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{item.itemNumber}</TableCell>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p className="font-medium">{item.description}</p>
+                                                            {item.specifications && (
+                                                                <p className="text-sm text-gray-500">{item.specifications}</p>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>{item.partNumber}</TableCell>
+                                                    <TableCell>{item.quantity}</TableCell>
+                                                    <TableCell>{item.unit}</TableCell>
+                                                    <TableCell>${item.unitCost.toFixed(2)}</TableCell>
+                                                    <TableCell>${(item.quantity * item.unitCost).toFixed(2)}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline" className={getCategoryColor(item.category)}>
+                                                            {item.category}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => removeItem(index)}
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                                <div className="mt-4 flex justify-between items-center">
+                                    <div className="text-sm text-gray-500">
+                                        Total Items: {items.length}
                                     </div>
-                                    {items.length > 0 && (
-                                        <div className="mt-2 text-sm text-gray-600">
-                                            <span>Items: {items.length} | </span>
-                                            <span>Categories: {new Set(items.map(i => i.category)).size}</span>
-                                        </div>
-                                    )}
+                                    <div className="text-lg font-semibold">
+                                        Total Cost: ${items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0).toFixed(2)}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
                     ) : (
                         <Card>
-                            <CardHeader>
-                                <CardTitle>BOM Items</CardTitle>
-                                <CardDescription>Items to be included in this BOM</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-12">
-                                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No items added yet</h3>
-                                    <p className="text-gray-500 mb-4">
-                                        Add items from the item master or convert from a BOQ to build your BOM
-                                    </p>
-                                    <div className="text-sm text-gray-400">
-                                        Use the tabs above to select your preferred method
-                                    </div>
+                            <CardContent className="py-8">
+                                <div className="text-center text-gray-500">
+                                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                    <p>No items added yet. Add items manually or convert from BOQ above.</p>
                                 </div>
                             </CardContent>
                         </Card>
                     )}
-
-                    {/* Notes Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Notes & Specifications</CardTitle>
-                            <CardDescription>Additional information and requirements</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                <Label htmlFor="notes">BOM Notes</Label>
-                                <Textarea
-                                    id="notes"
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                                    placeholder="Special requirements, procurement notes, quality standards, etc."
-                                    rows={4}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
                 </Tabs>
-            </main>
+            </div>
         </div>
     )
 }

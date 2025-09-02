@@ -44,11 +44,12 @@ interface BOQDetailsPageProps {
 
 export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
   const router = useRouter()
-  const { useBillsOfQuantities, useEngineeringProjects, useEngineeringDrawings, useBillsOfMaterials } = useDatabaseContext()
+  const { useBillsOfQuantities, useEngineeringProjects, useEngineeringDrawings, useBillsOfMaterials, useQuotations } = useDatabaseContext()
   const { boqs, updateBoq } = useBillsOfQuantities()
   const { projects } = useEngineeringProjects()
   const { drawings } = useEngineeringDrawings()
   const { boms } = useBillsOfMaterials()
+  const { quotations } = useQuotations()
 
   const [boq, setBOQ] = useState<BillOfQuantities | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -324,10 +325,11 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
     )
   }
 
-  // Get linked project, drawing, and BOM
+  // Get linked project, drawing, BOM, and quotation
   const linkedProject = projects.find(p => p.id === boq.engineeringProjectId)
   const linkedDrawing = drawings.find(d => d.id === boq.engineeringDrawingId)
   const linkedBOM = boms.find(b => b.id === boq.bomId)
+  const linkedQuotation = quotations.find(q => q.quotationNumber === boq.contractReference)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -453,6 +455,25 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                       <div>
                         <Label className="text-sm font-medium text-gray-500">Contract Reference</Label>
                         <p className="mt-1">{boq.contractReference}</p>
+                      </div>
+                    )}
+                    {linkedQuotation && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Linked Quotation</Label>
+                        <div className="mt-1 flex items-center gap-2">
+                          <Link href={`/quotations/${linkedQuotation.id}`}>
+                            <Button variant="outline" size="sm" className="text-blue-600 hover:text-blue-700">
+                              <FileText className="w-4 h-4 mr-2" />
+                              {linkedQuotation.quotationNumber} - {linkedQuotation.title}
+                            </Button>
+                          </Link>
+                          <Badge variant="outline" className="text-xs">
+                            {linkedQuotation.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Customer: {linkedQuotation.customerName} | Value: ${linkedQuotation.total.toLocaleString()}
+                        </p>
                       </div>
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -931,9 +952,63 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                       </div>
                     </div>
                   )}
+
+                  {linkedQuotation && (
+                    <div>
+                      <Label className="text-xs text-gray-500">Source Quotation</Label>
+                      <Link href={`/quotations/${linkedQuotation.id}`}>
+                        <p className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
+                          {linkedQuotation.quotationNumber} - {linkedQuotation.title}
+                        </p>
+                      </Link>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {linkedQuotation.customerName} | ${linkedQuotation.total.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Next Steps */}
+            {linkedQuotation && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowRight className="w-5 h-5" />
+                    Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-900 mb-2">ETO Workflow</h4>
+                      <div className="space-y-2 text-xs text-blue-700">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span>BOQ Created ✓</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                          <span>Send to Customer</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                          <span>Customer Review</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Link href={`/quotations/${linkedQuotation.id}`}>
+                      <Button variant="outline" className="w-full justify-start text-blue-600 hover:text-blue-700">
+                        <FileText className="w-4 h-4 mr-2" />
+                        View Source Quotation
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Actions */}
             <Card>

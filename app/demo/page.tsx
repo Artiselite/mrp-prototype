@@ -11,31 +11,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Customer, Supplier, Quotation, SalesOrder, EngineeringDrawing, BillOfMaterials, ProductionWorkOrder, Invoice, PurchaseOrder, Item, Location } from "@/lib/types"
 
 export default function DemoPage() {
-  const {
-    useCustomers,
-    useSuppliers,
-    useQuotations,
-    useSalesOrders,
-    useEngineeringDrawings,
-    useBillsOfMaterials,
-    useProductionWorkOrders,
-    useInvoices,
-    usePurchaseOrders,
-    useItems,
-    useLocations
-  } = useDatabaseContext()
 
-  const { customers, createCustomer, updateCustomer, deleteCustomer } = useCustomers()
-  const { suppliers, createSupplier, updateSupplier, deleteSupplier } = useSuppliers()
-  const { quotations, createQuotation, updateQuotation, deleteQuotation } = useQuotations()
-  const { salesOrders, createSalesOrder, updateSalesOrder, deleteSalesOrder } = useSalesOrders()
-  const { drawings, createDrawing, updateDrawing, deleteDrawing } = useEngineeringDrawings()
-  const { boms, createBom, updateBom, deleteBom } = useBillsOfMaterials()
-  const { workOrders, createWorkOrder, updateWorkOrder, deleteWorkOrder } = useProductionWorkOrders()
-  const { invoices, createInvoice, updateInvoice, deleteInvoice } = useInvoices()
-  const { purchaseOrders, createPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder } = usePurchaseOrders()
-  const { items, createItem, updateItem, deleteItem } = useItems()
-  const { locations, createLocation, updateLocation, deleteLocation } = useLocations()
+
+  const { 
+    customers, createCustomer, updateCustomer, deleteCustomer,
+    suppliers, createSupplier, updateSupplier, deleteSupplier,
+    quotations, createQuotation, updateQuotation, deleteQuotation,
+    salesOrders, createSalesOrder, updateSalesOrder, deleteSalesOrder,
+    engineeringDrawings: drawings, createEngineeringDrawing: createDrawing, updateEngineeringDrawing: updateDrawing, deleteEngineeringDrawing: deleteDrawing,
+    billsOfMaterials: boms, createBillOfMaterials: createBom, updateBillOfMaterials: updateBom, deleteBillOfMaterials: deleteBom,
+    productionWorkOrders: workOrders, createProductionWorkOrder: createWorkOrder, updateProductionWorkOrder: updateWorkOrder, deleteProductionWorkOrder: deleteWorkOrder,
+    invoices, createInvoice, updateInvoice, deleteInvoice,
+    purchaseOrders, createPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder,
+    items, createItem, updateItem, deleteItem,
+    locations, createLocation, updateLocation, deleteLocation
+  } = useDatabaseContext()
 
   const [editingCustomer, setEditingCustomer] = useState<string | null>(null)
   const [editingSupplier, setEditingSupplier] = useState<string | null>(null)

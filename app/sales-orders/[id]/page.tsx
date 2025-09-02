@@ -22,7 +22,8 @@ import {
   Download,
   CheckCircle,
 } from "lucide-react"
-import { salesOrders, statusColors, formatCurrency, formatDate } from "@/lib/data"
+import { useDatabaseContext } from "@/components/database-provider"
+import { statusColors, formatCurrency, formatDate } from "@/lib/data"
 
 interface SalesOrderDetailPageProps {
   params: Promise<{ id: string }>
@@ -30,6 +31,21 @@ interface SalesOrderDetailPageProps {
 
 export default function SalesOrderDetailPage({ params }: SalesOrderDetailPageProps) {
   const { id } = use(params)
+  const { useSalesOrders, isInitialized } = useDatabaseContext()
+  const { salesOrders } = useSalesOrders()
+  
+  // Loading state
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading sales order...</p>
+        </div>
+      </div>
+    )
+  }
+  
   const order = salesOrders.find((o) => o.id === id)
 
   if (!order) {
@@ -37,6 +53,7 @@ export default function SalesOrderDetailPage({ params }: SalesOrderDetailPagePro
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Sales Order Not Found</h1>
+          <p className="text-gray-600 mb-4">The sales order with ID "{id}" could not be found.</p>
           <Button asChild>
             <Link href="/sales-orders">
               <ArrowLeft className="w-4 h-4 mr-2" />

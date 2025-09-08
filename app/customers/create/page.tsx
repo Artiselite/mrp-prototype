@@ -16,8 +16,7 @@ import { useDatabaseContext } from "@/components/database-provider"
 
 export default function CreateCustomerPage() {
   const router = useRouter()
-  const { useCustomers } = useDatabaseContext()
-  const { createCustomer } = useCustomers()
+  const { customers = [], createCustomer } = useDatabaseContext()
   const [formData, setFormData] = useState({
     name: "",
     contactPerson: "",

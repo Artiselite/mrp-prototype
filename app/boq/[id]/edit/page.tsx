@@ -24,11 +24,13 @@ interface BOQEditPageProps {
 
 export default function BOQEditPage({ params }: BOQEditPageProps) {
   const router = useRouter()
-  const { useBillsOfQuantities, useEngineeringProjects, useEngineeringDrawings, useBillsOfMaterials } = useDatabaseContext()
-  const { boqs, updateBoq } = useBillsOfQuantities()
-  const { projects } = useEngineeringProjects()
-  const { drawings } = useEngineeringDrawings()
-  const { boms } = useBillsOfMaterials()
+  const { 
+    billsOfQuantities: boqs = [], 
+    updateBillOfQuantities: updateBoq,
+    engineeringProjects: projects = [],
+    engineeringDrawings: drawings = [],
+    billsOfMaterials: boms = []
+  } = useDatabaseContext()
 
   const [boq, setBOQ] = useState<BillOfQuantities | null>(null)
   const [formData, setFormData] = useState<Partial<BillOfQuantities>>({})
@@ -60,7 +62,7 @@ export default function BOQEditPage({ params }: BOQEditPageProps) {
         updatedAt: new Date().toISOString(),
       }
 
-      await updateBoq(updatedBOQ)
+      await updateBoq(updatedBOQ.id, updatedBOQ)
       const resolvedParams = await params
       router.push(`/boq/${resolvedParams.id}`)
     } catch (error) {
@@ -345,7 +347,7 @@ export default function BOQEditPage({ params }: BOQEditPageProps) {
                         <SelectItem value="none">None</SelectItem>
                         {projects && Array.isArray(projects) && projects.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
-                            {project.projectName}
+                            {project.projectNumber}
                           </SelectItem>
                         ))}
                       </SelectContent>

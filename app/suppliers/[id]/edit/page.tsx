@@ -17,8 +17,7 @@ import { useDatabaseContext } from "@/components/database-provider"
 function EditSupplierContent() {
   const params = useParams()
   const router = useRouter()
-  const { useSuppliers } = useDatabaseContext()
-  const { suppliers, updateSupplier } = useSuppliers()
+  const { suppliers = [], updateSupplier } = useDatabaseContext()
   
   const supplier = suppliers.find(s => s.id === params.id)
   

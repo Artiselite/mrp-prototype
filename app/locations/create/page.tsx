@@ -54,7 +54,7 @@ interface FormErrors {
 
 export default function CreateLocationPage() {
   const router = useRouter()
-  const { createLocation } = useDatabaseContext().useLocations()
+  const { createLocation } = useDatabaseContext()
   const [formData, setFormData] = useState<LocationFormData>({
     code: "",
     name: "",

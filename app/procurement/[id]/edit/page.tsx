@@ -274,7 +274,7 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
                       <SelectContent>
                         {billsOfMaterials.map((bom) => (
                           <SelectItem key={bom.id} value={bom.id}>
-                            {bom.id} - {bom.title}
+                            {bom.id} - {bom.bomNumber}
                           </SelectItem>
                         ))}
                       </SelectContent>

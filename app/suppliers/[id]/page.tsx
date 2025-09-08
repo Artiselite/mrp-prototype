@@ -29,9 +29,7 @@ import { useDatabaseContext } from "@/components/database-provider"
 function SupplierDetailContent() {
   const params = useParams()
   const router = useRouter()
-  const { useSuppliers, usePurchaseOrders } = useDatabaseContext()
-  const { suppliers, deleteSupplier } = useSuppliers()
-  const { purchaseOrders } = usePurchaseOrders()
+  const { suppliers = [], deleteSupplier, purchaseOrders = [] } = useDatabaseContext()
   
   const supplier = suppliers.find(s => s.id === params.id)
   const supplierPurchaseOrders = purchaseOrders.filter(po => po.supplierId === params.id)

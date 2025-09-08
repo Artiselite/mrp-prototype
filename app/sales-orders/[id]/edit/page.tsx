@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { use, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,34 +13,66 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Plus, Trash2, Save } from "lucide-react"
-import { salesOrders, formatCurrency } from "@/lib/data"
+import { useDatabaseContext } from "@/components/database-provider"
+import { formatCurrency } from "@/lib/data"
 
-interface SalesOrderEditPageProps {
-  params: Promise<{ id: string }>
-}
-
-export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) {
-  const { id } = use(params)
+export default function EditSalesOrderPage() {
+  const params = useParams()
   const router = useRouter()
-  const order = salesOrders.find((o) => o.id === id)
+  const { salesOrders = [] } = useDatabaseContext()
+  const order = salesOrders.find((o) => o.id === params.id)
 
   const [formData, setFormData] = useState({
     customerPO: order?.customerPO || "",
     title: order?.title || "",
     description: order?.description || "",
-    priority: order?.priority || ("Medium" as "Low" | "Medium" | "High" | "Critical"),
     requestedDeliveryDate: order?.requestedDeliveryDate || "",
     confirmedDeliveryDate: order?.confirmedDeliveryDate || "",
     shippingAddress: order?.shippingAddress || "",
     billingAddress: order?.billingAddress || "",
     paymentTerms: order?.paymentTerms || "Net 30",
     notes: order?.notes || "",
-    taxRate: order?.taxRate || 8.5,
+    taxRate: 8.5, // Default tax rate since it's not in the type
     status:
       order?.status || ("Draft" as "Draft" | "Confirmed" | "In Production" | "Shipped" | "Delivered" | "Cancelled"),
   })
 
   const [items, setItems] = useState(order?.items || [])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (salesOrders.length > 0) {
+      const foundOrder = salesOrders.find((o) => o.id === params.id)
+      if (foundOrder) {
+        setFormData({
+          customerPO: foundOrder.customerPO || "",
+          title: foundOrder.title || "",
+          description: foundOrder.description || "",
+          requestedDeliveryDate: foundOrder.requestedDeliveryDate || "",
+          confirmedDeliveryDate: foundOrder.confirmedDeliveryDate || "",
+          shippingAddress: foundOrder.shippingAddress || "",
+          billingAddress: foundOrder.billingAddress || "",
+          paymentTerms: foundOrder.paymentTerms || "Net 30",
+          notes: foundOrder.notes || "",
+          taxRate: 8.5, // Default tax rate since it's not in the type
+          status: foundOrder.status || ("Draft" as "Draft" | "Confirmed" | "In Production" | "Shipped" | "Delivered" | "Cancelled"),
+        })
+        setItems(foundOrder.items || [])
+      }
+      setIsLoading(false)
+    }
+  }, [salesOrders, params.id])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading sales order...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!order) {
     return (
@@ -63,13 +95,11 @@ export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) 
       id: (items.length + 1).toString(),
       description: "",
       quantity: 1,
-      unit: "pieces",
       unitPrice: 0,
       totalPrice: 0,
-      steelGrade: "",
       specifications: "",
       deliveryDate: "",
-      status: "Pending" as "Pending" | "In Production" | "Ready" | "Shipped" | "Delivered",
+      status: "Pending" as "Pending" | "In Production" | "Ready" | "Shipped" | "Completed",
     }
     setItems([...items, newItem])
   }
@@ -128,7 +158,7 @@ export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) 
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Edit Sales Order</h1>
             <p className="text-gray-600 mt-2">
-              {order.id} - {order.customer}
+              {order.id} - {order.customerName}
             </p>
           </div>
         </div>
@@ -174,25 +204,6 @@ export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) 
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select
-                    value={formData.priority}
-                    onValueChange={(value: "Low" | "Medium" | "High" | "Critical") =>
-                      setFormData((prev) => ({ ...prev, priority: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Low">Low</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="High">High</SelectItem>
-                      <SelectItem value="Critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div>
                   <Label htmlFor="title">Title *</Label>
@@ -258,12 +269,9 @@ export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) 
                     <TableRow>
                       <TableHead>Description *</TableHead>
                       <TableHead>Qty *</TableHead>
-                      <TableHead>Unit</TableHead>
                       <TableHead>Unit Price *</TableHead>
                       <TableHead>Total</TableHead>
-                      <TableHead>Steel Grade</TableHead>
                       <TableHead>Delivery Date</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -296,20 +304,6 @@ export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) 
                           />
                         </TableCell>
                         <TableCell>
-                          <Select value={item.unit} onValueChange={(value) => updateItem(item.id, "unit", value)}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pieces">Pieces</SelectItem>
-                              <SelectItem value="feet">Feet</SelectItem>
-                              <SelectItem value="pounds">Pounds</SelectItem>
-                              <SelectItem value="tons">Tons</SelectItem>
-                              <SelectItem value="lots">Lots</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
                           <Input
                             type="number"
                             value={item.unitPrice}
@@ -322,31 +316,10 @@ export default function EditSalesOrderPage({ params }: SalesOrderEditPageProps) 
                         <TableCell className="font-medium">{formatCurrency(item.totalPrice)}</TableCell>
                         <TableCell>
                           <Input
-                            value={item.steelGrade || ""}
-                            onChange={(e) => updateItem(item.id, "steelGrade", e.target.value)}
-                            placeholder="e.g., A992"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
                             type="date"
                             value={item.deliveryDate || ""}
                             onChange={(e) => updateItem(item.id, "deliveryDate", e.target.value)}
                           />
-                        </TableCell>
-                        <TableCell>
-                          <Select value={item.status} onValueChange={(value) => updateItem(item.id, "status", value)}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Pending">Pending</SelectItem>
-                              <SelectItem value="In Production">In Production</SelectItem>
-                              <SelectItem value="Ready">Ready</SelectItem>
-                              <SelectItem value="Shipped">Shipped</SelectItem>
-                              <SelectItem value="Delivered">Delivered</SelectItem>
-                            </SelectContent>
-                          </Select>
                         </TableCell>
                         <TableCell>
                           <Button

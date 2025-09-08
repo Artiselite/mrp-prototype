@@ -18,8 +18,7 @@ export default function EditCustomerPage() {
   const router = useRouter()
   const params = useParams()
   const customerId = params.id as string
-  const { useCustomers } = useDatabaseContext()
-  const { customers, updateCustomer } = useCustomers()
+  const { customers = [], updateCustomer } = useDatabaseContext()
 
   const [formData, setFormData] = useState({
     name: "",

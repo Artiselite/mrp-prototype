@@ -64,7 +64,7 @@ export default function EditLocationPage() {
   const params = useParams()
   const locationId = params.id as string
   
-  const { locations, updateLocation } = useDatabaseContext().useLocations()
+  const { locations, updateLocation } = useDatabaseContext()
   const location = locations.find(loc => loc.id === locationId)
   
   const [formData, setFormData] = useState<LocationFormData>({

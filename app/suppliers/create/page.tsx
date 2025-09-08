@@ -16,8 +16,7 @@ import { useDatabaseContext } from "@/components/database-provider"
 
 export default function CreateSupplierPage() {
   const router = useRouter()
-  const { useSuppliers } = useDatabaseContext()
-  const { createSupplier } = useSuppliers()
+  const { suppliers = [], createSupplier } = useDatabaseContext()
   const [formData, setFormData] = useState({
     name: "",
     contactPerson: "",

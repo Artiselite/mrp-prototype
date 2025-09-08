@@ -17,8 +17,7 @@ export default function LocationDetailPage() {
     const router = useRouter()
     const locationId = params.id as string
 
-    const { locations, deleteLocation } = useDatabaseContext().useLocations()
-    const { items } = useDatabaseContext().useItems()
+    const { locations = [], deleteLocation, items = [] } = useDatabaseContext()
     const location = locations.find(loc => loc.id === locationId)
 
     // Get items stored in this location

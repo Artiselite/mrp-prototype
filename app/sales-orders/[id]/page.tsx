@@ -31,8 +31,7 @@ interface SalesOrderDetailPageProps {
 
 export default function SalesOrderDetailPage({ params }: SalesOrderDetailPageProps) {
   const { id } = use(params)
-  const { useSalesOrders, isInitialized } = useDatabaseContext()
-  const { salesOrders } = useSalesOrders()
+  const { salesOrders = [], isInitialized } = useDatabaseContext()
   
   // Loading state
   if (!isInitialized) {
@@ -46,7 +45,7 @@ export default function SalesOrderDetailPage({ params }: SalesOrderDetailPagePro
     )
   }
   
-  const order = salesOrders.find((o) => o.id === id)
+  const order = salesOrders.find((o: any) => o.id === id)
 
   if (!order) {
     return (
@@ -81,7 +80,7 @@ export default function SalesOrderDetailPage({ params }: SalesOrderDetailPagePro
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold text-gray-900">{order.salesOrderNumber}</h1>
-                  <Badge className={statusColors.salesOrder[order.status]}>
+                  <Badge className={statusColors.salesOrder[order.status as keyof typeof statusColors.salesOrder]}>
                     {order.status}
                   </Badge>
                   <Badge variant="outline">{order.revision}</Badge>
@@ -259,7 +258,7 @@ export default function SalesOrderDetailPage({ params }: SalesOrderDetailPagePro
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {order.items.map((item) => (
+                          {order.items.map((item: any) => (
                             <TableRow key={item.id}>
                               <TableCell>
                                 <div>
@@ -429,7 +428,7 @@ export default function SalesOrderDetailPage({ params }: SalesOrderDetailPagePro
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
-                  <Badge className={statusColors.salesOrder[order.status]}>{order.status}</Badge>
+                  <Badge className={statusColors.salesOrder[order.status as keyof typeof statusColors.salesOrder]}>{order.status}</Badge>
                 </div>
               </CardContent>
             </Card>

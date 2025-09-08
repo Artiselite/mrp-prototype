@@ -1,7 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { useMemo } from "react"
+
+// Chart.js type declarations for CDN usage
+declare global {
+    interface Window {
+        Chart: any
+    }
+}
+import { useMemo, useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -343,145 +350,153 @@ function MetricCard({ icon, label, value, sub }: {
 }
 
 // Chart Components
-const EngineeringPieChart = ({ data, title }: { data: any[], title: string }) => (
-    <div className="space-y-4">
-        <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-        <div className="space-y-2">
-            {data.map((item, index) => (
-                <div key={index} className="flex items-center space-x-2 text-xs">
-                    <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                    <span className="text-gray-600">{item.status}:</span>
-                    <span className="font-medium">{item.count} ({item.percentage}%)</span>
-                </div>
-            ))}
-        </div>
-    </div>
-)
-
-const EngineeringBarChart = ({ data, title, yAxisLabel }: { data: any[], title: string, yAxisLabel: string }) => (
-    <div className="space-y-4">
-        <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-        <div className="space-y-3">
-            {data.map((item, index) => (
-                <div key={index} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">{item.category}</span>
-                        <span className="font-medium">{yAxisLabel === "Cost" ? `$${item.cost.toLocaleString()}` : `${item.count} (${item.percentage}%)`}</span>
+function EngineeringPieChart({ data, title }: { data: any[], title: string }) {
+    return (
+        <div className="space-y-4">
+            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
+            <div className="space-y-2">
+                {data.map((item, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-xs">
+                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                        <span className="text-gray-600">{item.status}:</span>
+                        <span className="font-medium">{item.count} ({item.percentage}%)</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                            className="h-2 rounded-full bg-blue-500"
-                            style={{ width: `${item.percentage}%` }}
-                        />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function EngineeringBarChart({ data, title, yAxisLabel }: { data: any[], title: string, yAxisLabel: string }) {
+    return (
+        <div className="space-y-4">
+            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
+            <div className="space-y-3">
+                {data.map((item, index) => (
+                    <div key={index} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">{item.category}</span>
+                            <span className="font-medium">{yAxisLabel === "Cost" ? `$${item.cost.toLocaleString()}` : `${item.count} (${item.percentage}%)`}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="h-2 rounded-full bg-blue-500"
+                                style={{ width: `${item.percentage}%` }}
+                            />
+                        </div>
                     </div>
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Items</p>
-                  <p className="text-2xl font-bold text-gray-900">6</p>
-            ))}
+                ))}
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
-const DemandSupplyPieChart = ({ data, title }: { data: any[], title: string }) => (
-    <div className="space-y-4">
-        <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-        <div className="space-y-2">
-            {data.map((item, index) => (
-                <div key={index} className="flex items-center space-x-2 text-xs">
-                    <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                    <span className="text-gray-600">{item.level}:</span>
-                    <span className="font-medium">{item.count} ({item.percentage}%)</span>
-
-                </div>
-            ))}
+function DemandSupplyPieChart({ data, title }: { data: any[], title: string }) {
+    return (
+        <div className="space-y-4">
+            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
+            <div className="space-y-2">
+                {data.map((item, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-xs">
+                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                        <span className="text-gray-600">{item.level}:</span>
+                        <span className="font-medium">{item.count} ({item.percentage}%)</span>
+                    </div>
+                ))}
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
-const DemandSupplyBarChart = ({ data, title, type }: { data: any[], title: string, type: "demand" | "turnover" }) => (
-    <div className="space-y-4">
-        <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-        <div className="space-y-3">
-            {data.map((item, index) => (
-                <div key={index} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">{item.category}</span>
-                        {type === "demand" ? (
-                            <span className="font-medium">
-                                {item.demand}% / {item.supply}%
-                                <span className={`ml-1 ${item.gap >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    ({item.gap >= 0 ? '+' : ''}{item.gap}%)
+function DemandSupplyBarChart({ data, title, type }: { data: any[], title: string, type: "demand" | "turnover" }) {
+    return (
+        <div className="space-y-4">
+            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
+            <div className="space-y-3">
+                {data.map((item, index) => (
+                    <div key={index} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">{item.category}</span>
+                            {type === "demand" ? (
+                                <span className="font-medium">
+                                    {item.demand}% / {item.supply}%
+                                    <span className={`ml-1 ${item.gap >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        ({item.gap >= 0 ? '+' : ''}{item.gap}%)
+                                    </span>
                                 </span>
-                            </span>
-                        ) : (
-                            <span className="font-medium">
-                                {item.turnover}x (Target: {item.target}x)
-                            </span>
-                        )}
+                            ) : (
+                                <span className="font-medium">
+                                    {item.turnover}x (Target: {item.target}x)
+                                </span>
+                            )}
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className={`h-2 rounded-full ${type === "demand" ?
+                                    (item.gap >= 0 ? 'bg-green-500' : 'bg-red-500') :
+                                    (item.turnover >= item.target ? 'bg-green-500' : 'bg-yellow-500')
+                                    }`}
+                                style={{ width: `${type === "demand" ? Math.max(item.demand, item.supply) : (item.turnover / 5) * 100}%` }}
+                            />
+                        </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                            className={`h-2 rounded-full ${type === "demand" ?
-                                (item.gap >= 0 ? 'bg-green-500' : 'bg-red-500') :
-                                (item.turnover >= item.target ? 'bg-green-500' : 'bg-yellow-500')
-                                }`}
-                            style={{ width: `${type === "demand" ? Math.max(item.demand, item.supply) : (item.turnover / 5) * 100}%` }}
-                        />
-                    </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
-const ProductionPieChart = ({ data, title }: { data: any[], title: string }) => (
-    <div className="space-y-4">
-        <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-        <div className="space-y-2">
-            {data.map((item, index) => (
-                <div key={index} className="flex items-center space-x-2 text-xs">
-                    <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                    <span className="text-gray-600">{item.status}:</span>
-                    <span className="font-medium">{item.count} ({item.percentage}%)</span>
-                </div>
-            ))}
+function ProductionPieChart({ data, title }: { data: any[], title: string }) {
+    return (
+        <div className="space-y-4">
+            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
+            <div className="space-y-2">
+                {data.map((item, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-xs">
+                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                        <span className="text-gray-600">{item.status}:</span>
+                        <span className="font-medium">{item.count} ({item.percentage}%)</span>
+                    </div>
+                ))}
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
-const ProductionBarChart = ({ data, title, type }: { data: any[], title: string, type: "efficiency" | "quality" }) => (
-    <div className="space-y-4">
-        <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-        <div className="space-y-3">
-            {data.map((item, index) => (
-                <div key={index} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">{type === "efficiency" ? item.line : item.process}</span>
-                        {type === "efficiency" ? (
-                            <span className="font-medium">
-                                {item.efficiency}% (Target: {item.target}%)
-                            </span>
-                        ) : (
-                            <span className="font-medium">
-                                {item.firstPass}% | {item.rework}% | {item.scrap}%
-                            </span>
-                        )}
+function ProductionBarChart({ data, title, type }: { data: any[], title: string, type: "efficiency" | "quality" }) {
+    return (
+        <div className="space-y-4">
+            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
+            <div className="space-y-3">
+                {data.map((item, index) => (
+                    <div key={index} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">{type === "efficiency" ? item.line : item.process}</span>
+                            {type === "efficiency" ? (
+                                <span className="font-medium">
+                                    {item.efficiency}% (Target: {item.target}%)
+                                </span>
+                            ) : (
+                                <span className="font-medium">
+                                    {item.firstPass}% | {item.rework}% | {item.scrap}%
+                                </span>
+                            )}
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className={`h-2 rounded-full ${type === "efficiency" ?
+                                    (item.efficiency >= item.target ? 'bg-green-500' : 'bg-yellow-500') :
+                                    (item.firstPass >= 95 ? 'bg-green-500' : item.firstPass >= 90 ? 'bg-yellow-500' : 'bg-red-500')
+                                    }`}
+                                style={{ width: `${type === "efficiency" ? item.efficiency : item.firstPass}%` }}
+                            />
+                        </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                            className={`h-2 rounded-full ${type === "efficiency" ?
-                                (item.efficiency >= item.target ? 'bg-green-500' : 'bg-yellow-500') :
-                                (item.firstPass >= 95 ? 'bg-green-500' : item.firstPass >= 90 ? 'bg-yellow-500' : 'bg-red-500')
-                                }`}
-                            style={{ width: `${type === "efficiency" ? item.efficiency : item.firstPass}%` }}
-                        />
-                    </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
 /** ---------------------------
  *  Page
@@ -500,12 +515,404 @@ export default function DashboardPage() {
         Percent: (v: number) => `${Math.round(v)}%`
     }), [])
 
+    // Initialize Chart.js charts
+    useEffect(() => {
+        const initializeCharts = () => {
+            // Check if Chart.js is loaded by trying to access it
+            if (typeof window !== 'undefined' && window.Chart && typeof window.Chart === 'function') {
+                // Forecasted Sales Bar Chart
+                const salesCtx = document.getElementById('forecastedSalesChart') as HTMLCanvasElement
+                const salesLoading = document.getElementById('forecastedSalesLoading')
+                if (salesCtx) {
+                    // Destroy existing chart if it exists
+                    const existingChart = window.Chart.getChart(salesCtx)
+                    if (existingChart) {
+                        existingChart.destroy()
+                    }
+                    
+                    // Hide loading indicator
+                    if (salesLoading) {
+                        salesLoading.style.display = 'none'
+                    }
+                    
+                    new window.Chart(salesCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Product A', 'Product B', 'Product C'],
+                            datasets: [{
+                                label: 'Units',
+                                data: [1200, 950, 700],
+                                backgroundColor: [
+                                    'rgba(34, 197, 94, 0.8)',
+                                    'rgba(34, 197, 94, 0.6)',
+                                    'rgba(34, 197, 94, 0.4)'
+                                ],
+                                borderColor: [
+                                    'rgba(34, 197, 94, 1)',
+                                    'rgba(34, 197, 94, 1)',
+                                    'rgba(34, 197, 94, 1)'
+                                ],
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            }, {
+                                label: 'Revenue ($K)',
+                                data: [2400, 1900, 1400], // Revenue in thousands
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.8)',
+                                    'rgba(59, 130, 246, 0.6)',
+                                    'rgba(59, 130, 246, 0.4)'
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(59, 130, 246, 1)'
+                                ],
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            size: 10
+                                        },
+                                        usePointStyle: true,
+                                        padding: 10
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        afterLabel: function(context: any) {
+                                            if (context.datasetIndex === 0) {
+                                                // Units dataset
+                                                const revenue = context.parsed.y * 2; // $2K per unit
+                                                return `Revenue: $${revenue}K`;
+                                            } else {
+                                                // Revenue dataset
+                                                const units = context.parsed.y / 2; // 2K per unit
+                                                return `Units: ${units}`;
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Units',
+                                        font: {
+                                            size: 10
+                                        }
+                                    },
+                                    ticks: {
+                                        font: {
+                                            size: 9
+                                        }
+                                    }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Revenue ($K)',
+                                        font: {
+                                            size: 10
+                                        }
+                                    },
+                                    ticks: {
+                                        font: {
+                                            size: 9
+                                        },
+                                        callback: function(value: any) {
+                                            return '$' + value + 'K';
+                                        }
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false,
+                                    },
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 10
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
+
+                // Materials Inventory Pie Chart
+                const materialsCtx = document.getElementById('materialsInventoryChart') as HTMLCanvasElement
+                const materialsLoading = document.getElementById('materialsInventoryLoading')
+                if (materialsCtx) {
+                    // Destroy existing chart if it exists
+                    const existingChart = window.Chart.getChart(materialsCtx)
+                    if (existingChart) {
+                        existingChart.destroy()
+                    }
+                    
+                    // Hide loading indicator
+                    if (materialsLoading) {
+                        materialsLoading.style.display = 'none'
+                    }
+                    
+                    new window.Chart(materialsCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Steel Plate', 'Fasteners', 'Paint'],
+                            datasets: [{
+                                data: [320, 18000, 1200],
+                                backgroundColor: [
+                                    'rgba(239, 68, 68, 0.8)',
+                                    'rgba(34, 197, 94, 0.8)',
+                                    'rgba(249, 115, 22, 0.8)'
+                                ],
+                                borderColor: [
+                                    'rgba(239, 68, 68, 1)',
+                                    'rgba(34, 197, 94, 1)',
+                                    'rgba(249, 115, 22, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: {
+                                            size: 10
+                                        },
+                                        padding: 10
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
+
+                // Production Efficiency Bar Chart
+                const productionCtx = document.getElementById('productionEfficiencyChart') as HTMLCanvasElement
+                const productionLoading = document.getElementById('productionEfficiencyLoading')
+                if (productionCtx) {
+                    // Destroy existing chart if it exists
+                    const existingChart = window.Chart.getChart(productionCtx)
+                    if (existingChart) {
+                        existingChart.destroy()
+                    }
+                    
+                    // Hide loading indicator
+                    if (productionLoading) {
+                        productionLoading.style.display = 'none'
+                    }
+                    
+                    new window.Chart(productionCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Cutting Line', 'Welding Line 1', 'Welding Line 2', 'Assembly Line', 'Paint Line', 'Quality Check'],
+                            datasets: [{
+                                label: 'Current Efficiency (%)',
+                                data: [92, 88, 95, 89, 84, 78],
+                                backgroundColor: [
+                                    'rgba(34, 197, 94, 0.8)', // Green - above target
+                                    'rgba(251, 191, 36, 0.8)', // Yellow - below target
+                                    'rgba(34, 197, 94, 0.8)', // Green - above target
+                                    'rgba(251, 191, 36, 0.8)', // Yellow - below target
+                                    'rgba(251, 191, 36, 0.8)', // Yellow - below target
+                                    'rgba(239, 68, 68, 0.8)'  // Red - well below target
+                                ],
+                                borderColor: [
+                                    'rgba(34, 197, 94, 1)',
+                                    'rgba(251, 191, 36, 1)',
+                                    'rgba(34, 197, 94, 1)',
+                                    'rgba(251, 191, 36, 1)',
+                                    'rgba(251, 191, 36, 1)',
+                                    'rgba(239, 68, 68, 1)'
+                                ],
+                                borderWidth: 1
+                            }, {
+                                label: 'Target (%)',
+                                data: [90, 90, 90, 90, 90, 90],
+                                type: 'line',
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                tension: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            size: 10
+                                        },
+                                        usePointStyle: true,
+                                        padding: 10
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        afterLabel: function(context: any) {
+                                            if (context.datasetIndex === 0) {
+                                                const target = 90;
+                                                const current = context.parsed.y;
+                                                const diff = current - target;
+                                                return `Target: ${target}% | ${diff >= 0 ? '+' : ''}${diff}% vs target`;
+                                            }
+                                            return '';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Efficiency (%)',
+                                        font: {
+                                            size: 10
+                                        }
+                                    },
+                                    ticks: {
+                                        font: {
+                                            size: 9
+                                        },
+                                        callback: function(value: any) {
+                                            return value + '%';
+                                        }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 9
+                                        },
+                                        maxRotation: 45
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
+            } else {
+                // If Chart.js is not loaded yet, wait a bit and try again
+                setTimeout(initializeCharts, 200)
+            }
+        }
+
+        // Try to initialize immediately
+        initializeCharts()
+        
+        // Also try after a short delay to ensure DOM is ready
+        const timeoutId = setTimeout(initializeCharts, 1000)
+        
+        // Fallback: if charts don't load after 3 seconds, show fallback content
+        const fallbackTimeoutId = setTimeout(() => {
+            const salesLoading = document.getElementById('forecastedSalesLoading')
+            const materialsLoading = document.getElementById('materialsInventoryLoading')
+            const productionLoading = document.getElementById('productionEfficiencyLoading')
+            
+            if (salesLoading) {
+                salesLoading.innerHTML = `
+                    <div class="space-y-3 text-xs">
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-green-700">Product A:</span><span class="font-medium text-green-800">1,200 units</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">$2,400K</span></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-green-700">Product B:</span><span class="font-medium text-green-800">950 units</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">$1,900K</span></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-green-700">Product C:</span><span class="font-medium text-green-800">700 units</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">$1,400K</span></div>
+                        </div>
+                    </div>
+                `
+            }
+            
+            if (materialsLoading) {
+                materialsLoading.innerHTML = `
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>Steel Plate: 320 tons</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-green-500"></div><span>Fasteners: 18,000 pcs</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-orange-500"></div><span>Paint: 1,200 L</span></div>
+                    </div>
+                `
+            }
+            
+            if (productionLoading) {
+                productionLoading.innerHTML = `
+                    <div class="space-y-3 text-xs">
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">Cutting Line:</span><span class="font-medium text-green-600">92% (Target: 90%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-green-500" style="width: 92%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">Welding Line 1:</span><span class="font-medium text-yellow-600">88% (Target: 90%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-yellow-500" style="width: 88%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">Welding Line 2:</span><span class="font-medium text-green-600">95% (Target: 90%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-green-500" style="width: 95%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">Assembly Line:</span><span class="font-medium text-yellow-600">89% (Target: 90%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-yellow-500" style="width: 89%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">Paint Line:</span><span class="font-medium text-yellow-600">84% (Target: 90%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-yellow-500" style="width: 84%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">Quality Check:</span><span class="font-medium text-red-600">78% (Target: 90%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-red-500" style="width: 78%"></div></div>
+                        </div>
+                    </div>
+                `
+            }
+        }, 3000)
+        
+        return () => {
+            clearTimeout(timeoutId)
+            clearTimeout(fallbackTimeoutId)
+        }
+    }, [])
+
     // demo toggles (hide deep-dive bits for execs)
     const showQuality = false
     const showPlannerDetails = false
 
     // Modal state management
-    const [openModal, setOpenModal] = React.useState<string | null>(null);
+    const [openModal, setOpenModal] = useState<string | null>(null);
 
     /** ---------------------------
      *  Derived Stats (memoized)
@@ -1364,7 +1771,12 @@ export default function DashboardPage() {
 
                     {/* Production Efficiency */}
                     <SectionCard title="📊 Production Efficiency" icon={<Activity className="w-5 h-5" />}>
-                        <ProductionBarChart data={moduleCharts.production.productionEfficiency} title="Line Efficiency" type="efficiency" />
+                        <div className="h-64 relative">
+                            <canvas id="productionEfficiencyChart"></canvas>
+                            <div id="productionEfficiencyLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
+                                Loading chart...
+                            </div>
+                        </div>
                     </SectionCard>
 
                     {/* Cost Breakdown */}
@@ -1395,6 +1807,126 @@ export default function DashboardPage() {
                                 AI Settings
                             </Button>
                         </div>
+                    </div>
+
+                    <div>
+                        {/* Supply & Demand Planning Card */}
+                        <Card className="border-green-200 bg-white shadow-lg mb-6">
+                            <CardHeader className="pb-3 bg-white border-b border-green-200">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
+                                        <BarChart3 className="w-5 h-5" />
+                                        <span>Supply & Demand Planning</span>
+                                    </CardTitle>
+                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                        AI-Based
+                                    </Badge>
+                                </div>
+                                <p className="text-sm text-green-600">
+                                    Align materials inventory and purchase orders with forecasted sales
+                                </p>
+                            </CardHeader>
+                            <CardContent className="bg-white">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Forecasted Sales - Bar Chart */}
+                                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="font-semibold text-green-800 text-sm">Forecasted Sales & Revenue (Q4 2024)</div>
+                                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                +19% YoY
+                                            </Badge>
+                                        </div>
+                                        <div className="h-48 relative">
+                                            <canvas id="forecastedSalesChart"></canvas>
+                                            <div id="forecastedSalesLoading" className="absolute inset-0 flex items-center justify-center text-green-600 text-sm">
+                                                Loading chart...
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Materials Inventory - Pie Chart */}
+                                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="font-semibold text-yellow-800 text-sm">Current Materials Inventory</div>
+                                            <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
+                                                78% Stocked
+                                            </Badge>
+                                        </div>
+                                        <div className="h-48 relative">
+                                            <canvas id="materialsInventoryChart"></canvas>
+                                            <div id="materialsInventoryLoading" className="absolute inset-0 flex items-center justify-center text-yellow-600 text-sm">
+                                                Loading chart...
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Purchase Order Recommendations - Table */}
+                                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="font-semibold text-blue-800 text-sm">Purchase Order Recommendations</div>
+                                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                Action Needed
+                                            </Badge>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="text-xs font-medium text-blue-800 mb-2">Recommended Actions:</div>
+                                            <div className="space-y-2">
+                                                {/* Steel Plate Row */}
+                                                <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-xs text-blue-800">Steel Plate</div>
+                                                        <div className="text-xs text-blue-600">Order 80 tons</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs text-blue-600">3 weeks</div>
+                                                        <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Urgent</Badge>
+                                                    </div>
+                                                </div>
+                                                {/* Paint Row */}
+                                                <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-xs text-blue-800">Paint</div>
+                                                        <div className="text-xs text-blue-600">Order 600 L</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs text-blue-600">2 weeks</div>
+                                                        <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">Medium</Badge>
+                                                    </div>
+                                                </div>
+                                                {/* Fasteners Row */}
+                                                <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-xs text-blue-800">Fasteners</div>
+                                                        <div className="text-xs text-blue-600">No immediate action</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs text-blue-600">-</div>
+                                                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">Good</Badge>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex space-x-2 mt-3">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-xs h-6 px-2 border-blue-300 text-blue-700"
+                                                onClick={() => setOpenModal('supply-demand-planning')}
+                                            >
+                                                View Plan
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-xs h-6 px-2 border-green-300 text-green-700"
+                                            >
+                                                Create PO
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

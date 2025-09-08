@@ -23,6 +23,7 @@ import {
   Package,
   User,
   Calculator,
+  FolderOpen,
   X
 } from "lucide-react"
 import Link from "next/link"
@@ -38,6 +39,7 @@ const navigation = [
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Quotations", href: "/quotations", icon: FileText },
   { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+  { name: "Projects", href: "/projects", icon: FolderOpen },
   { name: "Engineering", href: "/engineering", icon: Wrench },
   { name: "BOM", href: "/bom", icon: ClipboardList },
   { name: "BOQ", href: "/boq", icon: Calculator },

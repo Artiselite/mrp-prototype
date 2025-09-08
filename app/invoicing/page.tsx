@@ -16,10 +16,9 @@ import Link from "next/link"
 import { useDatabaseContext } from "@/components/database-provider"
 
 export default function InvoicingPage() {
-  const { useInvoices } = useDatabaseContext()
-  const { invoices } = useInvoices()
+  const { invoices = [] } = useDatabaseContext()
 
-  const [selectedInvoice, setSelectedInvoice] = useState(null)
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
   const getStatusColor = (status: string) => {
@@ -32,13 +31,13 @@ export default function InvoicingPage() {
     }
   }
 
-  const handleViewDetails = (invoice) => {
+  const handleViewDetails = (invoice: any) => {
     setSelectedInvoice(invoice)
     setIsDetailDialogOpen(true)
   }
 
-  const calculateSubtotal = (lineItems) => {
-    return lineItems.reduce((sum, item) => {
+  const calculateSubtotal = (lineItems: any[]) => {
+    return lineItems.reduce((sum: number, item: any) => {
       const amount = parseFloat(item.amount.replace('$', '').replace(',', ''))
       return sum + amount
     }, 0)
@@ -107,7 +106,6 @@ export default function InvoicingPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Invoice ID</TableHead>
-                  <TableHead>Work Order</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Project</TableHead>
                   <TableHead>Amount</TableHead>
@@ -118,10 +116,9 @@ export default function InvoicingPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => (
+                {invoices.map((invoice: any) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.workOrderId}</TableCell>
                     <TableCell>{invoice.customer}</TableCell>
                     <TableCell>{invoice.project}</TableCell>
                     <TableCell className="font-medium">{invoice.amount}</TableCell>
@@ -205,7 +202,7 @@ export default function InvoicingPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedInvoice.lineItems.map((item, index) => (
+                      {selectedInvoice.lineItems.map((item: any, index: number) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.description}</TableCell>
                           <TableCell>{item.quantity}</TableCell>

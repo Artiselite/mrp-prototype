@@ -20,17 +20,11 @@ interface BOMDetailsPageProps {
 export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
   const router = useRouter()
   const { 
-    useBillsOfMaterials, 
-    useEngineeringProjects, 
-    useEngineeringDrawings,
-    useBillsOfQuantities,
+    billsOfMaterials: boms = [],
+    engineeringDrawings: drawings = [],
+    billsOfQuantities: boqs = [],
     isInitialized 
   } = useDatabaseContext()
-  
-  const { boms } = useBillsOfMaterials()
-  const { projects = [] } = useEngineeringProjects()
-  const { drawings = [] } = useEngineeringDrawings()
-  const { boqs = [] } = useBillsOfQuantities()
   
   const [bom, setBom] = useState<BillOfMaterials | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,7 +39,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
         const resolvedParams = await params
         const bomId = resolvedParams.id
         
-        const foundBom = boms.find(b => b.id === bomId)
+        const foundBom = boms.find((b: BillOfMaterials) => b.id === bomId)
         
         if (!foundBom) {
           setError("BOM not found")
@@ -67,9 +61,8 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
   }, [isInitialized, params, boms])
 
   // Get related data
-  const relatedProject = bom?.engineeringProjectId ? projects.find(p => p.id === bom.engineeringProjectId) : null
-  const relatedDrawing = bom?.engineeringDrawingId ? drawings.find(d => d.id === bom.engineeringDrawingId) : null
-  const relatedBoq = bom?.boqId ? boqs.find(q => q.id === bom.boqId) : null
+  const relatedDrawing = bom?.engineeringDrawingId ? drawings.find((d: any) => d.id === bom.engineeringDrawingId) : null
+  const relatedBoq = bom?.boqId ? boqs.find((q: any) => q.id === bom.boqId) : null
 
   // Calculate cost breakdown by category
   const getCostBreakdown = () => {
@@ -201,7 +194,6 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                 </div>
                 <p className="text-sm text-gray-600">
                   {bom.productName}
-                  {relatedProject && ` - ${relatedProject.projectNumber}`}
                 </p>
               </div>
             </div>
@@ -432,16 +424,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                             )}
                           </p>
                         </div>
-                        {relatedProject && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Engineering Project</label>
-                            <p className="mt-1">
-                              <Link href={`/engineering/${relatedProject.id}`} className="text-blue-600 hover:underline">
-                                {relatedProject.projectNumber} - {relatedProject.title}
-                              </Link>
-                            </p>
-                          </div>
-                        )}
+
                         {relatedDrawing && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">Source Drawing</label>

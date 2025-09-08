@@ -12,8 +12,7 @@ import { useDatabaseContext } from "@/components/database-provider"
 import type { Location, Item } from "@/lib/types"
 
 export default function InventoryPage() {
-    const { locations } = useDatabaseContext().useLocations()
-    const { items, createItem, updateItem, refreshItems } = useDatabaseContext().useItems()
+    const { locations = [], items = [], createItem, updateItem, refreshItems } = useDatabaseContext()
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [isUploading, setIsUploading] = useState(false)
@@ -22,10 +21,10 @@ export default function InventoryPage() {
     const [selectedExportType, setSelectedExportType] = useState("full-inventory")
 
     // Calculate inventory data for each location
-    const locationInventory = locations.map(location => {
-        const locationItems = items.filter(item => item.location === location.id)
-        const totalUnits = locationItems.reduce((sum, item) => sum + item.currentStock, 0)
-        const totalValue = locationItems.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
+    const locationInventory = locations.map((location: Location) => {
+        const locationItems = items.filter((item: Item) => item.location === location.id)
+        const totalUnits = locationItems.reduce((sum: number, item: Item) => sum + item.currentStock, 0)
+        const totalValue = locationItems.reduce((sum: number, item: Item) => sum + (item.currentStock * item.unitCost), 0)
         const utilizationPercentage = location.capacity > 0 ? Math.round((totalUnits / location.capacity) * 100) : 0
 
         return {
@@ -39,7 +38,7 @@ export default function InventoryPage() {
     })
 
     // Filter locations based on search term
-    const filteredLocations = locationInventory.filter(location =>
+    const filteredLocations = locationInventory.filter((location: any) =>
         location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         location.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         location.city.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,9 +46,9 @@ export default function InventoryPage() {
 
     // Calculate overall inventory statistics
     const totalItems = items.length
-    const totalUnits = items.reduce((sum, item) => sum + item.currentStock, 0)
-    const totalValue = items.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0)
-    const activeLocations = locations.filter(loc => loc.status === "Active").length
+    const totalUnits = items.reduce((sum: number, item: Item) => sum + item.currentStock, 0)
+    const totalValue = items.reduce((sum: number, item: Item) => sum + (item.currentStock * item.unitCost), 0)
+    const activeLocations = locations.filter((loc: Location) => loc.status === "Active").length
 
     const getUtilizationStatus = (percentage: number) => {
         if (percentage >= 90) return { status: "Critical", color: "bg-red-100 text-red-800" }
@@ -128,7 +127,7 @@ STEEL-003,WH-B-01,800,2024-01-17,Production completion,New batch completed`
 
         switch (exportType) {
             case 'full-inventory':
-                data = items.map(item => ({
+                data = items.map((item: Item) => ({
                     partNumber: item.partNumber,
                     name: item.name,
                     category: item.category,
@@ -149,7 +148,7 @@ STEEL-003,WH-B-01,800,2024-01-17,Production completion,New batch completed`
                 break
 
             case 'by-location':
-                data = locationInventory.map(loc => ({
+                data = locationInventory.map((loc: any) => ({
                     locationCode: loc.code,
                     locationName: loc.name,
                     locationType: loc.type,
@@ -166,8 +165,8 @@ STEEL-003,WH-B-01,800,2024-01-17,Production completion,New batch completed`
 
             case 'low-stock':
                 data = items
-                    .filter(item => item.currentStock <= item.minStock)
-                    .map(item => ({
+                    .filter((item: Item) => item.currentStock <= item.minStock)
+                    .map((item: Item) => ({
                         partNumber: item.partNumber,
                         name: item.name,
                         category: item.category,
@@ -185,8 +184,8 @@ STEEL-003,WH-B-01,800,2024-01-17,Production completion,New batch completed`
 
             case 'value-report':
                 data = items
-                    .sort((a, b) => (b.currentStock * b.unitCost) - (a.currentStock * a.unitCost))
-                    .map(item => ({
+                    .sort((a: Item, b: Item) => (b.currentStock * b.unitCost) - (a.currentStock * a.unitCost))
+                    .map((item: Item) => ({
                         partNumber: item.partNumber,
                         name: item.name,
                         category: item.category,
@@ -202,7 +201,7 @@ STEEL-003,WH-B-01,800,2024-01-17,Production completion,New batch completed`
             case 'movement-history':
                 // This would typically come from a separate movements table
                 // For now, we'll create a sample based on current data
-                data = items.map(item => ({
+                data = items.map((item: Item) => ({
                     partNumber: item.partNumber,
                     name: item.name,
                     location: item.location,
@@ -322,7 +321,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
             console.log('Items:', items)
             
             // Show available part numbers for reference
-            const availablePartNumbers = items.map(item => item.partNumber).join(', ')
+            const availablePartNumbers = items.map((item: Item) => item.partNumber).join(', ')
             console.log('Available part numbers:', availablePartNumbers)
             
             setUploadMessage(`Successfully processed ${selectedFile.name} - ${parsedData.length} records imported`)
@@ -496,7 +495,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
         console.log('Processing inbound row:', row)
 
         // Find existing item or create new one
-        const existingItem = items.find(item => item.partNumber === row.partNumber)
+        const existingItem = items.find((item: Item) => item.partNumber === row.partNumber)
 
         if (existingItem) {
             // Update existing item stock
@@ -529,7 +528,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
     }
 
         const processOutboundRow = async (row: Record<string, string>): Promise<void> => {
-        const existingItem = items.find(item => item.partNumber === row.partNumber)
+        const existingItem = items.find((item: Item) => item.partNumber === row.partNumber)
         
         if (existingItem) {
             const newStock = Math.max(0, existingItem.currentStock - parseInt(row.quantity))
@@ -544,7 +543,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
     }
 
         const processTransferRow = async (row: Record<string, string>): Promise<void> => {
-        const existingItem = items.find(item => item.partNumber === row.partNumber)
+        const existingItem = items.find((item: Item) => item.partNumber === row.partNumber)
         
         if (existingItem) {
             // Update item location
@@ -556,7 +555,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
     }
 
         const processStockUpdateRow = async (row: Record<string, string>): Promise<void> => {
-        const existingItem = items.find(item => item.partNumber === row.partNumber)
+        const existingItem = items.find((item: Item) => item.partNumber === row.partNumber)
         
         if (existingItem) {
             const newStock = parseInt(row.newStock)
@@ -678,7 +677,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
                                 </div>
                             </div>
                             <div className="text-sm text-gray-600 flex items-center">
-                                Showing {items.filter(item =>
+                                Showing {items.filter((item: Item) =>
                                     item.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                     item.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -784,7 +783,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
                                             </div>
                                         )}
                                         <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
-                                            <strong>Available Part Numbers:</strong> {items.length > 0 ? items.map(item => item.partNumber).join(', ') : 'None'}
+                                            <strong>Available Part Numbers:</strong> {items.length > 0 ? items.map((item: Item) => item.partNumber).join(', ') : 'None'}
                                         </div>
                                     </div>
                                     {uploadMessage && (
@@ -1105,16 +1104,16 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {items.filter(item =>
+                                    {items.filter((item: Item) =>
                                         item.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                         item.category.toLowerCase().includes(searchTerm.toLowerCase())
                                     ).length > 0 ? (
-                                        items.filter(item =>
+                                        items.filter((item: Item) =>
                                             item.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                             item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                             item.category.toLowerCase().includes(searchTerm.toLowerCase())
-                                        ).map((item) => (
+                                        ).map((item: Item) => (
                                             <TableRow key={item.id}>
                                                 <TableCell className="font-mono font-medium">
                                                     {item.partNumber}
@@ -1208,7 +1207,7 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
                 </Card>
 
                 {/* Low Stock Alerts */}
-                {items.some(item => item.currentStock <= item.minStock) && (
+                {items.some((item: Item) => item.currentStock <= item.minStock) && (
                     <Card className="mt-6">
                         <CardHeader>
                             <div className="flex justify-between items-start">
@@ -1229,8 +1228,8 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
                         <CardContent>
                             <div className="space-y-3">
                                 {items
-                                    .filter(item => item.currentStock <= item.minStock)
-                                    .map(item => (
+                                    .filter((item: Item) => item.currentStock <= item.minStock)
+                                    .map((item: Item) => (
                                         <div key={item.id} className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                                             <div>
                                                 <div className="font-medium">{item.name}</div>

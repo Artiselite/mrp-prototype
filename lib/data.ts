@@ -9,6 +9,12 @@ import type {
   BillOfMaterials,
   BillOfQuantities,
   ProductionWorkOrder,
+  Workstation,
+  Operator,
+  ShopfloorActivity,
+  QualityInspection,
+  QualityTest,
+  QualityMetric,
   Invoice,
   PurchaseOrder,
   Item,
@@ -1715,6 +1721,7 @@ export const productionOrders: ProductionWorkOrder[] = [
     id: "WO1",
     workOrderNumber: "WO-2024-001",
     salesOrderId: "SO1",
+    projectId: "EP1", // Link to Bridge Construction Project
     bomId: "BOM1",
     productName: "W12x26 Steel I-Beam Assembly",
     description: "Fabricate 10 custom I-beams per specifications",
@@ -1731,11 +1738,24 @@ export const productionOrders: ProductionWorkOrder[] = [
     updatedAt: "2024-02-15T16:00:00Z",
     revision: "Rev B",
     notes: "On schedule, quality checks passed",
+    // Additional properties for table display
+    project: "Bridge Construction Project",
+    customer: "Acme Construction Corp",
+    assignedTeam: "Production Team A",
+    supervisor: "Mike Johnson",
+    operations: [
+      { step: "Material Preparation", status: "Completed", duration: "2 days" },
+      { step: "Cutting & Shaping", status: "Completed", duration: "3 days" },
+      { step: "Welding Assembly", status: "In Progress", duration: "4 days" },
+      { step: "Quality Inspection", status: "Pending", duration: "1 day" },
+      { step: "Final Assembly", status: "Pending", duration: "2 days" }
+    ]
   },
   {
     id: "WO2",
     workOrderNumber: "WO-2024-002",
     salesOrderId: "SO2",
+    projectId: "EP2", // Link to Office Building Steel Frame Project
     bomId: "BOM2",
     productName: "W14x30 Column",
     description: "Cut, drill, and prep columns",
@@ -1752,11 +1772,23 @@ export const productionOrders: ProductionWorkOrder[] = [
     updatedAt: "2024-02-18T08:00:00Z",
     revision: "Rev A",
     notes: "Waiting for final weld details",
+    // Additional properties for table display
+    project: "Office Building Steel Frame",
+    customer: "Metro Steel Works",
+    assignedTeam: "Production Team B",
+    supervisor: "Sarah Wilson",
+    operations: [
+      { step: "Material Preparation", status: "In Progress", duration: "1 day" },
+      { step: "Cutting Operations", status: "Pending", duration: "2 days" },
+      { step: "Drilling & Tapping", status: "Pending", duration: "2 days" },
+      { step: "Quality Inspection", status: "Pending", duration: "1 day" }
+    ]
   },
   {
     id: "WO3",
     workOrderNumber: "WO-2024-003",
     salesOrderId: "SO3",
+    projectId: "EP3", // Link to Residential Staircase Project
     bomId: "",
     productName: "Stair Stringer Assembly",
     description: "Fabricate stair stringers and mounting brackets",
@@ -1773,6 +1805,17 @@ export const productionOrders: ProductionWorkOrder[] = [
     updatedAt: "2024-02-25T08:00:00Z",
     revision: "Rev A",
     notes: "Standard fabrication, minimal setup required",
+    // Additional properties for table display
+    project: "Residential Staircase Project",
+    customer: "Home Builders Inc",
+    assignedTeam: "Production Team C",
+    supervisor: "Tom Rodriguez",
+    operations: [
+      { step: "Material Preparation", status: "Pending", duration: "0.5 days" },
+      { step: "Cutting & Shaping", status: "Pending", duration: "1 day" },
+      { step: "Assembly", status: "Pending", duration: "1 day" },
+      { step: "Quality Check", status: "Pending", duration: "0.5 days" }
+    ]
   },
   {
     id: "WO4",
@@ -1794,6 +1837,18 @@ export const productionOrders: ProductionWorkOrder[] = [
     updatedAt: "2024-03-01T10:00:00Z",
     revision: "Rev A",
     notes: "Major infrastructure project, requires special quality procedures",
+    // Additional properties for table display
+    project: "Highway Bridge Construction",
+    customer: "State Department of Transportation",
+    assignedTeam: "Production Team A",
+    supervisor: "Mike Johnson",
+    operations: [
+      { step: "Material Certification", status: "Pending", duration: "3 days" },
+      { step: "Precision Cutting", status: "Pending", duration: "5 days" },
+      { step: "Welding Assembly", status: "Pending", duration: "15 days" },
+      { step: "NDT Testing", status: "Pending", duration: "3 days" },
+      { step: "Final Inspection", status: "Pending", duration: "2 days" }
+    ]
   },
   {
     id: "WO5",
@@ -1815,11 +1870,444 @@ export const productionOrders: ProductionWorkOrder[] = [
     updatedAt: "2024-03-05T09:00:00Z",
     revision: "Rev A",
     notes: "Standard galvanized finish required",
+    // Additional properties for table display
+    project: "Solar Farm Installation",
+    customer: "Green Energy Solutions",
+    assignedTeam: "Production Team B",
+    supervisor: "Sarah Wilson",
+    operations: [
+      { step: "Material Preparation", status: "Pending", duration: "1 day" },
+      { step: "Frame Fabrication", status: "Pending", duration: "3 days" },
+      { step: "Post Manufacturing", status: "Pending", duration: "2 days" },
+      { step: "Galvanizing Process", status: "Pending", duration: "2 days" },
+      { step: "Final Assembly", status: "Pending", duration: "1 day" }
+    ]
   }
 ]
 
 // Alias
 export const productionWorkOrders = productionOrders
+
+/* =========================
+ *  SHOPFLOOR MANAGEMENT
+ * =======================*/
+
+export const workstations: Workstation[] = [
+  {
+    id: "WS1",
+    name: "CNC Plasma Cutter #1",
+    type: "Cutting",
+    location: "Shop Floor A - Bay 1",
+    status: "Active",
+    currentOperator: "OP1",
+    currentWorkOrder: "WO1",
+    efficiency: 92,
+    lastMaintenance: "2024-02-01",
+    nextMaintenance: "2024-03-01",
+    capacity: 15,
+    utilization: 85,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:30:00Z"
+  },
+  {
+    id: "WS2",
+    name: "Welding Station Alpha",
+    type: "Welding",
+    location: "Shop Floor A - Bay 2",
+    status: "Active",
+    currentOperator: "OP2",
+    currentWorkOrder: "WO1",
+    efficiency: 88,
+    lastMaintenance: "2024-01-28",
+    nextMaintenance: "2024-02-28",
+    capacity: 8,
+    utilization: 75,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T14:20:00Z"
+  },
+  {
+    id: "WS3",
+    name: "Assembly Line Beta",
+    type: "Assembly",
+    location: "Shop Floor B - Bay 1",
+    status: "Active",
+    currentOperator: "OP3",
+    currentWorkOrder: "WO2",
+    efficiency: 95,
+    lastMaintenance: "2024-02-10",
+    nextMaintenance: "2024-03-10",
+    capacity: 12,
+    utilization: 60,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T12:45:00Z"
+  },
+  {
+    id: "WS4",
+    name: "Quality Control Station",
+    type: "Quality Control",
+    location: "Shop Floor B - Bay 2",
+    status: "Active",
+    currentOperator: "OP4",
+    currentWorkOrder: "WO1",
+    efficiency: 90,
+    lastMaintenance: "2024-02-05",
+    nextMaintenance: "2024-03-05",
+    capacity: 20,
+    utilization: 45,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T11:15:00Z"
+  },
+  {
+    id: "WS5",
+    name: "Packaging Station",
+    type: "Packaging",
+    location: "Shop Floor C - Bay 1",
+    status: "Idle",
+    currentOperator: undefined,
+    currentWorkOrder: undefined,
+    efficiency: 85,
+    lastMaintenance: "2024-01-20",
+    nextMaintenance: "2024-02-20",
+    capacity: 25,
+    utilization: 0,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T09:00:00Z"
+  }
+]
+
+export const operators: Operator[] = [
+  {
+    id: "OP1",
+    name: "Mike Johnson",
+    employeeId: "EMP001",
+    department: "Production",
+    position: "CNC Operator",
+    skills: ["CNC Programming", "Plasma Cutting", "CAD Reading"],
+    certifications: ["AWS Certified Welder", "OSHA 10"],
+    currentWorkstation: "WS1",
+    currentWorkOrder: "WO1",
+    shift: "Day",
+    status: "Active",
+    efficiency: 92,
+    totalHours: 168,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:30:00Z"
+  },
+  {
+    id: "OP2",
+    name: "Sarah Wilson",
+    employeeId: "EMP002",
+    department: "Production",
+    position: "Welder",
+    skills: ["MIG Welding", "TIG Welding", "Blueprint Reading"],
+    certifications: ["AWS Certified Welder", "CWI Certified"],
+    currentWorkstation: "WS2",
+    currentWorkOrder: "WO1",
+    shift: "Day",
+    status: "Active",
+    efficiency: 88,
+    totalHours: 160,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T14:20:00Z"
+  },
+  {
+    id: "OP3",
+    name: "Tom Rodriguez",
+    employeeId: "EMP003",
+    department: "Production",
+    position: "Assembly Technician",
+    skills: ["Assembly", "Mechanical Assembly", "Quality Control"],
+    certifications: ["Lean Manufacturing", "Quality Inspector"],
+    currentWorkstation: "WS3",
+    currentWorkOrder: "WO2",
+    shift: "Day",
+    status: "Active",
+    efficiency: 95,
+    totalHours: 152,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T12:45:00Z"
+  },
+  {
+    id: "OP4",
+    name: "Lisa Chen",
+    employeeId: "EMP004",
+    department: "Quality",
+    position: "Quality Inspector",
+    skills: ["Dimensional Inspection", "NDT Testing", "Documentation"],
+    certifications: ["ASQ CQI", "NDT Level II", "ISO 9001"],
+    currentWorkstation: "WS4",
+    currentWorkOrder: "WO1",
+    shift: "Day",
+    status: "Active",
+    efficiency: 90,
+    totalHours: 144,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T11:15:00Z"
+  },
+  {
+    id: "OP5",
+    name: "David Kim",
+    employeeId: "EMP005",
+    department: "Production",
+    position: "Packaging Specialist",
+    skills: ["Packaging", "Shipping", "Inventory Management"],
+    certifications: ["Forklift Operator", "Hazmat Certified"],
+    currentWorkstation: undefined,
+    currentWorkOrder: undefined,
+    shift: "Evening",
+    status: "Off Duty",
+    efficiency: 85,
+    totalHours: 136,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T08:00:00Z"
+  }
+]
+
+export const shopfloorActivities: ShopfloorActivity[] = [
+  {
+    id: "SA1",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    workOrderId: "WO1",
+    activityType: "Start",
+    timestamp: "2024-02-15T08:00:00Z",
+    notes: "Started cutting operations for I-beam assembly",
+    efficiency: 92
+  },
+  {
+    id: "SA2",
+    workstationId: "WS2",
+    operatorId: "OP2",
+    workOrderId: "WO1",
+    activityType: "Start",
+    timestamp: "2024-02-15T10:30:00Z",
+    notes: "Began welding operations",
+    efficiency: 88
+  },
+  {
+    id: "SA3",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    workOrderId: "WO1",
+    activityType: "Pause",
+    timestamp: "2024-02-15T12:00:00Z",
+    notes: "Lunch break",
+    efficiency: 92
+  },
+  {
+    id: "SA4",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    workOrderId: "WO1",
+    activityType: "Resume",
+    timestamp: "2024-02-15T13:00:00Z",
+    notes: "Resumed cutting operations",
+    efficiency: 92
+  }
+]
+
+/* =========================
+ *  QUALITY MANAGEMENT
+ * =======================*/
+
+export const qualityInspections: QualityInspection[] = [
+  {
+    id: "QI1",
+    workOrderId: "WO1",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    inspectionType: "In-Process",
+    status: "In Progress",
+    scheduledDate: "2024-02-15T14:00:00Z",
+    inspector: "Lisa Chen",
+    specifications: [
+      {
+        id: "QS1",
+        parameter: "Length",
+        target: 240,
+        tolerance: 2,
+        unit: "inches",
+        criticality: "Critical",
+        method: "Tape Measure"
+      },
+      {
+        id: "QS2",
+        parameter: "Width",
+        target: 12,
+        tolerance: 0.5,
+        unit: "inches",
+        criticality: "Major",
+        method: "Calipers"
+      },
+      {
+        id: "QS3",
+        parameter: "Surface Finish",
+        target: 125,
+        tolerance: 25,
+        unit: "Ra µin",
+        criticality: "Minor",
+        method: "Surface Roughness Tester"
+      }
+    ],
+    results: [
+      {
+        specificationId: "QS1",
+        measuredValue: 240.1,
+        status: "Pass",
+        timestamp: "2024-02-15T14:15:00Z"
+      },
+      {
+        specificationId: "QS2",
+        measuredValue: 12.2,
+        status: "Pass",
+        timestamp: "2024-02-15T14:20:00Z"
+      }
+    ],
+    notes: "Initial measurements within tolerance",
+    createdAt: "2024-02-15T14:00:00Z",
+    updatedAt: "2024-02-15T14:20:00Z"
+  },
+  {
+    id: "QI2",
+    workOrderId: "WO1",
+    workstationId: "WS2",
+    operatorId: "OP2",
+    inspectionType: "Final",
+    status: "Pending",
+    scheduledDate: "2024-02-16T09:00:00Z",
+    inspector: "Lisa Chen",
+    specifications: [
+      {
+        id: "QS4",
+        parameter: "Weld Penetration",
+        target: 100,
+        tolerance: 5,
+        unit: "%",
+        criticality: "Critical",
+        method: "Visual Inspection"
+      },
+      {
+        id: "QS5",
+        parameter: "Weld Quality",
+        target: 100,
+        tolerance: 0,
+        unit: "%",
+        criticality: "Critical",
+        method: "NDT Testing"
+      }
+    ],
+    results: [],
+    createdAt: "2024-02-15T14:00:00Z",
+    updatedAt: "2024-02-15T14:00:00Z"
+  }
+]
+
+export const qualityTests: QualityTest[] = [
+  {
+    id: "QT1",
+    name: "Dimensional Inspection - I-Beam",
+    type: "Dimensional",
+    workOrderId: "WO1",
+    status: "Completed",
+    scheduledDate: "2024-02-15T14:00:00Z",
+    completedDate: "2024-02-15T15:30:00Z",
+    technician: "Lisa Chen",
+    equipment: "CMM Machine #1",
+    results: [
+      {
+        parameter: "Length",
+        value: 240.1,
+        unit: "inches",
+        specification: "240 ± 2 inches",
+        status: "Pass"
+      },
+      {
+        parameter: "Width",
+        value: 12.2,
+        unit: "inches",
+        specification: "12 ± 0.5 inches",
+        status: "Pass"
+      },
+      {
+        parameter: "Height",
+        value: 11.8,
+        unit: "inches",
+        specification: "12 ± 0.5 inches",
+        status: "Pass"
+      }
+    ],
+    standards: ["ASTM A992", "AISC 360"],
+    notes: "All dimensions within specification",
+    createdAt: "2024-02-15T14:00:00Z",
+    updatedAt: "2024-02-15T15:30:00Z"
+  },
+  {
+    id: "QT2",
+    name: "Welding Quality Test",
+    type: "Welding",
+    workOrderId: "WO1",
+    status: "Scheduled",
+    scheduledDate: "2024-02-16T10:00:00Z",
+    technician: "Lisa Chen",
+    equipment: "Ultrasonic Tester UT-200",
+    results: [],
+    standards: ["AWS D1.1", "ASME IX"],
+    notes: "NDT testing for weld quality",
+    createdAt: "2024-02-15T14:00:00Z",
+    updatedAt: "2024-02-15T14:00:00Z"
+  }
+]
+
+export const qualityMetrics: QualityMetric[] = [
+  {
+    id: "QM1",
+    name: "First Pass Yield",
+    type: "First Pass Yield",
+    value: 94.5,
+    target: 95.0,
+    unit: "%",
+    period: "Daily",
+    date: "2024-02-15",
+    department: "Production",
+    trend: "Up"
+  },
+  {
+    id: "QM2",
+    name: "Defect Rate",
+    type: "Defect Rate",
+    value: 2.1,
+    target: 2.0,
+    unit: "%",
+    period: "Daily",
+    date: "2024-02-15",
+    department: "Production",
+    trend: "Down"
+  },
+  {
+    id: "QM3",
+    name: "Rework Rate",
+    type: "Rework Rate",
+    value: 3.2,
+    target: 3.0,
+    unit: "%",
+    period: "Weekly",
+    date: "2024-02-15",
+    department: "Production",
+    trend: "Stable"
+  },
+  {
+    id: "QM4",
+    name: "Customer Returns",
+    type: "Customer Returns",
+    value: 0.5,
+    target: 1.0,
+    unit: "%",
+    period: "Monthly",
+    date: "2024-02-15",
+    department: "Quality",
+    trend: "Down"
+  }
+]
 
 /* =========================
  *  BILLING
@@ -1832,6 +2320,8 @@ export const invoices: Invoice[] = [
     customerId: "1",
     customerName: "Acme Construction Corp",
     salesOrderId: "SO1",
+    projectId: "EP1",
+    project: "Bridge Construction Project",
     status: "Sent",
     items: [
       { id: "INV1-I1", description: "W12x26 Steel I-Beam, 20ft length", quantity: 10, unitPrice: 450.0, totalPrice: 4500.0 },
@@ -1840,8 +2330,11 @@ export const invoices: Invoice[] = [
     subtotal: 6000.0,
     tax: 480.0,
     total: 6480.0,
+    amount: "$6,480.00",
     issueDate: "2024-02-20",
     dueDate: "2024-03-21",
+    dateIssued: "2024-02-20",
+    dateDue: "2024-03-21",
     createdAt: "2024-02-20T10:00:00Z",
     updatedAt: "2024-02-20T10:00:00Z",
     revision: "Rev A",
@@ -1853,6 +2346,8 @@ export const invoices: Invoice[] = [
     customerId: "2",
     customerName: "Metro Steel Works",
     salesOrderId: "SO2",
+    projectId: "EP2",
+    project: "Office Building Steel Frame",
     status: "Draft",
     items: [
       { id: "INV2-I1", description: "W14x30 Steel Column, 12ft length", quantity: 8, unitPrice: 520.0, totalPrice: 4160.0 },
@@ -1860,8 +2355,11 @@ export const invoices: Invoice[] = [
     subtotal: 4160.0,
     tax: 332.8,
     total: 4492.8,
+    amount: "$4,492.80",
     issueDate: "2024-02-25",
     dueDate: "2024-03-26",
+    dateIssued: "2024-02-25",
+    dateDue: "2024-03-26",
     createdAt: "2024-02-25T09:00:00Z",
     updatedAt: "2024-02-25T09:00:00Z",
     revision: "Rev A",
@@ -1873,6 +2371,8 @@ export const invoices: Invoice[] = [
     customerId: "3",
     customerName: "Blue Ridge Fabricators",
     salesOrderId: "SO3",
+    projectId: "EP3",
+    project: "Residential Staircase Project",
     status: "Sent",
     items: [
       { id: "INV3-I1", description: "Stair Stringer Assembly", quantity: 6, unitPrice: 300.0, totalPrice: 1800.0 },
@@ -1881,8 +2381,11 @@ export const invoices: Invoice[] = [
     subtotal: 2160.0,
     tax: 172.8,
     total: 2332.8,
+    amount: "$2,332.80",
     issueDate: "2024-03-01",
     dueDate: "2024-03-31",
+    dateIssued: "2024-03-01",
+    dateDue: "2024-03-31",
     createdAt: "2024-03-01T11:00:00Z",
     updatedAt: "2024-03-01T11:00:00Z",
     revision: "Rev A",
@@ -1894,6 +2397,8 @@ export const invoices: Invoice[] = [
     customerId: "4",
     customerName: "Pacific Bridge & Steel",
     salesOrderId: "SO4",
+    projectId: "EP4",
+    project: "Highway Bridge Construction",
     status: "Draft",
     items: [
       { id: "INV4-I1", description: "Plate Girder Assembly - 80ft span", quantity: 4, unitPrice: 8500.0, totalPrice: 34000.0 },
@@ -1902,8 +2407,11 @@ export const invoices: Invoice[] = [
     subtotal: 41200.0,
     tax: 3296.0,
     total: 44496.0,
+    amount: "$44,496.00",
     issueDate: "2024-03-15",
     dueDate: "2024-05-14",
+    dateIssued: "2024-03-15",
+    dateDue: "2024-05-14",
     createdAt: "2024-03-15T10:00:00Z",
     updatedAt: "2024-03-15T10:00:00Z",
     revision: "Rev A",
@@ -1915,6 +2423,8 @@ export const invoices: Invoice[] = [
     customerId: "8",
     customerName: "California Solar Systems",
     salesOrderId: "SO5",
+    projectId: "EP5",
+    project: "Solar Farm Installation",
     status: "Draft",
     items: [
       { id: "INV5-I1", description: "Solar Panel Mounting Frame", quantity: 50, unitPrice: 120.0, totalPrice: 6000.0 },
@@ -1923,8 +2433,11 @@ export const invoices: Invoice[] = [
     subtotal: 10500.0,
     tax: 840.0,
     total: 11340.0,
+    amount: "$11,340.00",
     issueDate: "2024-04-01",
     dueDate: "2024-05-01",
+    dateIssued: "2024-04-01",
+    dateDue: "2024-05-01",
     createdAt: "2024-04-01T09:00:00Z",
     updatedAt: "2024-04-01T09:00:00Z",
     revision: "Rev A",
@@ -2403,10 +2916,13 @@ export const items: Item[] = [
     specifications: "ASTM A325 Type 1, 3/4\"-13 thread, 6\" length",
     createdAt: "2024-02-15T08:00:00Z",
     updatedAt: "2024-02-20T10:00:00Z",
-    notes: "For bridge girder and structural connections"
+  },
+  {
+    id: "11",
+    notes: "For bridge girder and structural connections",
     partNumber: "FG-006",
     name: "Custom Steel I-Beam Assembly",
-    category: "Finished Goods",
+    category: "Finish Goods",
     description: "Completed W12x26 I-beam with connection plates",
     unit: "EA",
     unitCost: 450.00,
@@ -2420,7 +2936,206 @@ export const items: Item[] = [
     specifications: "ASTM A992 Grade 50, 20ft length, primed finish",
     createdAt: "2024-02-20T08:00:00Z",
     updatedAt: "2024-02-20T08:00:00Z",
-    notes: "Ready-to-ship finished product from production"
+  },
+  {
+    id: "12",
+    partNumber: "FG-001",
+    name: "Steel Bridge Girder Assembly",
+    category: "Finish Goods",
+    description: "Complete welded steel bridge girder assembly, ready for installation",
+    unit: "EA",
+    unitCost: 12500.00,
+    minStock: 0,
+    maxStock: 5,
+    currentStock: 2,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay A1",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, 40ft span, galvanized finish, AWS D1.1 certified welds",
+    createdAt: "2024-03-01T08:00:00Z",
+    updatedAt: "2024-03-15T14:30:00Z",
+    notes: "Ready for shipment to construction site"
+  },
+  {
+    id: "13",
+    partNumber: "FG-002",
+    name: "Industrial Steel Frame Structure",
+    category: "Finish Goods",
+    description: "Complete steel frame structure for industrial building",
+    unit: "EA",
+    unitCost: 45000.00,
+    minStock: 0,
+    maxStock: 3,
+    currentStock: 1,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay B2",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, 60ft x 40ft x 20ft, primed and painted",
+    createdAt: "2024-03-10T08:00:00Z",
+    updatedAt: "2024-03-20T16:00:00Z",
+    notes: "Includes all connection plates and hardware"
+  },
+  {
+    id: "14",
+    partNumber: "FG-003",
+    name: "Pressure Vessel Assembly",
+    category: "Finish Goods",
+    description: "Complete pressure vessel with all fittings and instrumentation",
+    unit: "EA",
+    unitCost: 8500.00,
+    minStock: 0,
+    maxStock: 8,
+    currentStock: 3,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay C1",
+    status: "Active",
+    specifications: "ASME Section VIII, 150 PSI, 36\" diameter x 8ft length, stainless steel",
+    createdAt: "2024-03-05T08:00:00Z",
+    updatedAt: "2024-03-18T12:00:00Z",
+    notes: "Hydrotested and certified, ready for installation"
+  },
+  {
+    id: "15",
+    partNumber: "FG-004",
+    name: "Steel Stair Assembly",
+    category: "Finish Goods",
+    description: "Complete steel stair assembly with handrails and treads",
+    unit: "EA",
+    unitCost: 3200.00,
+    minStock: 0,
+    maxStock: 10,
+    currentStock: 4,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay A3",
+    status: "Active",
+    specifications: "ASTM A36, 12 steps, 3ft width, galvanized finish, OSHA compliant",
+    createdAt: "2024-03-12T08:00:00Z",
+    updatedAt: "2024-03-22T10:30:00Z",
+    notes: "Includes safety features and non-slip treads"
+  },
+  {
+    id: "16",
+    partNumber: "FG-005",
+    name: "Steel Pipe Rack Module",
+    category: "Finish Goods",
+    description: "Complete pipe rack module for industrial piping systems",
+    unit: "EA",
+    unitCost: 6800.00,
+    minStock: 0,
+    maxStock: 6,
+    currentStock: 2,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay B1",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, 20ft x 8ft x 12ft, supports up to 24\" pipe",
+    createdAt: "2024-03-08T08:00:00Z",
+    updatedAt: "2024-03-19T15:45:00Z",
+    notes: "Modular design for easy assembly on site"
+  },
+  {
+    id: "17",
+    partNumber: "FG-007",
+    name: "Steel Platform Assembly",
+    category: "Finish Goods",
+    description: "Complete steel platform with grating and safety rails",
+    unit: "EA",
+    unitCost: 4200.00,
+    minStock: 0,
+    maxStock: 8,
+    currentStock: 3,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay C2",
+    status: "Active",
+    specifications: "ASTM A36, 10ft x 8ft, 42\" height, galvanized grating, safety rails",
+    createdAt: "2024-03-14T08:00:00Z",
+    updatedAt: "2024-03-21T11:20:00Z",
+    notes: "OSHA compliant with proper load ratings"
+  },
+  {
+    id: "18",
+    partNumber: "FG-008",
+    name: "Steel Truss Assembly",
+    category: "Finish Goods",
+    description: "Complete welded steel truss for roof support",
+    unit: "EA",
+    unitCost: 18500.00,
+    minStock: 0,
+    maxStock: 4,
+    currentStock: 1,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay A2",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, 80ft span, 8ft depth, galvanized finish",
+    createdAt: "2024-03-06T08:00:00Z",
+    updatedAt: "2024-03-17T13:15:00Z",
+    notes: "Engineered for 50 PSF live load, includes connection details"
+  },
+  {
+    id: "19",
+    partNumber: "FG-009",
+    name: "Steel Column Assembly",
+    category: "Finish Goods",
+    description: "Complete steel column with base plate and cap plate",
+    unit: "EA",
+    unitCost: 2800.00,
+    minStock: 0,
+    maxStock: 12,
+    currentStock: 5,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay B3",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, W14x30, 20ft length, primed finish",
+    createdAt: "2024-03-11T08:00:00Z",
+    updatedAt: "2024-03-20T09:30:00Z",
+    notes: "Includes anchor bolt holes and connection plates"
+  },
+  {
+    id: "20",
+    partNumber: "FG-010",
+    name: "Steel Beam Assembly",
+    category: "Finish Goods",
+    description: "Complete steel beam with end plates and stiffeners",
+    unit: "EA",
+    unitCost: 3500.00,
+    minStock: 0,
+    maxStock: 10,
+    currentStock: 4,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay C3",
+    status: "Active",
+    specifications: "ASTM A992 Grade 50, W18x35, 30ft length, galvanized finish",
+    createdAt: "2024-03-13T08:00:00Z",
+    updatedAt: "2024-03-21T14:45:00Z",
+    notes: "Includes all connection details and stiffeners"
+  },
+  {
+    id: "21",
+    partNumber: "FG-011",
+    name: "Steel Handrail System",
+    category: "Finish Goods",
+    description: "Complete steel handrail system with posts and brackets",
+    unit: "EA",
+    unitCost: 450.00,
+    minStock: 0,
+    maxStock: 20,
+    currentStock: 8,
+    leadTime: 0,
+    supplier: "Internal Production",
+    location: "Finished Goods Yard, Bay A4",
+    status: "Active",
+    specifications: "ASTM A36, 42\" height, 10ft sections, powder coated finish",
+    createdAt: "2024-03-16T08:00:00Z",
+    updatedAt: "2024-03-23T08:15:00Z",
+    notes: "OSHA compliant with proper spacing and height"
   }
 ]
 

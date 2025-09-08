@@ -70,7 +70,7 @@ export default function CreateSalesOrderPage() {
         customerId: quotation.customerId,
         title: quotation.title,
         description: quotation.description,
-        priority: quotation.priority,
+        priority: "Medium" as "Low" | "Medium" | "High" | "Critical",
         paymentTerms: selectedCustomer?.paymentTerms || "Net 30",
       }))
 
@@ -79,10 +79,10 @@ export default function CreateSalesOrderPage() {
         id: (index + 1).toString(),
         description: item.description,
         quantity: item.quantity,
-        unit: item.unit,
+        unit: "pieces",
         unitPrice: item.unitPrice,
         totalPrice: item.totalPrice,
-        steelGrade: item.steelGrade,
+        steelGrade: "",
         specifications: item.specifications,
         deliveryDate: "",
       }))

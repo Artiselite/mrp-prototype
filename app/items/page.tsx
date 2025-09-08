@@ -13,107 +13,15 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useDatabaseContext } from "@/components/database-provider"
 
-// Mock data for items - in a real system this would come from your database
-const mockItems = [
-  {
-    id: "1",
-    partNumber: "STL-001",
-    name: "Steel Plate 1/4\" x 48\" x 96\"",
-    category: "Raw Material",
-    description: "Hot rolled steel plate, A36 grade",
-    unit: "EA",
-    unitCost: 125.50,
-    minStock: 10,
-    maxStock: 100,
-    currentStock: 45,
-    leadTime: 14,
-    supplier: "SteelCo Industries",
-    location: "Warehouse A, Rack 3",
-    status: "Active",
-    specifications: "A36, Hot Rolled, 0.25\" thickness",
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: "2",
-    partNumber: "ALM-002",
-    name: "Aluminum Bar 6061-T6",
-    category: "Raw Material",
-    description: "Extruded aluminum bar, 6061-T6 temper",
-    unit: "FT",
-    unitCost: 8.75,
-    minStock: 50,
-    maxStock: 500,
-    currentStock: 125,
-    leadTime: 7,
-    supplier: "AlumCorp",
-    location: "Warehouse B, Rack 1",
-    status: "Active",
-    specifications: "6061-T6, 1\" diameter, 12' length",
-    lastUpdated: "2024-01-14"
-  },
-  {
-    id: "3",
-    partNumber: "BOLT-003",
-    name: "Grade 8 Hex Bolt 1/2\"-13",
-    category: "Fasteners",
-    description: "High strength hex head bolt",
-    unit: "EA",
-    unitCost: 2.25,
-    minStock: 100,
-    maxStock: 1000,
-    currentStock: 350,
-    leadTime: 3,
-    supplier: "FastenRight",
-    location: "Warehouse C, Bin 7",
-    status: "Active",
-    specifications: "Grade 8, 1/2\"-13 thread, 2\" length",
-    lastUpdated: "2024-01-13"
-  },
-  {
-    id: "4",
-    partNumber: "WELD-004",
-    name: "E7018 Welding Rod 1/8\"",
-    category: "Consumables",
-    description: "Low hydrogen welding electrode",
-    unit: "LB",
-    unitCost: 4.50,
-    minStock: 25,
-    maxStock: 200,
-    currentStock: 75,
-    leadTime: 5,
-    supplier: "WeldSupply Co",
-    location: "Warehouse A, Rack 5",
-    status: "Active",
-    specifications: "E7018, 1/8\" diameter, 14\" length",
-    lastUpdated: "2024-01-12"
-  },
-  {
-    id: "5",
-    partNumber: "FIN-005",
-    name: "Steel Finishing Compound",
-    category: "Finishing",
-    description: "Chemical compound for steel surface treatment",
-    unit: "GAL",
-    unitCost: 45.00,
-    minStock: 5,
-    maxStock: 50,
-    currentStock: 12,
-    leadTime: 10,
-    supplier: "ChemFinish Inc",
-    location: "Warehouse B, Rack 8",
-    status: "Active",
-    specifications: "5 gallon pail, pH neutral",
-    lastUpdated: "2024-01-11"
-  }
-]
+// Items data now comes from the database context
 
 function ItemsContent() {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all")
 
-  // In a real system, you'd use useItems() from your database context
-  const items = mockItems
+  // Use real database context
+  const { items } = useDatabaseContext()
 
   const filteredItems = items.filter((item) => {
     const matchesSearch =
@@ -125,7 +33,15 @@ function ItemsContent() {
     return matchesSearch && matchesStatus
   })
 
-  const getStockStatus = (current: number, min: number, max: number) => {
+  const getStockStatus = (current: number, min: number, max: number, category: string) => {
+    // Special handling for finish goods
+    if (category === "Finish Goods") {
+      if (current === 0) return { status: "Out of Stock", color: "bg-red-100 text-red-800" }
+      if (current <= 2) return { status: "Low Stock", color: "bg-orange-100 text-orange-800" }
+      return { status: "Ready for Shipment", color: "bg-green-100 text-green-800" }
+    }
+
+    // Standard stock status for other items
     if (current <= min) return { status: "Low Stock", color: "bg-red-100 text-red-800" }
     if (current >= max * 0.8) return { status: "High Stock", color: "bg-yellow-100 text-yellow-800" }
     return { status: "Normal", color: "bg-green-100 text-green-800" }
@@ -137,13 +53,14 @@ function ItemsContent() {
       "Fasteners": "bg-green-100 text-green-800",
       "Consumables": "bg-purple-100 text-purple-800",
       "Finishing": "bg-orange-100 text-orange-800",
-      "Components": "bg-indigo-100 text-indigo-800",
-      "Tools": "bg-red-100 text-red-800"
+      "Finish Goods": "bg-emerald-100 text-emerald-800",
+      "Structural Steel": "bg-slate-100 text-slate-800",
+      "Steel Plate": "bg-gray-100 text-gray-800"
     }
     return colors[category] || "bg-gray-100 text-gray-800"
   }
 
-  const categories = ["All", "Raw Material", "Fasteners", "Consumables", "Finishing", "Components", "Tools"]
+  const categories = ["All", "Raw Material", "Fasteners", "Consumables", "Finishing", "Finish Goods", "Structural Steel", "Steel Plate"]
 
   const getItemsByCategory = (category: string) => {
     if (category === "All") return filteredItems
@@ -208,7 +125,7 @@ function ItemsContent() {
 
         {/* Items Table with Category Tabs */}
         <Tabs defaultValue="All" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-9">
             {categories.map((category) => (
               <TabsTrigger key={category} value={category}>
                 {category}
@@ -248,7 +165,7 @@ function ItemsContent() {
                       </TableHeader>
                       <TableBody>
                         {getItemsByCategory(category).map((item) => {
-                          const stockStatus = getStockStatus(item.currentStock, item.minStock, item.maxStock)
+                          const stockStatus = getStockStatus(item.currentStock, item.minStock, item.maxStock, item.category)
                           return (
                             <TableRow key={item.id}>
                               <TableCell className="font-mono font-medium">{item.partNumber}</TableCell>

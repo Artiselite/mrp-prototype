@@ -17,8 +17,7 @@ function ProcurementContent() {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all")
-  const { usePurchaseOrders } = useDatabaseContext()
-  const { purchaseOrders } = usePurchaseOrders()
+  const { purchaseOrders = [] } = useDatabaseContext()
 
   const filteredOrders = purchaseOrders.filter((order) => {
     const matchesSearch =

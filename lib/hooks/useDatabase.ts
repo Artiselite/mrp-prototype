@@ -11,6 +11,12 @@ import type {
   BillOfMaterials,
   BillOfQuantities,
   ProductionWorkOrder,
+  Workstation,
+  Operator,
+  ShopfloorActivity,
+  QualityInspection,
+  QualityTest,
+  QualityMetric,
   Invoice,
   PurchaseOrder,
   Item,
@@ -30,10 +36,17 @@ export function useDatabase() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [quotations, setQuotations] = useState<Quotation[]>([])
   const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([])
+  const [engineeringProjects, setEngineeringProjects] = useState<EngineeringProject[]>([])
   const [engineeringDrawings, setEngineeringDrawings] = useState<EngineeringDrawing[]>([])
   const [billsOfMaterials, setBillsOfMaterials] = useState<BillOfMaterials[]>([])
   const [billsOfQuantities, setBillsOfQuantities] = useState<BillOfQuantities[]>([])
   const [productionWorkOrders, setProductionWorkOrders] = useState<ProductionWorkOrder[]>([])
+  const [workstations, setWorkstations] = useState<Workstation[]>([])
+  const [operators, setOperators] = useState<Operator[]>([])
+  const [shopfloorActivities, setShopfloorActivities] = useState<ShopfloorActivity[]>([])
+  const [qualityInspections, setQualityInspections] = useState<QualityInspection[]>([])
+  const [qualityTests, setQualityTests] = useState<QualityTest[]>([])
+  const [qualityMetrics, setQualityMetrics] = useState<QualityMetric[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
   const [items, setItems] = useState<Item[]>([])
@@ -64,10 +77,17 @@ export function useDatabase() {
       setSuppliers(db.getSuppliers())
       setQuotations(db.getQuotations())
       setSalesOrders(db.getSalesOrders())
+      setEngineeringProjects(db.getEngineeringProjects())
       setEngineeringDrawings(db.getEngineeringDrawings())
       setBillsOfMaterials(db.getBillsOfMaterials())
       setBillsOfQuantities(db.getBillsOfQuantities())
       setProductionWorkOrders(db.getProductionWorkOrders())
+      setWorkstations(db.getWorkstations())
+      setOperators(db.getOperators())
+      setShopfloorActivities(db.getShopfloorActivities())
+      setQualityInspections(db.getQualityInspections())
+      setQualityTests(db.getQualityTests())
+      setQualityMetrics(db.getQualityMetrics())
       setInvoices(db.getInvoices())
       setPurchaseOrders(db.getPurchaseOrders())
       setItems(db.getItems())
@@ -166,6 +186,29 @@ export function useDatabase() {
       if (success) refreshSalesOrders()
       return success
     }, [refreshSalesOrders])
+
+  // Engineering Projects functions
+  const refreshEngineeringProjects = useCallback(() => {
+    setEngineeringProjects(db.getEngineeringProjects())
+  }, [])
+
+  const createEngineeringProject = useCallback((project: Omit<EngineeringProject, "id" | "createdAt" | "updatedAt">) => {
+    const newProject = db.createEngineeringProject(project)
+    refreshEngineeringProjects()
+    return newProject
+  }, [refreshEngineeringProjects])
+
+  const updateEngineeringProject = useCallback((id: string, updates: Partial<EngineeringProject>) => {
+    const updated = db.updateEngineeringProject(id, updates)
+    if (updated) refreshEngineeringProjects()
+    return updated
+  }, [refreshEngineeringProjects])
+
+  const deleteEngineeringProject = useCallback((id: string) => {
+    const success = db.deleteEngineeringProject(id)
+    if (success) refreshEngineeringProjects()
+    return success
+  }, [refreshEngineeringProjects])
 
   // Engineering Drawing functions
   const refreshEngineeringDrawings = useCallback(() => {
@@ -351,6 +394,121 @@ export function useDatabase() {
       return success
     }, [refreshLocations])
 
+  // Workstation functions
+  const refreshWorkstations = useCallback(() => {
+    setWorkstations(db.getWorkstations())
+  }, [])
+
+  const createWorkstation = useCallback((workstation: Omit<Workstation, "id" | "createdAt" | "updatedAt">) => {
+    const newWorkstation = db.createWorkstation(workstation)
+    refreshWorkstations()
+    return newWorkstation
+  }, [refreshWorkstations])
+
+  const updateWorkstation = useCallback((id: string, updates: Partial<Workstation>) => {
+    const updated = db.updateWorkstation(id, updates)
+    if (updated) refreshWorkstations()
+    return updated
+  }, [refreshWorkstations])
+
+  const deleteWorkstation = useCallback((id: string) => {
+    const success = db.deleteWorkstation(id)
+    if (success) refreshWorkstations()
+    return success
+  }, [refreshWorkstations])
+
+  // Operator functions
+  const refreshOperators = useCallback(() => {
+    setOperators(db.getOperators())
+  }, [])
+
+  const createOperator = useCallback((operator: Omit<Operator, "id" | "createdAt" | "updatedAt">) => {
+    const newOperator = db.createOperator(operator)
+    refreshOperators()
+    return newOperator
+  }, [refreshOperators])
+
+  const updateOperator = useCallback((id: string, updates: Partial<Operator>) => {
+    const updated = db.updateOperator(id, updates)
+    if (updated) refreshOperators()
+    return updated
+  }, [refreshOperators])
+
+  const deleteOperator = useCallback((id: string) => {
+    const success = db.deleteOperator(id)
+    if (success) refreshOperators()
+    return success
+  }, [refreshOperators])
+
+  // Shopfloor Activity functions
+  const refreshShopfloorActivities = useCallback(() => {
+    setShopfloorActivities(db.getShopfloorActivities())
+  }, [])
+
+  const createShopfloorActivity = useCallback((activity: Omit<ShopfloorActivity, "id" | "createdAt" | "updatedAt">) => {
+    const newActivity = db.createShopfloorActivity(activity)
+    refreshShopfloorActivities()
+    return newActivity
+  }, [refreshShopfloorActivities])
+
+  const updateShopfloorActivity = useCallback((id: string, updates: Partial<ShopfloorActivity>) => {
+    const updated = db.updateShopfloorActivity(id, updates)
+    if (updated) refreshShopfloorActivities()
+    return updated
+  }, [refreshShopfloorActivities])
+
+  const deleteShopfloorActivity = useCallback((id: string) => {
+    const success = db.deleteShopfloorActivity(id)
+    if (success) refreshShopfloorActivities()
+    return success
+  }, [refreshShopfloorActivities])
+
+  // Quality Inspection functions
+  const refreshQualityInspections = useCallback(() => {
+    setQualityInspections(db.getQualityInspections())
+  }, [])
+
+  const createQualityInspection = useCallback((inspection: Omit<QualityInspection, "id" | "createdAt" | "updatedAt">) => {
+    const newInspection = db.createQualityInspection(inspection)
+    refreshQualityInspections()
+    return newInspection
+  }, [refreshQualityInspections])
+
+  const updateQualityInspection = useCallback((id: string, updates: Partial<QualityInspection>) => {
+    const updated = db.updateQualityInspection(id, updates)
+    if (updated) refreshQualityInspections()
+    return updated
+  }, [refreshQualityInspections])
+
+  const deleteQualityInspection = useCallback((id: string) => {
+    const success = db.deleteQualityInspection(id)
+    if (success) refreshQualityInspections()
+    return success
+  }, [refreshQualityInspections])
+
+  // Quality Test functions
+  const refreshQualityTests = useCallback(() => {
+    setQualityTests(db.getQualityTests())
+  }, [])
+
+  const createQualityTest = useCallback((test: Omit<QualityTest, "id" | "createdAt" | "updatedAt">) => {
+    const newTest = db.createQualityTest(test)
+    refreshQualityTests()
+    return newTest
+  }, [refreshQualityTests])
+
+  const updateQualityTest = useCallback((id: string, updates: Partial<QualityTest>) => {
+    const updated = db.updateQualityTest(id, updates)
+    if (updated) refreshQualityTests()
+    return updated
+  }, [refreshQualityTests])
+
+  const deleteQualityTest = useCallback((id: string) => {
+    const success = db.deleteQualityTest(id)
+    if (success) refreshQualityTests()
+    return success
+  }, [refreshQualityTests])
+
   return {
     // Database status
     isInitialized,
@@ -362,10 +520,17 @@ export function useDatabase() {
     suppliers,
     quotations,
     salesOrders,
+    engineeringProjects,
     engineeringDrawings,
     billsOfMaterials,
     billsOfQuantities,
     productionWorkOrders,
+    workstations,
+    operators,
+    shopfloorActivities,
+    qualityInspections,
+    qualityTests,
+    qualityMetrics,
     invoices,
     purchaseOrders,
     items,
@@ -391,6 +556,11 @@ export function useDatabase() {
     createSalesOrder,
     updateSalesOrder,
     deleteSalesOrder,
+    
+    refreshEngineeringProjects,
+    createEngineeringProject,
+    updateEngineeringProject,
+    deleteEngineeringProject,
     
     refreshEngineeringDrawings,
     createEngineeringDrawing,
@@ -431,5 +601,35 @@ export function useDatabase() {
     createLocation,
     updateLocation,
     deleteLocation,
+    
+    // Workstation functions
+    refreshWorkstations,
+    createWorkstation,
+    updateWorkstation,
+    deleteWorkstation,
+    
+    // Operator functions
+    refreshOperators,
+    createOperator,
+    updateOperator,
+    deleteOperator,
+    
+    // Shopfloor Activity functions
+    refreshShopfloorActivities,
+    createShopfloorActivity,
+    updateShopfloorActivity,
+    deleteShopfloorActivity,
+    
+    // Quality Inspection functions
+    refreshQualityInspections,
+    createQualityInspection,
+    updateQualityInspection,
+    deleteQualityInspection,
+    
+    // Quality Test functions
+    refreshQualityTests,
+    createQualityTest,
+    updateQualityTest,
+    deleteQualityTest,
   }
 }

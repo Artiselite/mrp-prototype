@@ -32,19 +32,15 @@ export default function CreateBOMPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const {
-        useBillsOfMaterials,
-        useEngineeringProjects,
-        useEngineeringDrawings,
-        useBillsOfQuantities,
-        useItems,
+        billsOfMaterials: boms = [],
+        engineeringProjects: projects = [],
+        engineeringDrawings: drawings = [],
+        billsOfQuantities: boqs = [],
+        items: masterItems = [],
+        createBillOfMaterials: createBom,
+        updateBillOfQuantities: updateBoq,
         isInitialized
     } = useDatabaseContext()
-
-    const { boms, createBom } = useBillsOfMaterials()
-    const { projects = [] } = useEngineeringProjects()
-    const { drawings = [] } = useEngineeringDrawings()
-    const { boqs = [], updateBoq } = useBillsOfQuantities()
-    const { items: masterItems = [] } = useItems()
 
     const [formData, setFormData] = useState({
         bomNumber: "",
@@ -91,8 +87,8 @@ export default function CreateBOMPage() {
 
         if (boqId) {
             console.log("BOQ ID from URL:", boqId)
-            console.log("Available BOQs:", boqs.map(b => ({ id: b.id, number: b.boqNumber })))
-            const boq = boqs.find(b => b.id === boqId)
+            console.log("Available BOQs:", boqs.map((b: BillOfQuantities) => ({ id: b.id, number: b.boqNumber })))
+            const boq = boqs.find((b: BillOfQuantities) => b.id === boqId)
             if (boq) {
                 console.log("Found BOQ:", boq)
                 setSourceBoq(boq)
@@ -186,7 +182,7 @@ export default function CreateBOMPage() {
                     bomId: newBom.id,
                 }))
 
-                updateBoq(updatedBoq)
+                updateBoq(updatedBoq.id, updatedBoq)
             }
 
             router.push(`/bom/${newBom.id}`)
@@ -226,7 +222,7 @@ export default function CreateBOMPage() {
             return
         }
 
-        const masterItem = masterItems.find(item => item.id === itemId)
+        const masterItem = masterItems.find((item: Item) => item.id === itemId)
         if (masterItem) {
             setSelectedMasterItemId(itemId)
             setNewItem(prev => ({
@@ -280,10 +276,10 @@ export default function CreateBOMPage() {
         try {
             console.log("Converting BOQ item:", boqItem)
             console.log("Available master items:", masterItems.length)
-            
+
             // Find matching items from the item master based on BOQ item description and category
             const matchedItems = findMatchingMasterItems(boqItem)
-            
+
             if (matchedItems.length === 0) {
                 console.warn("No matching items found for BOQ item:", boqItem.description)
                 // Create a placeholder BOM item if no matches found
@@ -307,7 +303,7 @@ export default function CreateBOMPage() {
             // Convert matched master items to BOM items with calculated quantities
             const bomItems = matchedItems.map((matchItem, index) => {
                 const calculatedQuantity = calculateQuantityForItem(boqItem, matchItem.masterItem)
-                
+
                 return {
                     itemNumber: `${boqItem.itemNumber}.${index + 1}`,
                     description: matchItem.masterItem.name,
@@ -352,8 +348,8 @@ export default function CreateBOMPage() {
     // Helper function to find matching master items for a BOQ item
     const findMatchingMasterItems = (boqItem: BOQItem) => {
         const matches: Array<{ masterItem: Item; matchScore: number }> = []
-        
-        masterItems.forEach(masterItem => {
+
+        masterItems.forEach((masterItem: Item) => {
             const score = calculateMatchScore(boqItem, masterItem)
             if (score > 0) {
                 matches.push({ masterItem, matchScore: score })
@@ -369,7 +365,7 @@ export default function CreateBOMPage() {
     // Helper function to calculate how well a master item matches a BOQ item
     const calculateMatchScore = (boqItem: BOQItem, masterItem: Item): number => {
         let score = 0
-        
+
         const boqDesc = boqItem.description.toLowerCase()
         const boqSpecs = (boqItem.specifications || "").toLowerCase()
         const itemName = masterItem.name.toLowerCase()
@@ -378,10 +374,10 @@ export default function CreateBOMPage() {
 
         // Direct keyword matching
         const keywords = [
-            'steel', 'aluminum', 'pipe', 'bolt', 'plate', 'beam', 'channel', 
+            'steel', 'aluminum', 'pipe', 'bolt', 'plate', 'beam', 'channel',
             'weld', 'finish', 'fastener', 'material', 'raw'
         ]
-        
+
         keywords.forEach(keyword => {
             if (boqDesc.includes(keyword) && (itemName.includes(keyword) || itemDesc.includes(keyword))) {
                 score += 20
@@ -410,7 +406,7 @@ export default function CreateBOMPage() {
         const sizePattern = /\d+["']\s*x\s*\d+["']|\d+["']|\d+\s*mm|\d+\s*inch/g
         const boqSizes = boqDesc.match(sizePattern) || []
         const itemSizes = itemName.match(sizePattern) || []
-        
+
         if (boqSizes.length > 0 && itemSizes.length > 0) {
             boqSizes.forEach(boqSize => {
                 if (itemSizes.some(itemSize => itemSize === boqSize)) {
@@ -625,7 +621,7 @@ export default function CreateBOMPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="none">None</SelectItem>
-                                                {projects.map((project) => (
+                                                {projects.map((project: any) => (
                                                     <SelectItem key={project.id} value={project.id}>
                                                         {project.projectNumber} - {project.title}
                                                     </SelectItem>
@@ -641,7 +637,7 @@ export default function CreateBOMPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="none">None</SelectItem>
-                                                {drawings.map((drawing) => (
+                                                {drawings.map((drawing: any) => (
                                                     <SelectItem key={drawing.id} value={drawing.id}>
                                                         {drawing.drawingNumber} - {drawing.title}
                                                     </SelectItem>
@@ -687,7 +683,7 @@ export default function CreateBOMPage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">Manual Entry (No Master Item)</SelectItem>
-                                            {masterItems.map((item) => (
+                                            {masterItems.map((item: Item) => (
                                                 <SelectItem key={item.id} value={item.id}>
                                                     {item.partNumber} - {item.name}
                                                 </SelectItem>
@@ -701,7 +697,7 @@ export default function CreateBOMPage() {
                                     <div className="p-4 bg-blue-50 rounded-lg">
                                         <h4 className="font-medium text-blue-900 mb-2">Master Item Details:</h4>
                                         {(() => {
-                                            const item = masterItems.find(i => i.id === selectedMasterItemId)
+                                            const item = masterItems.find((i: Item) => i.id === selectedMasterItemId)
                                             return item ? (
                                                 <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
                                                     <div><span className="font-medium">Part Number:</span> {item.partNumber}</div>
@@ -881,7 +877,7 @@ export default function CreateBOMPage() {
                                                 <Select value={formData.boqId} onValueChange={(value) => {
                                                     setFormData(prev => ({ ...prev, boqId: value }))
                                                     if (value !== "none") {
-                                                        const boq = boqs.find(b => b.id === value)
+                                                        const boq = boqs.find((b: BillOfQuantities) => b.id === value)
                                                         if (boq) {
                                                             setSourceBoq(boq)
                                                             setFormData(prev => ({
@@ -908,7 +904,7 @@ export default function CreateBOMPage() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="none">None</SelectItem>
-                                                        {boqs.map((boq) => (
+                                                        {boqs.map((boq: BillOfQuantities) => (
                                                             <SelectItem key={boq.id} value={boq.id}>
                                                                 {boq.boqNumber} - {boq.title}
                                                             </SelectItem>

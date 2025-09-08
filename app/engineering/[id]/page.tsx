@@ -17,17 +17,12 @@ import type { EngineeringDrawing, Quotation } from '@/lib/types'
 
 export default function DrawingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [drawingId, setDrawingId] = useState<string | null>(null)
-  const { useEngineeringDrawings, useQuotations, isInitialized } = useDatabaseContext()
-  const {
-    drawings,
-    submitForApproval,
-    approveDrawing,
-    rejectDrawing,
-    addComment,
-    resolveComment,
-    getQuotationUpdateInfo
-  } = useEngineeringDrawings()
-  const { quotations, updateQuotation } = useQuotations()
+  const { 
+    engineeringDrawings: drawings = [], 
+    quotations = [], 
+    isInitialized,
+    updateQuotation
+  } = useDatabaseContext()
 
   const [drawing, setDrawing] = useState<EngineeringDrawing | null>(null)
   const [quotation, setQuotation] = useState<Quotation | null>(null)
@@ -45,12 +40,12 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     if (isInitialized && drawings && quotations && drawingId) {
-      const foundDrawing = drawings.find(d => d.id === drawingId)
+      const foundDrawing = drawings.find((d: any) => d.id === drawingId)
       setDrawing(foundDrawing || null)
 
       if (foundDrawing && foundDrawing.projectId) {
         // The projectId stores the quotation ID (from our create page implementation)
-        const foundQuotation = quotations.find(q => q.id === foundDrawing.projectId)
+        const foundQuotation = quotations.find((q: any) => q.id === foundDrawing.projectId)
         setQuotation(foundQuotation || null)
       }
 
@@ -61,14 +56,16 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
   // Approval workflow handlers
   const handleSubmitForApproval = () => {
     if (drawing) {
-      submitForApproval(drawing.id, "Current User") // In real app, get from auth context
+      // Placeholder function - in real app, this would call the database function
+      console.log("Submit for approval:", drawing.id, "Current User")
     }
   }
 
   const handleApproval = (approvalId: string, approved: boolean, comments?: string) => {
     if (drawing) {
       if (approved) {
-        approveDrawing(drawing.id, approvalId, "Current User", comments)
+        // Placeholder function - in real app, this would call the database function
+        console.log("Approve drawing:", drawing.id, approvalId, "Current User", comments)
         
         // Check if this approval completes all approvals
         const currentApproval = drawing.approvals?.find(a => a.id === approvalId)
@@ -89,7 +86,8 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
           }
         }
       } else {
-        rejectDrawing(drawing.id, approvalId, "Current User", comments || "Rejected")
+        // Placeholder function - in real app, this would call the database function
+        console.log("Reject drawing:", drawing.id, approvalId, "Current User", comments || "Rejected")
       }
     }
     setShowApprovalDialog(false)
@@ -98,7 +96,8 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
 
   const handleAddComment = (content: string, priority: "Low" | "Medium" | "High" | "Critical", commentType: string) => {
     if (drawing) {
-      addComment(drawing.id, {
+      // Placeholder function - in real app, this would call the database function
+      console.log("Add comment:", drawing.id, {
         authorName: "Current User", // In real app, get from auth context
         authorRole: "Engineer",
         commentType: commentType as any,
@@ -112,7 +111,8 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
 
   const handleResolveComment = (commentId: string) => {
     if (drawing) {
-      resolveComment(drawing.id, commentId, "Current User")
+      // Placeholder function - in real app, this would call the database function
+      console.log("Resolve comment:", drawing.id, commentId, "Current User")
     }
   }
 

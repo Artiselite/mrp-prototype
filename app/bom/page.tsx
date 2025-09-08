@@ -12,8 +12,7 @@ import Link from "next/link"
 import { useDatabaseContext } from "@/components/database-provider"
 
 export default function BOMPage() {
-  const { useBillsOfMaterials } = useDatabaseContext()
-  const { boms } = useBillsOfMaterials()
+  const { billsOfMaterials: boms = [] } = useDatabaseContext()
 
   const getStatusColor = (status: string) => {
     switch (status) {

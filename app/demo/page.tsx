@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,9 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Customer, Supplier, Quotation, SalesOrder, EngineeringDrawing, BillOfMaterials, ProductionWorkOrder, Invoice, PurchaseOrder, Item, Location } from "@/lib/types"
 
 export default function DemoPage() {
+  const [isClient, setIsClient] = useState(false)
 
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
-  const { 
+  const {
     customers, createCustomer, updateCustomer, deleteCustomer,
     suppliers, createSupplier, updateSupplier, deleteSupplier,
     quotations, createQuotation, updateQuotation, deleteQuotation,
@@ -409,10 +413,10 @@ export default function DemoPage() {
     )
   }
 
-    // Helper function to render edit form for quotations
+  // Helper function to render edit form for quotations
   const renderQuotationEditForm = (quotation: Quotation) => {
     if (editingQuotation !== quotation.id) return null
-    
+
     return (
       <TableRow key={`edit-${quotation.id}`} className="bg-purple-50">
         <TableCell colSpan={8}>
@@ -513,7 +517,7 @@ export default function DemoPage() {
   // Helper function to render edit form for locations
   const renderLocationEditForm = (location: Location) => {
     if (editingLocation !== location.id) return null
-    
+
     return (
       <TableRow key={`edit-${location.id}`} className="bg-emerald-50">
         <TableCell colSpan={13}>
@@ -620,7 +624,7 @@ export default function DemoPage() {
   // Helper function to render edit form for items
   const renderItemEditForm = (item: Item) => {
     if (editingItem !== item.id) return null
-    
+
     return (
       <TableRow key={`edit-${item.id}`} className="bg-cyan-50">
         <TableCell colSpan={8}>
@@ -809,13 +813,13 @@ export default function DemoPage() {
 
             {/* Debug Info */}
             <div className="text-sm text-gray-600 space-y-1">
-              <p>• Database Version: {localStorage.getItem('mrp_prototype_version') || 'Not set'}</p>
+              <p>• Database Version: {isClient ? (localStorage.getItem('mrp_prototype_version') || 'Not set') : 'Loading...'}</p>
               <p>• Customers in DB: {customers.length}</p>
               <p>• Suppliers in DB: {suppliers.length}</p>
               <p>• Quotations in DB: {quotations.length}</p>
               <p>• Items in DB: {items.length}</p>
               <p>• Locations in DB: {locations.length}</p>
-              <p>• All localStorage keys: {Object.keys(localStorage).filter(key => key.startsWith('mrp_prototype_')).join(', ')}</p>
+              <p>• All localStorage keys: {isClient ? Object.keys(localStorage).filter(key => key.startsWith('mrp_prototype_')).join(', ') : 'Loading...'}</p>
             </div>
 
             {/* Actions */}
@@ -878,8 +882,10 @@ export default function DemoPage() {
                 onClick={() => {
                   if (confirm('This will reset the database to initial seed data. Continue?')) {
                     // Clear localStorage and reload to trigger re-seeding
-                    localStorage.clear()
-                    window.location.reload()
+                    if (isClient) {
+                      localStorage.clear()
+                      window.location.reload()
+                    }
                   }
                 }}
               >
@@ -1500,7 +1506,6 @@ export default function DemoPage() {
                       <TableRow>
                         <TableHead>ID</TableHead>
                         <TableHead>BOM Number</TableHead>
-                        <TableHead>Title</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Total Cost</TableHead>
                         <TableHead>Created By</TableHead>
@@ -1513,7 +1518,6 @@ export default function DemoPage() {
                         <TableRow key={bom.id}>
                           <TableCell className="font-mono text-sm text-gray-500">{bom.id}</TableCell>
                           <TableCell className="font-medium">{bom.bomNumber}</TableCell>
-                          <TableCell>{bom.title}</TableCell>
                           <TableCell>{bom.status}</TableCell>
                           <TableCell>${bom.totalCost.toLocaleString()}</TableCell>
                           <TableCell>{bom.createdBy}</TableCell>

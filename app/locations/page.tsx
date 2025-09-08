@@ -19,7 +19,7 @@ function LocationsContent() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all")
 
-  const { locations } = useDatabaseContext().useLocations()
+  const { locations = [] } = useDatabaseContext()
 
   const filteredLocations = locations.filter((location: Location) => {
     const matchesSearch =

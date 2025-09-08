@@ -19,11 +19,15 @@ import type { BOQItem } from "@/lib/types"
 export default function CreateBOQPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { useBillsOfQuantities, useEngineeringDrawings, useQuotations, useItems, isInitialized } = useDatabaseContext()
-  const { createBoq } = useBillsOfQuantities()
-  const { drawings = [] } = useEngineeringDrawings()
-  const { quotations = [], updateQuotation } = useQuotations()
-  const { items: masterItems = [] } = useItems()
+  const { 
+    billsOfQuantities: boqs = [], 
+    engineeringDrawings: drawings = [], 
+    quotations = [], 
+    items: masterItems = [],
+    isInitialized,
+    createBillOfQuantities: createBoq,
+    updateQuotation
+  } = useDatabaseContext()
 
   const [formData, setFormData] = useState({
     boqNumber: "",
@@ -87,7 +91,7 @@ export default function CreateBOQPage() {
 
       // Update linked quotation if selected
       if (formData.quotationId !== "none") {
-        const quotation = quotations.find(q => q.id === formData.quotationId)
+        const quotation = quotations.find((q: any) => q.id === formData.quotationId)
         if (quotation) {
           updateQuotation(formData.quotationId, {
             boqGenerated: true,
@@ -186,7 +190,7 @@ export default function CreateBOQPage() {
     }
 
     // Auto-populate from selected quotation
-    const quotation = quotations.find(q => q.id === selectedQuotationId)
+    const quotation = quotations.find((q: any) => q.id === selectedQuotationId)
     if (quotation) {
       // Auto-generate BOQ number based on quotation
       const boqNumber = `BOQ-${quotation.quotationNumber.replace('Q', '')}`
@@ -203,7 +207,7 @@ export default function CreateBOQPage() {
 
       // Pre-populate BOQ items from quotation items
       if (quotation.items && quotation.items.length > 0) {
-        const boqItems = quotation.items.map((quotItem, index) => ({
+        const boqItems = quotation.items.map((quotItem: any, index: number) => ({
           itemNumber: `${index + 1}.0`,
           description: quotItem.description,
           quantity: quotItem.quantity,
@@ -219,7 +223,7 @@ export default function CreateBOQPage() {
 
       // Find linked engineering drawing if available
       if (quotation.engineeringProjectId && drawings.length > 0) {
-        const linkedDrawing = drawings.find(d => d.projectId === quotation.engineeringProjectId)
+        const linkedDrawing = drawings.find((d: any) => d.projectId === quotation.engineeringProjectId)
         if (linkedDrawing) {
           setFormData(prev => ({
             ...prev,
@@ -251,7 +255,7 @@ export default function CreateBOQPage() {
     const quotationId = searchParams.get('quotationId')
 
     if (drawingId && drawings.length > 0) {
-      const drawing = drawings.find(d => d.id === drawingId)
+      const drawing = drawings.find((d: any) => d.id === drawingId)
       if (drawing) {
         setFormData(prev => ({
           ...prev,
@@ -264,7 +268,7 @@ export default function CreateBOQPage() {
     }
 
     if (quotationId && quotations.length > 0) {
-      const quotation = quotations.find(q => q.id === quotationId)
+      const quotation = quotations.find((q: any) => q.id === quotationId)
       if (quotation) {
         // Auto-generate BOQ number based on quotation
         const boqNumber = `BOQ-${quotation.quotationNumber.replace('Q', '')}`
@@ -282,7 +286,7 @@ export default function CreateBOQPage() {
 
         // Pre-populate BOQ items from quotation items
         if (quotation.items && quotation.items.length > 0) {
-          const boqItems = quotation.items.map((quotItem, index) => ({
+          const boqItems = quotation.items.map((quotItem: any, index: number) => ({
             itemNumber: `${index + 1}.0`,
             description: quotItem.description,
             quantity: quotItem.quantity,

@@ -8,18 +8,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Eye, Edit } from "lucide-react"
+import { Plus, Search, Eye, Edit, FolderPlus } from "lucide-react"
 import { statusColors, formatCurrency, formatDate } from "@/lib/data"
 import { useDatabaseContext } from "@/components/database-provider"
 
 export default function SalesOrdersPage() {
-  const { useSalesOrders } = useDatabaseContext()
-  const { salesOrders } = useSalesOrders()
+  const { 
+    salesOrders = [], 
+    engineeringProjects = [],
+    createEngineeringProject,
+    updateSalesOrder,
+    refreshSalesOrders,
+    refreshEngineeringProjects
+  } = useDatabaseContext()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [customerFilter, setCustomerFilter] = useState("all")
 
-  const filteredOrders = salesOrders.filter((order) => {
+  const filteredOrders = salesOrders.filter((order: any) => {
     const matchesSearch =
       order.salesOrderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,16 +38,70 @@ export default function SalesOrdersPage() {
     return matchesSearch && matchesStatus && matchesCustomer
   })
 
-  const uniqueCustomers = Array.from(new Set(salesOrders.map((order) => order.customerId)))
-    .map((id) => salesOrders.find((order) => order.customerId === id))
+  const uniqueCustomers = Array.from(new Set(salesOrders.map((order: any) => order.customerId)))
+    .map((id) => salesOrders.find((order: any) => order.customerId === id))
     .filter(Boolean)
 
   const stats = {
     total: salesOrders.length,
-    confirmed: salesOrders.filter((o) => o.status === "Confirmed").length,
-    inProduction: salesOrders.filter((o) => o.status === "In Production").length,
-    shipped: salesOrders.filter((o) => o.status === "Shipped").length,
-    totalValue: salesOrders.reduce((sum, order) => sum + order.total, 0),
+    confirmed: salesOrders.filter((o: any) => o.status === "Confirmed").length,
+    inProduction: salesOrders.filter((o: any) => o.status === "In Production").length,
+    shipped: salesOrders.filter((o: any) => o.status === "Shipped").length,
+    totalValue: salesOrders.reduce((sum: number, order: any) => sum + order.total, 0),
+  }
+
+  const handleConvertToProject = async (salesOrder: any) => {
+    if (!confirm(`Convert sales order ${salesOrder.salesOrderNumber} to an engineering project?`)) {
+      return
+    }
+
+    try {
+      // Create engineering project from sales order
+      const projectData = {
+        projectNumber: `EP-${Date.now()}`,
+        customerId: salesOrder.customerId,
+        customerName: salesOrder.customerName,
+        title: salesOrder.title,
+        description: salesOrder.description,
+        status: "Draft" as const,
+        priority: "Medium" as const,
+        projectType: "Custom Design" as const,
+        estimatedHours: 40,
+        actualHours: 0,
+        estimatedCost: salesOrder.total,
+        actualCost: 0,
+        startDate: new Date().toISOString().split('T')[0],
+        dueDate: salesOrder.requestedDeliveryDate,
+        assignedEngineer: "Unassigned",
+        projectManager: "Project Manager",
+        customerRequirements: salesOrder.description,
+        technicalSpecifications: "To be defined during engineering phase",
+        constraints: ["Delivery timeline", "Customer specifications"],
+        risks: ["Technical complexity", "Material availability"],
+        deliverables: ["Engineering drawings", "BOM", "Production instructions"],
+        revision: "1.0",
+        notes: `Converted from sales order ${salesOrder.salesOrderNumber}`
+      }
+
+      const newProject = createEngineeringProject(projectData)
+      
+      if (newProject) {
+        // Update sales order to link to project
+        updateSalesOrder(salesOrder.id, {
+          projectId: newProject.id,
+          status: "In Production" as const,
+          notes: salesOrder.notes ? `${salesOrder.notes}\nConverted to project: ${newProject.projectNumber}` : `Converted to project: ${newProject.projectNumber}`
+        })
+
+        refreshSalesOrders()
+        refreshEngineeringProjects()
+        
+        alert(`Sales order converted to project ${newProject.projectNumber} successfully!`)
+      }
+    } catch (error) {
+      console.error("Error converting sales order to project:", error)
+      alert("Failed to convert sales order to project")
+    }
   }
 
   return (
@@ -183,7 +243,7 @@ export default function SalesOrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
+                {filteredOrders.map((order: any) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
                       {order.salesOrderNumber}
@@ -196,7 +256,7 @@ export default function SalesOrdersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusColors.salesOrder[order.status]}>
+                      <Badge className={statusColors.salesOrder[order.status as keyof typeof statusColors.salesOrder]}>
                         {order.status}
                       </Badge>
                     </TableCell>
@@ -220,6 +280,17 @@ export default function SalesOrdersPage() {
                             <Edit className="w-4 h-4" />
                           </Button>
                         </Link>
+                        {!order.projectId && order.status === "Confirmed" && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Convert to Project"
+                            onClick={() => handleConvertToProject(order)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <FolderPlus className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

@@ -11,10 +11,7 @@ import Link from "next/link"
 import { useDatabaseContext } from "@/components/database-provider"
 
 export default function EngineeringPage() {
-  const { useEngineeringDrawings, useBillsOfQuantities, useBillsOfMaterials } = useDatabaseContext()
-  const { drawings } = useEngineeringDrawings()
-  const { boqs } = useBillsOfQuantities()
-  const { boms } = useBillsOfMaterials()
+  const { engineeringDrawings: drawings = [], billsOfQuantities: boqs = [], billsOfMaterials: boms = [] } = useDatabaseContext()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -30,9 +27,9 @@ export default function EngineeringPage() {
 
   const stats = {
     totalDrawings: drawings.length,
-    releasedDrawings: drawings.filter(d => d.status === "Released").length,
-    draftDrawings: drawings.filter(d => d.status === "Draft").length,
-    linkedBOMs: boqs.filter(b => b.engineeringDrawingId).length,
+    releasedDrawings: drawings.filter((d: any) => d.status === "Released").length,
+    draftDrawings: drawings.filter((d: any) => d.status === "Draft").length,
+    linkedBOMs: boqs.filter((b: any) => b.engineeringDrawingId).length,
   }
 
   return (
@@ -140,9 +137,9 @@ export default function EngineeringPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {drawings.map((drawing) => {
-                  const linkedBOMs = boms.filter(bom => bom.engineeringDrawingId === drawing.id)
-                  const linkedBOQs = boqs.filter(boq => boq.engineeringDrawingId === drawing.id)
+                {drawings.map((drawing: any) => {
+                  const linkedBOMs = boms.filter((bom: any) => bom.engineeringDrawingId === drawing.id)
+                  const linkedBOQs = boqs.filter((boq: any) => boq.engineeringDrawingId === drawing.id)
 
                   return (
                     <TableRow key={drawing.id}>
@@ -163,7 +160,7 @@ export default function EngineeringPage() {
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           {linkedBOMs.length > 0 ? (
-                            linkedBOMs.map(bom => (
+                            linkedBOMs.map((bom: any) => (
                               <Link key={bom.id} href={`/bom/${bom.id}`}>
                                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 hover:bg-green-100">
                                   {bom.bomNumber}

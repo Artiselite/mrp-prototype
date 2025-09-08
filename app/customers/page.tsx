@@ -11,15 +11,15 @@ import Link from "next/link"
 import { statusColors, formatCurrency } from "@/lib/data"
 import { useSearchParams } from "next/navigation"
 import { useDatabaseContext } from "@/components/database-provider"
+import { Customer } from "@/lib/types"
 
 function CustomersContent() {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all")
-  const { useCustomers } = useDatabaseContext()
-  const { customers } = useCustomers()
+  const { customers } = useDatabaseContext()
 
-  const filteredCustomers = customers.filter((customer) => {
+  const filteredCustomers = customers.filter((customer: Customer) => {
     const matchesSearch =
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,7 +86,7 @@ function CustomersContent() {
 
         {/* Customers List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCustomers.map((customer) => (
+          {filteredCustomers.map((customer: Customer) => (
             <Card key={customer.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -97,7 +97,7 @@ function CustomersContent() {
                       <p className="text-sm text-gray-600">{customer.contactPerson}</p>
                     </div>
                   </div>
-                  <Badge className={statusColors.customer[customer.status]}>{customer.status}</Badge>
+                  <Badge className={statusColors.customer[customer.status as keyof typeof statusColors.customer]}>{customer.status}</Badge>
                 </div>
 
                 <div className="space-y-2 mb-4">

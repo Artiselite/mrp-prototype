@@ -9,6 +9,12 @@ import type {
   BillOfMaterials,
   BillOfQuantities,
   ProductionWorkOrder,
+  Workstation,
+  Operator,
+  ShopfloorActivity,
+  QualityInspection,
+  QualityTest,
+  QualityMetric,
   Invoice,
   PurchaseOrder,
   Item,
@@ -32,6 +38,12 @@ const DB_KEYS = {
   BILLS_OF_MATERIALS: `${DB_PREFIX}bills_of_materials`,
   BILLS_OF_QUANTITIES: `${DB_PREFIX}bills_of_quantities`,
   PRODUCTION_WORK_ORDERS: `${DB_PREFIX}production_work_orders`,
+  WORKSTATIONS: `${DB_PREFIX}workstations`,
+  OPERATORS: `${DB_PREFIX}operators`,
+  SHOPFLOOR_ACTIVITIES: `${DB_PREFIX}shopfloor_activities`,
+  QUALITY_INSPECTIONS: `${DB_PREFIX}quality_inspections`,
+  QUALITY_TESTS: `${DB_PREFIX}quality_tests`,
+  QUALITY_METRICS: `${DB_PREFIX}quality_metrics`,
   INVOICES: `${DB_PREFIX}invoices`,
   PURCHASE_ORDERS: `${DB_PREFIX}purchase_orders`,
   ITEMS: `${DB_PREFIX}items`,
@@ -85,7 +97,8 @@ class LocalDatabase {
       // Import data directly instead of dynamic import
       const { customers, suppliers, quotations, salesOrders, engineeringDrawings, 
         engineeringProjects, engineeringChanges, billsOfMaterials, billsOfQuantities, 
-        productionWorkOrders, invoices, purchaseOrders, items, locations } = await import("./data")
+        productionWorkOrders, workstations, operators, shopfloorActivities, 
+        qualityInspections, qualityTests, qualityMetrics, invoices, purchaseOrders, items, locations } = await import("./data")
 
       console.log("Seeding database with:", { customers: customers.length, suppliers: suppliers.length, quotations: quotations.length })
 
@@ -118,6 +131,24 @@ class LocalDatabase {
 
       // Seed production work orders
       this.setProductionWorkOrders(productionWorkOrders)
+
+      // Seed workstations
+      this.setWorkstations(workstations)
+
+      // Seed operators
+      this.setOperators(operators)
+
+      // Seed shopfloor activities
+      this.setShopfloorActivities(shopfloorActivities)
+
+      // Seed quality inspections
+      this.setQualityInspections(qualityInspections)
+
+      // Seed quality tests
+      this.setQualityTests(qualityTests)
+
+      // Seed quality metrics
+      this.setQualityMetrics(qualityMetrics)
 
       // Seed invoices
       this.setInvoices(invoices)
@@ -615,6 +646,260 @@ class LocalDatabase {
 
     this.setProductionWorkOrders(filtered)
     return true
+  }
+
+  // Workstation operations
+  getWorkstations(): Workstation[] {
+    return this.getItem<Workstation>(DB_KEYS.WORKSTATIONS)
+  }
+
+  setWorkstations(workstations: Workstation[]): void {
+    this.setItem(DB_KEYS.WORKSTATIONS, workstations)
+  }
+
+  createWorkstation(workstation: Omit<Workstation, "id" | "createdAt" | "updatedAt">): Workstation {
+    const workstations = this.getWorkstations()
+    const newWorkstation: Workstation = {
+      ...workstation,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    workstations.push(newWorkstation)
+    this.setWorkstations(workstations)
+    return newWorkstation
+  }
+
+  updateWorkstation(id: string, updates: Partial<Workstation>): Workstation | null {
+    const workstations = this.getWorkstations()
+    const index = workstations.findIndex(ws => ws.id === id)
+    
+    if (index === -1) return null
+    
+    workstations[index] = {
+      ...workstations[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    
+    this.setWorkstations(workstations)
+    return workstations[index]
+  }
+
+  deleteWorkstation(id: string): boolean {
+    const workstations = this.getWorkstations()
+    const filtered = workstations.filter(ws => ws.id !== id)
+    
+    if (filtered.length === workstations.length) return false
+    
+    this.setWorkstations(filtered)
+    return true
+  }
+
+  // Operator operations
+  getOperators(): Operator[] {
+    return this.getItem<Operator>(DB_KEYS.OPERATORS)
+  }
+
+  setOperators(operators: Operator[]): void {
+    this.setItem(DB_KEYS.OPERATORS, operators)
+  }
+
+  createOperator(operator: Omit<Operator, "id" | "createdAt" | "updatedAt">): Operator {
+    const operators = this.getOperators()
+    const newOperator: Operator = {
+      ...operator,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    operators.push(newOperator)
+    this.setOperators(operators)
+    return newOperator
+  }
+
+  updateOperator(id: string, updates: Partial<Operator>): Operator | null {
+    const operators = this.getOperators()
+    const index = operators.findIndex(op => op.id === id)
+    
+    if (index === -1) return null
+    
+    operators[index] = {
+      ...operators[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    
+    this.setOperators(operators)
+    return operators[index]
+  }
+
+  deleteOperator(id: string): boolean {
+    const operators = this.getOperators()
+    const filtered = operators.filter(op => op.id !== id)
+    
+    if (filtered.length === operators.length) return false
+    
+    this.setOperators(filtered)
+    return true
+  }
+
+  // Shopfloor Activity operations
+  getShopfloorActivities(): ShopfloorActivity[] {
+    return this.getItem<ShopfloorActivity>(DB_KEYS.SHOPFLOOR_ACTIVITIES)
+  }
+
+  setShopfloorActivities(activities: ShopfloorActivity[]): void {
+    this.setItem(DB_KEYS.SHOPFLOOR_ACTIVITIES, activities)
+  }
+
+  createShopfloorActivity(activity: Omit<ShopfloorActivity, "id" | "createdAt" | "updatedAt">): ShopfloorActivity {
+    const activities = this.getShopfloorActivities()
+    const newActivity: ShopfloorActivity = {
+      ...activity,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    activities.push(newActivity)
+    this.setShopfloorActivities(activities)
+    return newActivity
+  }
+
+  updateShopfloorActivity(id: string, updates: Partial<ShopfloorActivity>): ShopfloorActivity | null {
+    const activities = this.getShopfloorActivities()
+    const index = activities.findIndex(activity => activity.id === id)
+    
+    if (index === -1) return null
+    
+    activities[index] = {
+      ...activities[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    
+    this.setShopfloorActivities(activities)
+    return activities[index]
+  }
+
+  deleteShopfloorActivity(id: string): boolean {
+    const activities = this.getShopfloorActivities()
+    const filtered = activities.filter(activity => activity.id !== id)
+    
+    if (filtered.length === activities.length) return false
+    
+    this.setShopfloorActivities(filtered)
+    return true
+  }
+
+  // Quality Inspection operations
+  getQualityInspections(): QualityInspection[] {
+    return this.getItem<QualityInspection>(DB_KEYS.QUALITY_INSPECTIONS)
+  }
+
+  setQualityInspections(inspections: QualityInspection[]): void {
+    this.setItem(DB_KEYS.QUALITY_INSPECTIONS, inspections)
+  }
+
+  createQualityInspection(inspection: Omit<QualityInspection, "id" | "createdAt" | "updatedAt">): QualityInspection {
+    const inspections = this.getQualityInspections()
+    const newInspection: QualityInspection = {
+      ...inspection,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    inspections.push(newInspection)
+    this.setQualityInspections(inspections)
+    return newInspection
+  }
+
+  updateQualityInspection(id: string, updates: Partial<QualityInspection>): QualityInspection | null {
+    const inspections = this.getQualityInspections()
+    const index = inspections.findIndex(qi => qi.id === id)
+    
+    if (index === -1) return null
+    
+    inspections[index] = {
+      ...inspections[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    
+    this.setQualityInspections(inspections)
+    return inspections[index]
+  }
+
+  deleteQualityInspection(id: string): boolean {
+    const inspections = this.getQualityInspections()
+    const filtered = inspections.filter(qi => qi.id !== id)
+    
+    if (filtered.length === inspections.length) return false
+    
+    this.setQualityInspections(filtered)
+    return true
+  }
+
+  // Quality Test operations
+  getQualityTests(): QualityTest[] {
+    return this.getItem<QualityTest>(DB_KEYS.QUALITY_TESTS)
+  }
+
+  setQualityTests(tests: QualityTest[]): void {
+    this.setItem(DB_KEYS.QUALITY_TESTS, tests)
+  }
+
+  createQualityTest(test: Omit<QualityTest, "id" | "createdAt" | "updatedAt">): QualityTest {
+    const tests = this.getQualityTests()
+    const newTest: QualityTest = {
+      ...test,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    tests.push(newTest)
+    this.setQualityTests(tests)
+    return newTest
+  }
+
+  updateQualityTest(id: string, updates: Partial<QualityTest>): QualityTest | null {
+    const tests = this.getQualityTests()
+    const index = tests.findIndex(qt => qt.id === id)
+    
+    if (index === -1) return null
+    
+    tests[index] = {
+      ...tests[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    
+    this.setQualityTests(tests)
+    return tests[index]
+  }
+
+  deleteQualityTest(id: string): boolean {
+    const tests = this.getQualityTests()
+    const filtered = tests.filter(qt => qt.id !== id)
+    
+    if (filtered.length === tests.length) return false
+    
+    this.setQualityTests(filtered)
+    return true
+  }
+
+  // Quality Metric operations
+  getQualityMetrics(): QualityMetric[] {
+    return this.getItem<QualityMetric>(DB_KEYS.QUALITY_METRICS)
+  }
+
+  setQualityMetrics(metrics: QualityMetric[]): void {
+    this.setItem(DB_KEYS.QUALITY_METRICS, metrics)
   }
 
   // Invoice operations

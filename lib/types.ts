@@ -154,6 +154,7 @@ export interface SalesOrder {
   customerId: string
   customerName: string
   quotationId?: string
+  projectId?: string
   salesOrderNumber: string
   customerPO: string
   title: string
@@ -372,11 +373,12 @@ export interface ProductionWorkOrder {
   id: string
   workOrderNumber: string
   salesOrderId?: string
+  projectId?: string
   bomId: string
   productName: string
   description: string
   quantity: number
-  status: "Planned" | "In Progress" | "On Hold" | "Completed" | "Cancelled"
+  status: "Planned" | "In Progress" | "On Hold" | "Completed" | "Cancelled" | "Quality Approved" | "Quality Rejected"
   priority: "Low" | "Medium" | "High" | "Critical"
   startDate: string
   dueDate: string
@@ -388,6 +390,140 @@ export interface ProductionWorkOrder {
   updatedAt: string
   revision: string
   notes?: string
+  // Additional properties for table display
+  project?: string
+  customer?: string
+  assignedTeam?: string
+  supervisor?: string
+  operations?: Array<{
+    step: string
+    status: "Pending" | "In Progress" | "Completed"
+    duration: string
+  }>
+}
+
+// Shopfloor Management types
+export interface Workstation {
+  id: string
+  name: string
+  type: "Cutting" | "Welding" | "Assembly" | "Quality Control" | "Packaging"
+  location: string
+  status: "Active" | "Maintenance" | "Idle" | "Offline"
+  currentOperator?: string
+  currentWorkOrder?: string
+  efficiency: number // percentage
+  lastMaintenance: string
+  nextMaintenance: string
+  capacity: number // units per hour
+  utilization: number // percentage
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Operator {
+  id: string
+  name: string
+  employeeId: string
+  department: string
+  position: string
+  skills: string[]
+  certifications: string[]
+  currentWorkstation?: string
+  currentWorkOrder?: string
+  shift: "Day" | "Evening" | "Night"
+  status: "Active" | "On Break" | "Off Duty"
+  efficiency: number // percentage
+  totalHours: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ShopfloorActivity {
+  id: string
+  workstationId: string
+  operatorId: string
+  workOrderId: string
+  activityType: "Start" | "Pause" | "Resume" | "Complete" | "Issue"
+  timestamp: string
+  notes?: string
+  qualityIssues?: string[]
+  efficiency?: number
+}
+
+// Quality Management types
+export interface QualityInspection {
+  id: string
+  workOrderId: string
+  workstationId: string
+  operatorId: string
+  inspectionType: "Incoming" | "In-Process" | "Final" | "First Article"
+  status: "Pending" | "In Progress" | "Passed" | "Failed" | "Rejected"
+  scheduledDate: string
+  completedDate?: string
+  inspector: string
+  specifications: QualitySpecification[]
+  results: QualityResult[]
+  notes?: string
+  correctiveActions?: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface QualitySpecification {
+  id: string
+  parameter: string
+  target: number
+  tolerance: number
+  unit: string
+  criticality: "Critical" | "Major" | "Minor"
+  method: string
+}
+
+export interface QualityResult {
+  specificationId: string
+  measuredValue: number
+  status: "Pass" | "Fail"
+  notes?: string
+  timestamp: string
+}
+
+export interface QualityTest {
+  id: string
+  name: string
+  type: "Dimensional" | "Material" | "Welding" | "Coating" | "NDT"
+  workOrderId: string
+  status: "Scheduled" | "In Progress" | "Completed" | "Failed"
+  scheduledDate: string
+  completedDate?: string
+  technician: string
+  equipment: string
+  results: QualityTestResult[]
+  standards: string[]
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface QualityTestResult {
+  parameter: string
+  value: number
+  unit: string
+  specification: string
+  status: "Pass" | "Fail"
+  notes?: string
+}
+
+export interface QualityMetric {
+  id: string
+  name: string
+  type: "First Pass Yield" | "Defect Rate" | "Rework Rate" | "Customer Returns"
+  value: number
+  target: number
+  unit: string
+  period: "Daily" | "Weekly" | "Monthly"
+  date: string
+  department: string
+  trend: "Up" | "Down" | "Stable"
 }
 
 // Invoice types
@@ -405,13 +541,18 @@ export interface Invoice {
   customerId: string
   customerName: string
   salesOrderId?: string
+  projectId?: string
+  project?: string
   status: "Draft" | "Sent" | "Paid" | "Overdue" | "Cancelled"
   items: InvoiceItem[]
   subtotal: number
   tax: number
   total: number
+  amount?: string
   issueDate: string
   dueDate: string
+  dateIssued?: string
+  dateDue?: string
   createdAt: string
   updatedAt: string
   revision: string

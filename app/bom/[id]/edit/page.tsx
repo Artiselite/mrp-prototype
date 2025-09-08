@@ -23,34 +23,29 @@ interface BOMEditPageProps {
 
 export default function EditBOMPage({ params }: BOMEditPageProps) {
   const router = useRouter()
-  const { 
-    useBillsOfMaterials, 
-    useEngineeringProjects, 
-    useEngineeringDrawings,
-    useItems,
-    isInitialized 
+  const {
+    billsOfMaterials: boms = [],
+    engineeringDrawings: drawings = [],
+    items: masterItems = [],
+    updateBillOfMaterials: updateBom,
+    isInitialized
   } = useDatabaseContext()
-  
-  const { boms, updateBom } = useBillsOfMaterials()
-  const { projects = [] } = useEngineeringProjects()
-  const { drawings = [] } = useEngineeringDrawings()
-  const { items: masterItems = [] } = useItems()
-  
+
   const [bom, setBom] = useState<BillOfMaterials | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  
+
   const [formData, setFormData] = useState({
     bomNumber: "",
     productName: "",
     version: "",
     revision: "",
     status: "Draft",
-    bomType: "",
+    bomType: "EBOM",
     createdBy: "",
-    engineeringProjectId: "none",
+
     engineeringDrawingId: "none",
     notes: ""
   })
@@ -59,7 +54,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
   const [revisionNotes, setRevisionNotes] = useState("")
   const [selectedMasterItemId, setSelectedMasterItemId] = useState("")
   const [showAddItemDialog, setShowAddItemDialog] = useState(false)
-  
+
   const [newItem, setNewItem] = useState<Omit<BOMItem, "id">>({
     itemNumber: "",
     description: "",
@@ -81,18 +76,18 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
     const loadBom = async () => {
       try {
         if (!isInitialized) return
-        
+
         const resolvedParams = await params
         const bomId = resolvedParams.id
-        
-        const foundBom = boms.find(b => b.id === bomId)
-        
+
+        const foundBom = boms.find((b: BillOfMaterials) => b.id === bomId)
+
         if (!foundBom) {
           setError("BOM not found")
           setLoading(false)
           return
         }
-        
+
         setBom(foundBom)
         setFormData({
           bomNumber: foundBom.bomNumber,
@@ -100,9 +95,9 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
           version: foundBom.version,
           revision: foundBom.revision,
           status: foundBom.status || "Draft",
-          bomType: foundBom.bomType || "",
+          bomType: foundBom.bomType || "EBOM",
           createdBy: foundBom.createdBy || "",
-          engineeringProjectId: foundBom.engineeringProjectId || "none",
+
           engineeringDrawingId: foundBom.engineeringDrawingId || "none",
           notes: foundBom.notes || ""
         })
@@ -135,7 +130,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
   }
 
   const handleMasterItemSelect = (itemId: string) => {
-    const masterItem = masterItems.find(item => item.id === itemId)
+    const masterItem = masterItems.find((item: any) => item.id === itemId)
     if (masterItem) {
       setNewItem({
         itemNumber: getNextItemNumber(),
@@ -161,7 +156,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
 
     const totalCost = newItem.quantity * newItem.unitCost
     setItems([...items, { ...newItem, totalCost }])
-    
+
     // Reset form
     setNewItem({
       itemNumber: "",
@@ -205,7 +200,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
 
   const handleSave = async (action: "draft" | "update" | "approve") => {
     if (!bom) return
-    
+
     setSaving(true)
     setSubmitError(null)
 
@@ -229,16 +224,16 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
         ...formData,
         bomNumber: formData.bomNumber.trim(),
         productName: formData.productName.trim(),
-        engineeringProjectId: formData.engineeringProjectId === "none" ? undefined : formData.engineeringProjectId,
+        bomType: formData.bomType as "EBOM" | "MBOM" | "PBOM",
         engineeringDrawingId: formData.engineeringDrawingId === "none" ? undefined : formData.engineeringDrawingId,
         items: items.map((item, index) => ({
           ...item,
-          id: item.id || `${formData.bomNumber.trim()}-I${index + 1}`,
+          id: `${formData.bomNumber.trim()}-I${index + 1}`,
           totalCost: item.quantity * item.unitCost,
         })),
         totalCost: calculateTotal(),
         itemCount: items.length,
-        status: action === "approve" ? "Approved" : action === "update" ? formData.status : "Draft",
+        status: action === "approve" ? "Approved" : action === "update" ? (formData.status as any) : "Draft",
         notes: formData.notes,
         updatedAt: new Date().toISOString()
       }
@@ -309,23 +304,23 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => handleSave("draft")}
                 disabled={saving}
               >
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Save as Draft
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => handleSave("update")}
                 disabled={saving}
               >
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Update BOM
               </Button>
-              <Button 
+              <Button
                 onClick={() => handleSave("approve")}
                 disabled={saving}
               >
@@ -346,7 +341,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
               <p className="text-red-700 font-medium">Error</p>
             </div>
             <p className="mt-1 text-sm text-red-600">{submitError}</p>
-            <Button 
+            <Button
               onClick={() => setSubmitError(null)}
               variant="outline"
               size="sm"
@@ -450,45 +445,24 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                 <CardDescription>Associated engineering records</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="engineeringProjectId">Engineering Project</Label>
-                    <Select 
-                      value={formData.engineeringProjectId} 
-                      onValueChange={(value) => handleInputChange("engineeringProjectId", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.projectNumber} - {project.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="engineeringDrawingId">Engineering Drawing</Label>
-                    <Select 
-                      value={formData.engineeringDrawingId} 
-                      onValueChange={(value) => handleInputChange("engineeringDrawingId", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select drawing" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {drawings.map((drawing) => (
-                          <SelectItem key={drawing.id} value={drawing.id}>
-                            {drawing.drawingNumber} - {drawing.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label htmlFor="engineeringDrawingId">Engineering Drawing</Label>
+                  <Select
+                    value={formData.engineeringDrawingId}
+                    onValueChange={(value) => handleInputChange("engineeringDrawingId", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select drawing" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {drawings.map((drawing: any) => (
+                        <SelectItem key={drawing.id} value={drawing.id}>
+                          {drawing.drawingNumber} - {drawing.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -523,7 +497,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                               <SelectValue placeholder="Select an item from master" />
                             </SelectTrigger>
                             <SelectContent>
-                              {masterItems.filter(item => item.status === "Active").map((item) => (
+                              {masterItems.filter((item: any) => item.status === "Active").map((item: any) => (
                                 <SelectItem key={item.id} value={item.id}>
                                   {item.partNumber} - {item.name} ({item.category})
                                 </SelectItem>
@@ -531,7 +505,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         {selectedMasterItemId && (
                           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                             <div className="grid grid-cols-2 gap-4">
@@ -541,8 +515,8 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                                   id="quantity"
                                   type="number"
                                   value={newItem.quantity}
-                                  onChange={(e) => setNewItem(prev => ({ 
-                                    ...prev, 
+                                  onChange={(e) => setNewItem(prev => ({
+                                    ...prev,
                                     quantity: parseFloat(e.target.value) || 0,
                                     totalCost: (parseFloat(e.target.value) || 0) * prev.unitCost
                                   }))}
@@ -556,8 +530,8 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                                   id="unitCost"
                                   type="number"
                                   value={newItem.unitCost}
-                                  onChange={(e) => setNewItem(prev => ({ 
-                                    ...prev, 
+                                  onChange={(e) => setNewItem(prev => ({
+                                    ...prev,
                                     unitCost: parseFloat(e.target.value) || 0,
                                     totalCost: prev.quantity * (parseFloat(e.target.value) || 0)
                                   }))}
@@ -579,7 +553,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                                 Total Cost: <span className="font-medium">${(newItem.quantity * newItem.unitCost).toFixed(2)}</span>
                               </div>
                               <div className="flex gap-2">
-                                <Button 
+                                <Button
                                   onClick={() => {
                                     setSelectedMasterItemId("")
                                     setShowAddItemDialog(false)
@@ -653,9 +627,9 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                             <Badge variant="outline">{item.category}</Badge>
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => removeItem(index)}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -672,7 +646,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                     <p className="text-sm text-gray-400">Add items from the master list to build your BOM</p>
                   </div>
                 )}
-                
+
                 {items.length > 0 && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between text-lg font-bold">
@@ -693,8 +667,8 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="revisionNotes">Revision Notes *</Label>
-                  <Textarea 
-                    id="revisionNotes" 
+                  <Textarea
+                    id="revisionNotes"
                     placeholder="Describe the changes made to the BOM..."
                     rows={3}
                     value={revisionNotes}
@@ -714,8 +688,8 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="notes">BOM Notes</Label>
-                  <Textarea 
-                    id="notes" 
+                  <Textarea
+                    id="notes"
                     placeholder="Special requirements, procurement notes, quality standards, etc."
                     rows={4}
                     value={formData.notes}

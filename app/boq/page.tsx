@@ -11,8 +11,7 @@ import Link from "next/link"
 import { useDatabaseContext } from "@/components/database-provider"
 
 export default function BOQPage() {
-  const { useBillsOfQuantities } = useDatabaseContext()
-  const { boqs } = useBillsOfQuantities()
+  const { billsOfQuantities: boqs = [] } = useDatabaseContext()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -37,11 +36,11 @@ export default function BOQPage() {
 
   const stats = {
     totalBoqs: boqs.length,
-    approvedBoqs: boqs.filter(b => b.status === "Approved" || b.status === "Final").length,
-    draftBoqs: boqs.filter(b => b.status === "Draft").length,
-    totalValue: boqs.reduce((sum, boq) => sum + boq.totalCost, 0),
-    engineeringInProgress: boqs.filter(b => b.etoStatus === "Engineering Design").length,
-    avgEngineeringProgress: boqs.length > 0 ? Math.round(boqs.reduce((sum, boq) => sum + (boq.engineeringProgress || 0), 0) / boqs.length) : 0,
+    approvedBoqs: boqs.filter((b: any) => b.status === "Approved" || b.status === "Final").length,
+    draftBoqs: boqs.filter((b: any) => b.status === "Draft").length,
+    totalValue: boqs.reduce((sum: number, boq: any) => sum + boq.totalCost, 0),
+    engineeringInProgress: boqs.filter((b: any) => b.etoStatus === "Engineering Design").length,
+    avgEngineeringProgress: boqs.length > 0 ? Math.round(boqs.reduce((sum: number, boq: any) => sum + (boq.engineeringProgress || 0), 0) / boqs.length) : 0,
   }
 
   return (

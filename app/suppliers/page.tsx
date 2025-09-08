@@ -16,10 +16,9 @@ function SuppliersContent() {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all")
-  const { useSuppliers } = useDatabaseContext()
-  const { suppliers } = useSuppliers()
+  const { suppliers = [] } = useDatabaseContext()
 
-  const filteredSuppliers = suppliers.filter((supplier) => {
+  const filteredSuppliers = suppliers.filter((supplier: any) => {
     const matchesSearch =
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,7 +85,7 @@ function SuppliersContent() {
 
         {/* Suppliers List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSuppliers.map((supplier) => (
+          {filteredSuppliers.map((supplier: any) => (
             <Card key={supplier.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -97,7 +96,7 @@ function SuppliersContent() {
                       <p className="text-sm text-gray-600">{supplier.contactPerson}</p>
                     </div>
                   </div>
-                  <Badge className={statusColors.supplier[supplier.status]}>{supplier.status}</Badge>
+                  <Badge className={statusColors.supplier[supplier.status as keyof typeof statusColors.supplier]}>{supplier.status}</Badge>
                 </div>
 
                 <div className="space-y-3 mb-4">

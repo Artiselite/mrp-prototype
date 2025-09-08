@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,8 +13,9 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { useDatabaseContext } from "@/components/database-provider"
+import EngineeringCreateLoading from "./loading"
 
-export default function CreateEngineeringDrawingPage() {
+function CreateEngineeringDrawingContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const { engineeringDrawings, customers, quotations, createEngineeringDrawing, updateQuotation } = useDatabaseContext()
@@ -741,5 +742,13 @@ export default function CreateEngineeringDrawingPage() {
                 </form>
             </main>
         </div>
+    )
+}
+
+export default function CreateEngineeringDrawingPage() {
+    return (
+        <Suspense fallback={<EngineeringCreateLoading />}>
+            <CreateEngineeringDrawingContent />
+        </Suspense>
     )
 }

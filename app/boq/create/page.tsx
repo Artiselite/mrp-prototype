@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +15,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { useDatabaseContext } from "@/components/database-provider"
 import type { BOQItem } from "@/lib/types"
+import BOQCreateLoading from "./loading"
 
-export default function CreateBOQPage() {
+function CreateBOQContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { 
@@ -825,5 +826,13 @@ export default function CreateBOQPage() {
         </form>
       </main>
     </div>
+  )
+}
+
+export default function CreateBOQPage() {
+  return (
+    <Suspense fallback={<BOQCreateLoading />}>
+      <CreateBOQContent />
+    </Suspense>
   )
 }

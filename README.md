@@ -47,7 +47,7 @@ Each entity type supports:
 ## Usage
 
 ### Basic Database Access
-```typescript
+\`\`\`typescript
 import { useDatabaseContext } from "@/components/database-provider"
 
 function MyComponent() {
@@ -56,7 +56,7 @@ function MyComponent() {
   
   // Use the data and functions
 }
-```
+\`\`\`
 
 ### Database Management
 The dashboard includes a database manager component that provides:

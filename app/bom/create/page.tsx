@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,8 +27,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { useDatabaseContext } from "@/components/database-provider"
 import type { BillOfMaterials, BOMItem, BillOfQuantities, BOQItem, Item } from "@/lib/types"
+import BOMCreateLoading from "./loading"
 
-export default function CreateBOMPage() {
+function CreateBOMContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const {
@@ -1004,5 +1005,13 @@ export default function CreateBOMPage() {
                 </Tabs>
             </div>
         </div>
+    )
+}
+
+export default function CreateBOMPage() {
+    return (
+        <Suspense fallback={<BOMCreateLoading />}>
+            <CreateBOMContent />
+        </Suspense>
     )
 }

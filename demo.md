@@ -12,7 +12,7 @@ The prototype demonstrates the complete **engineering-driven manufacturing workf
 
 ## 🗺️ Complete ETO Manufacturing Journey
 
-```mermaid
+\`\`\`mermaid
 flowchart TD
     A[Master Data Setup] --> B[Item Master]
     A --> C[Location Master]
@@ -55,7 +55,7 @@ flowchart TD
     style G fill:#f3e5f5
     style N fill:#e8f5e8
     style CC fill:#fff3e0
-```
+\`\`\`
 
 ---
 

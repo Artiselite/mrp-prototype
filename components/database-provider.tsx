@@ -47,6 +47,7 @@ export function useDatabaseContext() {
       purchaseOrders: [],
       items: [],
       locations: [],
+      processSteps: [],
       // Add empty functions to prevent errors
       refreshCustomers: () => {},
       createCustomer: () => ({} as any),

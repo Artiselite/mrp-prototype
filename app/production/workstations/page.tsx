@@ -421,17 +421,6 @@ export default function WorkstationManagement() {
 
                 {/* Quick Status Actions */}
                 <div className="flex gap-1">
-                  {workstation.status === "Active" && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleStatusChange(workstation.id, "Idle")}
-                      className="flex-1 text-yellow-600 hover:text-yellow-700"
-                    >
-                      <Pause className="w-3 h-3 mr-1" />
-                      Pause
-                    </Button>
-                  )}
                   {workstation.status === "Idle" && (
                     <Button 
                       size="sm" 
@@ -440,7 +429,18 @@ export default function WorkstationManagement() {
                       className="flex-1 text-green-600 hover:text-green-700"
                     >
                       <Play className="w-3 h-3 mr-1" />
-                      Start
+                      Activate
+                    </Button>
+                  )}
+                  {workstation.status === "Active" && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleStatusChange(workstation.id, "Maintenance")}
+                      className="flex-1 text-orange-600 hover:text-orange-700"
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Maintenance
                     </Button>
                   )}
                   {workstation.status === "Maintenance" && (
@@ -452,6 +452,17 @@ export default function WorkstationManagement() {
                     >
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Complete
+                    </Button>
+                  )}
+                  {workstation.status === "Offline" && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleStatusChange(workstation.id, "Idle")}
+                      className="flex-1 text-blue-600 hover:text-blue-700"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Bring Online
                     </Button>
                   )}
                 </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Factory, Users, CheckCircle, BarChart3, Target, Wrench, FileText, Shield } from "lucide-react"
+import { Factory, Users, CheckCircle, BarChart3, Target, Wrench, FileText, Shield, Settings, Copy } from "lucide-react"
 import Link from "next/link"
 import ShopfloorPage from "./shopfloor/page"
 import QualityPage from "./quality/page"
@@ -13,6 +13,8 @@ import WorkstationPage from "./workstations/page"
 import JourneysPage from "./journeys/page"
 import CreateJourneyPage from "./journeys/create"
 import WorkOrderPage from "./work-orders/page"
+import ProcessStepsPage from "./process-steps/page"
+import ProcessStepTemplatesPage from "./process-step-templates/page"
 
 export default function ProductionLayout({
   children,
@@ -65,7 +67,7 @@ export default function ProductionLayout({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-1">
             <TabsTrigger value="dashboard" className="flex items-center justify-center gap-2 text-xs md:text-sm">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -85,6 +87,14 @@ export default function ProductionLayout({
             <TabsTrigger value="work-orders" className="flex items-center justify-center gap-2 text-xs md:text-sm">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Work Orders</span>
+            </TabsTrigger>
+            <TabsTrigger value="process-steps" className="flex items-center justify-center gap-2 text-xs md:text-sm">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Process Steps</span>
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="flex items-center justify-center gap-2 text-xs md:text-sm">
+              <Copy className="w-4 h-4" />
+              <span className="hidden sm:inline">Templates</span>
             </TabsTrigger>
             <TabsTrigger value="quality" className="flex items-center justify-center gap-2 text-xs md:text-sm">
               <Shield className="w-4 h-4" />
@@ -114,6 +124,14 @@ export default function ProductionLayout({
 
           <TabsContent value="work-orders" className="space-y-6">
             <WorkOrderPage />
+          </TabsContent>
+
+          <TabsContent value="process-steps" className="space-y-6">
+            <ProcessStepsPage />
+          </TabsContent>
+
+          <TabsContent value="templates" className="space-y-6">
+            <ProcessStepTemplatesPage />
           </TabsContent>
 
           <TabsContent value="quality" className="space-y-6">

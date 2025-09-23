@@ -23,6 +23,7 @@ import type {
   Location,
   DrawingApproval,
   DrawingComment,
+  ProcessStep,
 } from "../types"
 
 // Database hook for easy state management
@@ -51,6 +52,7 @@ export function useDatabase() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [locations, setLocations] = useState<Location[]>([])
+  const [processSteps, setProcessSteps] = useState<ProcessStep[]>([])
 
   // Initialize database
   useEffect(() => {
@@ -92,6 +94,7 @@ export function useDatabase() {
       setPurchaseOrders(db.getPurchaseOrders())
       setItems(db.getItems())
       setLocations(db.getLocations())
+      setProcessSteps(db.getProcessSteps())
     }
   }, [isInitialized])
 
@@ -297,10 +300,43 @@ export function useDatabase() {
   }, [refreshProductionWorkOrders])
 
   const deleteProductionWorkOrder = useCallback((id: string) => {
-      const success = db.deleteProductionWorkOrder(id)
+    const success = db.deleteProductionWorkOrder(id)
     if (success) refreshProductionWorkOrders()
-      return success
+    return success
   }, [refreshProductionWorkOrders])
+
+  // Process Steps functions
+  const refreshProcessSteps = useCallback(() => {
+    setProcessSteps(db.getProcessSteps())
+  }, [])
+
+  const getProcessStepsByWorkOrder = useCallback((workOrderId: string) => {
+    return db.getProcessStepsByWorkOrder(workOrderId)
+  }, [])
+
+  const createProcessStep = useCallback((processStep: Omit<ProcessStep, "id" | "createdAt" | "updatedAt">) => {
+    const newProcessStep = db.createProcessStep(processStep)
+    refreshProcessSteps()
+    return newProcessStep
+  }, [refreshProcessSteps])
+
+  const updateProcessStep = useCallback((id: string, updates: Partial<ProcessStep>) => {
+    const updated = db.updateProcessStep(id, updates)
+    if (updated) refreshProcessSteps()
+    return updated
+  }, [refreshProcessSteps])
+
+  const deleteProcessStep = useCallback((id: string) => {
+    const success = db.deleteProcessStep(id)
+    if (success) refreshProcessSteps()
+    return success
+  }, [refreshProcessSteps])
+
+  const deleteProcessStepsByWorkOrder = useCallback((workOrderId: string) => {
+    const success = db.deleteProcessStepsByWorkOrder(workOrderId)
+    if (success) refreshProcessSteps()
+    return success
+  }, [refreshProcessSteps])
 
   // Invoice functions
     const refreshInvoices = useCallback(() => {
@@ -535,6 +571,7 @@ export function useDatabase() {
     purchaseOrders,
     items,
     locations,
+    processSteps,
     
     // Functions
     refreshCustomers,
@@ -581,6 +618,13 @@ export function useDatabase() {
     createProductionWorkOrder,
     updateProductionWorkOrder,
     deleteProductionWorkOrder,
+    
+    refreshProcessSteps,
+    getProcessStepsByWorkOrder,
+    createProcessStep,
+    updateProcessStep,
+    deleteProcessStep,
+    deleteProcessStepsByWorkOrder,
     
     refreshInvoices,
     createInvoice,

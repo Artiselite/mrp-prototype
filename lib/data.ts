@@ -12,6 +12,9 @@ import type {
   Workstation,
   Operator,
   ShopfloorActivity,
+  ProcessStep,
+  ProcessTimer,
+  QRCode,
   QualityInspection,
   QualityTest,
   QualityMetric,
@@ -21,6 +24,12 @@ import type {
   Location,
   DrawingApproval,
   DrawingComment,
+  OEEMetrics,
+  DowntimeReason,
+  QualityIssue,
+  ProductionLine,
+  OEEAlert,
+  OEETrend,
 } from "./types"
 
 /* =========================
@@ -3264,5 +3273,643 @@ export const locations: Location[] = [
     items: 150,
     value: 25000.00,
     notes: "Secure storage for high-value items and documents"
+  }
+]
+
+/* =========================
+ *  OEE TRACKING DATA
+ * =======================*/
+
+export const productionLines: ProductionLine[] = [
+  {
+    id: "PL1",
+    name: "Steel Fabrication Line A",
+    description: "Primary production line for structural steel fabrication",
+    workstations: ["WS1", "WS2", "WS3"],
+    status: "Active",
+    targetOEE: 85,
+    currentOEE: 87.5,
+    averageOEE: 84.2,
+    throughput: 12.5,
+    capacity: 15,
+    utilization: 83.3,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:30:00Z"
+  },
+  {
+    id: "PL2",
+    name: "Quality Control Line",
+    description: "Dedicated quality inspection and testing line",
+    workstations: ["WS4"],
+    status: "Active",
+    targetOEE: 90,
+    currentOEE: 92.1,
+    averageOEE: 89.5,
+    throughput: 18.2,
+    capacity: 20,
+    utilization: 91.0,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:30:00Z"
+  },
+  {
+    id: "PL3",
+    name: "Packaging Line",
+    description: "Final packaging and shipping preparation",
+    workstations: ["WS5"],
+    status: "Idle",
+    targetOEE: 80,
+    currentOEE: 0,
+    averageOEE: 78.5,
+    throughput: 0,
+    capacity: 25,
+    utilization: 0,
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:30:00Z"
+  }
+]
+
+export const oeeMetrics: OEEMetrics[] = [
+  // CNC Plasma Cutter #1 - Today's data
+  {
+    id: "OEE1",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    date: "2024-02-15",
+    shift: "Day",
+    plannedProductionTime: 480, // 8 hours
+    actualProductionTime: 420, // 7 hours
+    downtime: 60, // 1 hour
+    availability: 87.5, // (420/480)*100
+    idealCycleTime: 2.5, // 2.5 minutes per unit
+    actualCycleTime: 2.8, // 2.8 minutes per unit
+    totalUnitsProduced: 150,
+    performance: 89.3, // (150*2.5/420)*100
+    goodUnitsProduced: 147,
+    defectiveUnits: 3,
+    quality: 98.0, // (147/150)*100
+    oee: 76.4, // 87.5 * 89.3 * 98.0 / 10000
+    downtimeReasons: [
+      {
+        id: "DT1",
+        category: "Setup/Changeover",
+        description: "Tool change and setup for new job",
+        duration: 30,
+        startTime: "2024-02-15T10:00:00Z",
+        endTime: "2024-02-15T10:30:00Z",
+        responsiblePerson: "Mike Johnson",
+        notes: "Routine tool change"
+      },
+      {
+        id: "DT2",
+        category: "Material Shortage",
+        description: "Waiting for steel plate delivery",
+        duration: 30,
+        startTime: "2024-02-15T14:00:00Z",
+        endTime: "2024-02-15T14:30:00Z",
+        responsiblePerson: "Mike Johnson",
+        notes: "Material arrived late"
+      }
+    ],
+    qualityIssues: [
+      {
+        id: "QI1",
+        type: "Dimensional",
+        description: "Cut length 0.5mm short",
+        quantity: 2,
+        severity: "Low",
+        rootCause: "Tool wear",
+        correctiveAction: "Tool replacement scheduled",
+        responsiblePerson: "Mike Johnson",
+        resolved: true,
+        resolvedAt: "2024-02-15T11:00:00Z"
+      },
+      {
+        id: "QI2",
+        type: "Surface Finish",
+        description: "Rough cut surface",
+        quantity: 1,
+        severity: "Medium",
+        rootCause: "Incorrect cutting speed",
+        correctiveAction: "Speed adjustment made",
+        responsiblePerson: "Mike Johnson",
+        resolved: true,
+        resolvedAt: "2024-02-15T12:00:00Z"
+      }
+    ],
+    throughput: 21.4, // units per hour
+    efficiency: 89.3,
+    utilization: 87.5,
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  },
+  // Welding Station Alpha - Today's data
+  {
+    id: "OEE2",
+    workstationId: "WS2",
+    productionLineId: "PL1",
+    date: "2024-02-15",
+    shift: "Day",
+    plannedProductionTime: 480,
+    actualProductionTime: 450,
+    downtime: 30,
+    availability: 93.8,
+    idealCycleTime: 4.0,
+    actualCycleTime: 4.2,
+    totalUnitsProduced: 107,
+    performance: 95.2,
+    goodUnitsProduced: 105,
+    defectiveUnits: 2,
+    quality: 98.1,
+    oee: 87.5,
+    downtimeReasons: [
+      {
+        id: "DT3",
+        category: "Equipment Failure",
+        description: "Welding gun malfunction",
+        duration: 30,
+        startTime: "2024-02-15T13:00:00Z",
+        endTime: "2024-02-15T13:30:00Z",
+        responsiblePerson: "Sarah Wilson",
+        notes: "Gun replaced, back in operation"
+      }
+    ],
+    qualityIssues: [
+      {
+        id: "QI3",
+        type: "Welding Defect",
+        description: "Incomplete penetration",
+        quantity: 2,
+        severity: "High",
+        rootCause: "Insufficient heat input",
+        correctiveAction: "Welding parameters adjusted",
+        responsiblePerson: "Sarah Wilson",
+        resolved: true,
+        resolvedAt: "2024-02-15T14:00:00Z"
+      }
+    ],
+    throughput: 14.3,
+    efficiency: 95.2,
+    utilization: 93.8,
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  },
+  // Assembly Line Beta - Today's data
+  {
+    id: "OEE3",
+    workstationId: "WS3",
+    productionLineId: "PL1",
+    date: "2024-02-15",
+    shift: "Day",
+    plannedProductionTime: 480,
+    actualProductionTime: 480,
+    downtime: 0,
+    availability: 100.0,
+    idealCycleTime: 3.0,
+    actualCycleTime: 3.1,
+    totalUnitsProduced: 155,
+    performance: 96.8,
+    goodUnitsProduced: 155,
+    defectiveUnits: 0,
+    quality: 100.0,
+    oee: 96.8,
+    downtimeReasons: [],
+    qualityIssues: [],
+    throughput: 19.4,
+    efficiency: 96.8,
+    utilization: 100.0,
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  },
+  // Quality Control Station - Today's data
+  {
+    id: "OEE4",
+    workstationId: "WS4",
+    productionLineId: "PL2",
+    date: "2024-02-15",
+    shift: "Day",
+    plannedProductionTime: 480,
+    actualProductionTime: 470,
+    downtime: 10,
+    availability: 98.0,
+    idealCycleTime: 1.5,
+    actualCycleTime: 1.6,
+    totalUnitsProduced: 294,
+    performance: 93.8,
+    goodUnitsProduced: 292,
+    defectiveUnits: 2,
+    quality: 99.3,
+    oee: 91.4,
+    downtimeReasons: [
+      {
+        id: "DT4",
+        category: "Planned Maintenance",
+        description: "Calibration check",
+        duration: 10,
+        startTime: "2024-02-15T15:00:00Z",
+        endTime: "2024-02-15T15:10:00Z",
+        responsiblePerson: "Lisa Chen",
+        notes: "Routine calibration"
+      }
+    ],
+    qualityIssues: [
+      {
+        id: "QI4",
+        type: "Dimensional",
+        description: "Tolerance check failed",
+        quantity: 2,
+        severity: "Medium",
+        rootCause: "Measurement error",
+        correctiveAction: "Re-measurement completed",
+        responsiblePerson: "Lisa Chen",
+        resolved: true,
+        resolvedAt: "2024-02-15T16:00:00Z"
+      }
+    ],
+    throughput: 37.5,
+    efficiency: 93.8,
+    utilization: 98.0,
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  },
+  // Packaging Station - Today's data (Idle)
+  {
+    id: "OEE5",
+    workstationId: "WS5",
+    productionLineId: "PL3",
+    date: "2024-02-15",
+    shift: "Day",
+    plannedProductionTime: 480,
+    actualProductionTime: 0,
+    downtime: 480,
+    availability: 0.0,
+    idealCycleTime: 2.0,
+    actualCycleTime: 0,
+    totalUnitsProduced: 0,
+    performance: 0.0,
+    goodUnitsProduced: 0,
+    defectiveUnits: 0,
+    quality: 0.0,
+    oee: 0.0,
+    downtimeReasons: [
+      {
+        id: "DT5",
+        category: "Other",
+        description: "No work orders assigned",
+        duration: 480,
+        startTime: "2024-02-15T08:00:00Z",
+        endTime: "2024-02-15T16:00:00Z",
+        responsiblePerson: "David Kim",
+        notes: "Waiting for production orders"
+      }
+    ],
+    qualityIssues: [],
+    throughput: 0,
+    efficiency: 0,
+    utilization: 0,
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  }
+]
+
+export const oeeAlerts: OEEAlert[] = [
+  {
+    id: "ALERT1",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    type: "Low OEE",
+    severity: "Medium",
+    message: "OEE is 76.4%, below target of 85%",
+    value: 76.4,
+    threshold: 85,
+    unit: "%",
+    status: "Active",
+    createdAt: "2024-02-15T16:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  },
+  {
+    id: "ALERT2",
+    workstationId: "WS5",
+    productionLineId: "PL3",
+    type: "High Downtime",
+    severity: "High",
+    message: "Packaging station has been idle for 8 hours",
+    value: 480,
+    threshold: 60,
+    unit: "minutes",
+    status: "Active",
+    createdAt: "2024-02-15T16:00:00Z",
+    updatedAt: "2024-02-15T16:00:00Z"
+  },
+  {
+    id: "ALERT3",
+    workstationId: "WS2",
+    productionLineId: "PL1",
+    type: "Quality Issue",
+    severity: "High",
+    message: "Welding defects detected - 2 units with incomplete penetration",
+    value: 1.9,
+    threshold: 1.0,
+    unit: "%",
+    status: "Resolved",
+    resolvedBy: "Sarah Wilson",
+    resolvedAt: "2024-02-15T14:00:00Z",
+    createdAt: "2024-02-15T13:30:00Z",
+    updatedAt: "2024-02-15T14:00:00Z"
+  }
+]
+
+export const oeeTrends: OEETrend[] = [
+  // Last 7 days of data for trend analysis
+  {
+    id: "TREND1",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-09",
+    oee: 78.5,
+    availability: 85.2,
+    performance: 92.1,
+    quality: 98.3,
+    throughput: 20.1,
+    downtime: 72,
+    defects: 2
+  },
+  {
+    id: "TREND2",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-10",
+    oee: 82.3,
+    availability: 88.7,
+    performance: 93.4,
+    quality: 99.1,
+    throughput: 21.5,
+    downtime: 55,
+    defects: 1
+  },
+  {
+    id: "TREND3",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-11",
+    oee: 85.7,
+    availability: 91.2,
+    performance: 94.8,
+    quality: 98.9,
+    throughput: 22.3,
+    downtime: 42,
+    defects: 1
+  },
+  {
+    id: "TREND4",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-12",
+    oee: 79.8,
+    availability: 86.5,
+    performance: 91.2,
+    quality: 98.7,
+    throughput: 19.8,
+    downtime: 65,
+    defects: 3
+  },
+  {
+    id: "TREND5",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-13",
+    oee: 83.4,
+    availability: 89.3,
+    performance: 93.7,
+    quality: 99.2,
+    throughput: 21.0,
+    downtime: 51,
+    defects: 1
+  },
+  {
+    id: "TREND6",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-14",
+    oee: 81.6,
+    availability: 87.8,
+    performance: 92.9,
+    quality: 98.5,
+    throughput: 20.7,
+    downtime: 58,
+    defects: 2
+  },
+  {
+    id: "TREND7",
+    workstationId: "WS1",
+    productionLineId: "PL1",
+    period: "Daily",
+    date: "2024-02-15",
+    oee: 76.4,
+    availability: 87.5,
+    performance: 89.3,
+    quality: 98.0,
+    throughput: 21.4,
+    downtime: 60,
+    defects: 3
+  }
+]
+
+/* =========================
+ *  PROCESS TRACKING DATA
+ * =======================*/
+
+export const processSteps: ProcessStep[] = [
+  // Work Order WO1 - I-beam Assembly
+  {
+    id: "PS1",
+    workOrderId: "WO1",
+    operationIndex: 0,
+    stepName: "Setup",
+    status: "Completed",
+    estimatedDuration: 120, // 2 hours
+    actualDuration: 115, // 1 hour 55 minutes
+    startTime: "2024-02-15T08:00:00Z",
+    endTime: "2024-02-15T09:55:00Z",
+    operatorId: "OP1",
+    workstationId: "WS1",
+    qualityCheckRequired: false,
+    notes: "Setup completed successfully",
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T09:55:00Z"
+  },
+  {
+    id: "PS2",
+    workOrderId: "WO1",
+    operationIndex: 1,
+    stepName: "Cutting Operations",
+    status: "In Progress",
+    estimatedDuration: 480, // 8 hours
+    actualDuration: 0,
+    startTime: "2024-02-15T10:00:00Z",
+    operatorId: "OP1",
+    workstationId: "WS1",
+    qualityCheckRequired: true,
+    qualityStatus: "Pending",
+    notes: "Cutting in progress",
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T10:00:00Z"
+  },
+  {
+    id: "PS3",
+    workOrderId: "WO1",
+    operationIndex: 2,
+    stepName: "Welding Operations",
+    status: "Pending",
+    estimatedDuration: 360, // 6 hours
+    actualDuration: 0,
+    operatorId: "OP2",
+    workstationId: "WS2",
+    qualityCheckRequired: true,
+    qualityStatus: "Pending",
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T08:00:00Z"
+  },
+  {
+    id: "PS4",
+    workOrderId: "WO1",
+    operationIndex: 3,
+    stepName: "Quality Check",
+    status: "Pending",
+    estimatedDuration: 60, // 1 hour
+    actualDuration: 0,
+    operatorId: "OP3",
+    workstationId: "WS4",
+    qualityCheckRequired: true,
+    qualityStatus: "Pending",
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T08:00:00Z"
+  },
+  // Work Order WO2 - Steel Plate Fabrication
+  {
+    id: "PS5",
+    workOrderId: "WO2",
+    operationIndex: 0,
+    stepName: "Setup",
+    status: "Completed",
+    estimatedDuration: 90, // 1.5 hours
+    actualDuration: 85, // 1 hour 25 minutes
+    startTime: "2024-02-15T09:00:00Z",
+    endTime: "2024-02-15T10:25:00Z",
+    operatorId: "OP2",
+    workstationId: "WS2",
+    qualityCheckRequired: false,
+    notes: "Setup completed",
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T10:25:00Z"
+  },
+  {
+    id: "PS6",
+    workOrderId: "WO2",
+    operationIndex: 1,
+    stepName: "Plasma Cutting",
+    status: "In Progress",
+    estimatedDuration: 240, // 4 hours
+    actualDuration: 0,
+    startTime: "2024-02-15T10:30:00Z",
+    operatorId: "OP2",
+    workstationId: "WS2",
+    qualityCheckRequired: true,
+    qualityStatus: "Pending",
+    createdAt: "2024-02-15T08:00:00Z",
+    updatedAt: "2024-02-15T10:30:00Z"
+  }
+]
+
+export const processTimers: ProcessTimer[] = [
+  {
+    id: "PT1",
+    processStepId: "PS2",
+    workOrderId: "WO1",
+    operatorId: "OP1",
+    workstationId: "WS1",
+    startTime: "2024-02-15T10:00:00Z",
+    duration: 0,
+    status: "Running",
+    totalPauseDuration: 0,
+    createdAt: "2024-02-15T10:00:00Z",
+    updatedAt: "2024-02-15T10:00:00Z"
+  },
+  {
+    id: "PT2",
+    processStepId: "PS6",
+    workOrderId: "WO2",
+    operatorId: "OP2",
+    workstationId: "WS2",
+    startTime: "2024-02-15T10:30:00Z",
+    duration: 0,
+    status: "Running",
+    totalPauseDuration: 0,
+    createdAt: "2024-02-15T10:30:00Z",
+    updatedAt: "2024-02-15T10:30:00Z"
+  }
+]
+
+export const qrCodes: QRCode[] = [
+  {
+    id: "QR1",
+    type: "Start",
+    processStepId: "PS2",
+    workOrderId: "WO1",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    data: "START:PS2:WO1:WS1:OP1:2024-02-15T10:00:00Z",
+    expiresAt: "2024-02-15T18:00:00Z",
+    isUsed: true,
+    usedAt: "2024-02-15T10:00:00Z",
+    usedBy: "OP1",
+    createdAt: "2024-02-15T09:55:00Z",
+    updatedAt: "2024-02-15T10:00:00Z"
+  },
+  {
+    id: "QR2",
+    type: "Stop",
+    processStepId: "PS2",
+    workOrderId: "WO1",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    data: "STOP:PS2:WO1:WS1:OP1:2024-02-15T18:00:00Z",
+    expiresAt: "2024-02-15T18:00:00Z",
+    isUsed: false,
+    createdAt: "2024-02-15T10:00:00Z",
+    updatedAt: "2024-02-15T10:00:00Z"
+  },
+  {
+    id: "QR3",
+    type: "Start",
+    processStepId: "PS6",
+    workOrderId: "WO2",
+    workstationId: "WS2",
+    operatorId: "OP2",
+    data: "START:PS6:WO2:WS2:OP2:2024-02-15T10:30:00Z",
+    expiresAt: "2024-02-15T18:00:00Z",
+    isUsed: true,
+    usedAt: "2024-02-15T10:30:00Z",
+    usedBy: "OP2",
+    createdAt: "2024-02-15T10:25:00Z",
+    updatedAt: "2024-02-15T10:30:00Z"
+  },
+  {
+    id: "QR4",
+    type: "Quality Check",
+    processStepId: "PS2",
+    workOrderId: "WO1",
+    workstationId: "WS1",
+    operatorId: "OP1",
+    data: "QUALITY:PS2:WO1:WS1:OP1:2024-02-15T14:00:00Z",
+    expiresAt: "2024-02-15T18:00:00Z",
+    isUsed: false,
+    createdAt: "2024-02-15T10:00:00Z",
+    updatedAt: "2024-02-15T10:00:00Z"
   }
 ]

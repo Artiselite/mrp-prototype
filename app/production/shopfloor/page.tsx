@@ -1,625 +1,603 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { 
-  Factory, 
-  Users, 
-  Activity, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle,
-  Wrench,
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Factory,
+  Clock,
+  BarChart3,
   Play,
   Pause,
-  Square
+  Square,
+  CheckCircle,
+  AlertTriangle,
+  Users,
+  FileText,
+  Activity
 } from "lucide-react"
 import { useDatabaseContext } from "@/components/database-provider"
+import { ProcessTimer as ProcessTimerComponent } from "@/components/process-timer"
+import { QRCodeGenerator } from "@/components/qr-code-generator"
+import { OEECalculator, formatOEEValue, formatDuration, formatThroughput, getOEEStatusColor, getAlertSeverityColor } from "@/lib/oee-utils"
+import { productionLines, oeeMetrics, oeeAlerts, oeeTrends, processTimers, qrCodes } from "@/lib/data"
+import type { ProcessStep, ProcessTimer, QRCode } from "@/lib/types"
 
 export default function ShopfloorPage() {
   const { 
     workstations = [], 
-    operators = [], 
-    shopfloorActivities = [],
+    operators = [],
     productionWorkOrders: workOrders = [],
-    updateProductionWorkOrder,
-    createShopfloorActivity,
-    refreshProductionWorkOrders
+    shopfloorActivities = [],
+    getProcessStepsByWorkOrder,
+    updateProcessStep,
+    createShopfloorActivity
   } = useDatabaseContext()
 
-  const [selectedWorkstation, setSelectedWorkstation] = useState<any>(null)
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<any>(null)
+  const [activeProcessSteps, setActiveProcessSteps] = useState<ProcessStep[]>([])
+  const [activeTimers, setActiveTimers] = useState<ProcessTimer[]>([])
+  const [activeQRCodes, setActiveQRCodes] = useState<QRCode[]>([])
 
-  // Function to update work order status and create activity
-  const updateWorkOrderStatus = async (workOrderId: string, newStatus: "Planned" | "In Progress" | "Completed" | "Quality Approved" | "Quality Rejected", activityType: "Start" | "Pause" | "Resume" | "Complete" | "Issue", notes?: string) => {
-    try {
-      const workOrder = workOrders.find(wo => wo.id === workOrderId)
-      if (!workOrder) return
-
-      // Update work order status and progress
-      let progress = workOrder.progress
-      if (newStatus === "In Progress" && workOrder.status === "Planned") {
-        progress = 10
-      } else if (newStatus === "Completed") {
-        progress = 100
-      } else if (newStatus === "In Progress") {
-        progress = Math.min(progress + 20, 90) // Increment progress
-      }
-
-      updateProductionWorkOrder(workOrderId, {
-        ...workOrder,
-        status: newStatus,
-        progress: progress
-      })
-
-      // Create shopfloor activity
-      const workstation = workstations.find(ws => ws.currentWorkOrder === workOrderId)
-      const operator = operators.find(op => op.currentWorkOrder === workOrderId)
+  // Load process steps for selected work order
+  useEffect(() => {
+    if (selectedWorkOrder) {
+      const workOrderSteps = getProcessStepsByWorkOrder(selectedWorkOrder.id)
+      setActiveProcessSteps(workOrderSteps)
       
-      if (workstation && operator) {
-        createShopfloorActivity({
-          workstationId: workstation.id,
-          operatorId: operator.id,
-          workOrderId: workOrderId,
-          activityType: activityType,
-          timestamp: new Date().toISOString(),
-          notes: notes || `${activityType} for work order ${workOrderId}`
-        })
+      const workOrderTimers = processTimers.filter(pt => pt.workOrderId === selectedWorkOrder.id)
+      setActiveTimers(workOrderTimers)
+      
+      // Generate QR codes for all process steps
+      const allQRCodes = workOrderSteps.flatMap(step => generateQRCodesForStep(step))
+      setActiveQRCodes(allQRCodes)
+    }
+  }, [selectedWorkOrder, getProcessStepsByWorkOrder])
+
+  // Generate QR codes for a process step
+  const generateQRCodesForStep = (step: ProcessStep): QRCode[] => {
+    const qrCodesForStep: QRCode[] = [
+      {
+        id: `QR_${step.id}_START`,
+        type: "Start",
+        processStepId: step.id,
+        workOrderId: step.workOrderId,
+        workstationId: step.workstationId || "",
+        operatorId: step.operatorId || "",
+        data: `START:${step.id}:${step.workOrderId}:${step.workstationId || ""}:${step.operatorId || ""}:${new Date().toISOString()}`,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8 hours
+        isUsed: step.status === "In Progress" || step.status === "Completed",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: `QR_${step.id}_STOP`,
+        type: "Stop",
+        processStepId: step.id,
+        workOrderId: step.workOrderId,
+        workstationId: step.workstationId || "",
+        operatorId: step.operatorId || "",
+        data: `STOP:${step.id}:${step.workOrderId}:${step.workstationId || ""}:${step.operatorId || ""}:${new Date().toISOString()}`,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+        isUsed: step.status === "Completed",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: `QR_${step.id}_PAUSE`,
+        type: "Pause",
+        processStepId: step.id,
+        workOrderId: step.workOrderId,
+        workstationId: step.workstationId || "",
+        operatorId: step.operatorId || "",
+        data: `PAUSE:${step.id}:${step.workOrderId}:${step.workstationId || ""}:${step.operatorId || ""}:${new Date().toISOString()}`,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+        isUsed: step.status === "Paused",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: `QR_${step.id}_RESUME`,
+        type: "Resume",
+        processStepId: step.id,
+        workOrderId: step.workOrderId,
+        workstationId: step.workstationId || "",
+        operatorId: step.operatorId || "",
+        data: `RESUME:${step.id}:${step.workOrderId}:${step.workstationId || ""}:${step.operatorId || ""}:${new Date().toISOString()}`,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+        isUsed: step.status === "In Progress",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
+    ]
 
-      // Refresh data
-      refreshProductionWorkOrders()
-    } catch (error) {
-      console.error("Error updating work order status:", error)
+    if (step.qualityCheckRequired) {
+      qrCodesForStep.push({
+        id: `QR_${step.id}_QUALITY`,
+        type: "Quality Check",
+        processStepId: step.id,
+        workOrderId: step.workOrderId,
+        workstationId: step.workstationId || "",
+        operatorId: step.operatorId || "",
+        data: `QUALITY:${step.id}:${step.workOrderId}:${step.workstationId || ""}:${step.operatorId || ""}:${new Date().toISOString()}`,
+        expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+        isUsed: step.qualityStatus === "Passed" || step.qualityStatus === "Failed",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
     }
+
+    return qrCodesForStep
   }
 
-  const getWorkstationStatusColor = (status: string) => {
-    switch (status) {
-      case "Active": return "bg-green-100 text-green-800"
-      case "Maintenance": return "bg-yellow-100 text-yellow-800"
-      case "Idle": return "bg-gray-100 text-gray-800"
-      case "Offline": return "bg-red-100 text-red-800"
-      default: return "bg-gray-100 text-gray-800"
-    }
+  // Process control functions
+  const handleProcessStart = (processStepId: string) => {
+    const processStep = activeProcessSteps.find(ps => ps.id === processStepId)
+    if (!processStep) return
+
+    // Update process step in database
+    updateProcessStep(processStepId, {
+      status: "In Progress",
+      startTime: new Date().toISOString()
+    })
+
+    // Update local state
+    setActiveProcessSteps(prev => 
+      prev.map(ps => ps.id === processStepId 
+        ? { ...ps, status: "In Progress", startTime: new Date().toISOString() }
+        : ps
+      )
+    )
+
+    // Create shopfloor activity
+    createShopfloorActivity({
+      workstationId: processStep.workstationId || "",
+      operatorId: processStep.operatorId || "",
+      workOrderId: processStep.workOrderId,
+      activityType: "Start",
+      timestamp: new Date().toISOString(),
+      notes: `Started process: ${processStep.stepName}`
+    })
+
+    refreshQRCodes()
   }
 
-  const getOperatorStatusColor = (status: string) => {
-    switch (status) {
-      case "Active": return "bg-green-100 text-green-800"
-      case "On Break": return "bg-yellow-100 text-yellow-800"
-      case "Off Duty": return "bg-gray-100 text-gray-800"
-      default: return "bg-gray-100 text-gray-800"
-    }
+  const handleProcessPause = (processStepId: string) => {
+    const processStep = activeProcessSteps.find(ps => ps.id === processStepId)
+    if (!processStep) return
+
+    updateProcessStep(processStepId, { status: "Paused" })
+
+    setActiveProcessSteps(prev => 
+      prev.map(ps => ps.id === processStepId 
+        ? { ...ps, status: "Paused" }
+        : ps
+      )
+    )
+
+    createShopfloorActivity({
+      workstationId: processStep.workstationId || "",
+      operatorId: processStep.operatorId || "",
+      workOrderId: processStep.workOrderId,
+      activityType: "Pause",
+      timestamp: new Date().toISOString(),
+      notes: `Paused process: ${processStep.stepName}`
+    })
+
+    refreshQRCodes()
   }
 
+  const handleProcessResume = (processStepId: string) => {
+    const processStep = activeProcessSteps.find(ps => ps.id === processStepId)
+    if (!processStep) return
+
+    updateProcessStep(processStepId, { status: "In Progress" })
+
+    setActiveProcessSteps(prev => 
+      prev.map(ps => ps.id === processStepId 
+        ? { ...ps, status: "In Progress" }
+        : ps
+      )
+    )
+
+    createShopfloorActivity({
+      workstationId: processStep.workstationId || "",
+      operatorId: processStep.operatorId || "",
+      workOrderId: processStep.workOrderId,
+      activityType: "Resume",
+      timestamp: new Date().toISOString(),
+      notes: `Resumed process: ${processStep.stepName}`
+    })
+
+    refreshQRCodes()
+  }
+
+  const handleProcessStop = (processStepId: string) => {
+    const processStep = activeProcessSteps.find(ps => ps.id === processStepId)
+    if (!processStep) return
+
+    updateProcessStep(processStepId, {
+      status: "Completed",
+      endTime: new Date().toISOString()
+    })
+
+    setActiveProcessSteps(prev => 
+      prev.map(ps => ps.id === processStepId 
+        ? { ...ps, status: "Completed", endTime: new Date().toISOString() }
+        : ps
+      )
+    )
+
+    createShopfloorActivity({
+      workstationId: processStep.workstationId || "",
+      operatorId: processStep.operatorId || "",
+      workOrderId: processStep.workOrderId,
+      activityType: "Complete",
+      timestamp: new Date().toISOString(),
+      notes: `Completed process: ${processStep.stepName}`
+    })
+
+    refreshQRCodes()
+  }
+
+  const handleProcessComplete = (processStepId: string) => {
+    handleProcessStop(processStepId)
+  }
+
+  const refreshQRCodes = () => {
+    const allQRCodes = activeProcessSteps.flatMap(step => generateQRCodesForStep(step))
+    setActiveQRCodes(allQRCodes)
+  }
+
+  // OEE calculations
+  const currentOEE = oeeMetrics.length > 0 ? oeeMetrics[0].oee : 0
+  const averageOEE = oeeMetrics.reduce((acc, metric) => acc + metric.oee, 0) / oeeMetrics.length
+  const activeAlerts = oeeAlerts.filter(alert => alert.status === "Active")
+
+  // Helper functions
   const getWorkOrderStatusColor = (status: string) => {
     switch (status) {
-      case "Completed": return "bg-green-100 text-green-800"
       case "In Progress": return "bg-blue-100 text-blue-800"
-      case "Planning": return "bg-yellow-100 text-yellow-800"
+      case "Planned": return "bg-yellow-100 text-yellow-800"
+      case "Completed": return "bg-green-100 text-green-800"
       case "On Hold": return "bg-red-100 text-red-800"
       default: return "bg-gray-100 text-gray-800"
     }
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed": return "bg-green-100 text-green-800"
+      case "In Progress": return "bg-blue-100 text-blue-800"
+      case "Paused": return "bg-yellow-100 text-yellow-800"
+      case "Pending": return "bg-gray-100 text-gray-800"
+      default: return "bg-gray-100 text-gray-800"
+    }
+  }
+
   const getWorkstationTypeIcon = (type: string) => {
-    switch (type) {
-      case "Cutting": return <Factory className="w-4 h-4" />
-      case "Welding": return <Wrench className="w-4 h-4" />
-      case "Assembly": return <Users className="w-4 h-4" />
-      case "Quality Control": return <CheckCircle className="w-4 h-4" />
-      case "Packaging": return <Square className="w-4 h-4" />
-      default: return <Factory className="w-4 h-4" />
-    }
+    return <Factory className="w-4 h-4" />
   }
 
-  const getActivityIcon = (activityType: string) => {
-    switch (activityType) {
-      case "Start": return <Play className="w-4 h-4 text-green-600" />
-      case "Pause": return <Pause className="w-4 h-4 text-yellow-600" />
-      case "Resume": return <Play className="w-4 h-4 text-green-600" />
-      case "Complete": return <CheckCircle className="w-4 h-4 text-blue-600" />
-      case "Issue": return <AlertTriangle className="w-4 h-4 text-red-600" />
-      default: return <Activity className="w-4 h-4" />
-    }
+  const getWorkstationName = (workstationId: string) => {
+    const workstation = workstations.find(ws => ws.id === workstationId)
+    return workstation ? workstation.name : `WS-${workstationId}`
   }
 
-  const activeWorkstations = workstations.filter(ws => ws.status === "Active").length
-  const totalWorkstations = workstations.length
-  const activeOperators = operators.filter(op => op.status === "Active").length
-  const totalOperators = operators.length
+  const getOperatorName = (operatorId: string) => {
+    const operator = operators.find(op => op.id === operatorId)
+    return operator ? operator.name : "Unassigned"
+  }
 
   return (
     <div className="space-y-6">
-      {/* Shopfloor Status Notice */}
-      {workstations.length === 0 ? (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-orange-800">
-            <AlertTriangle className="w-5 h-5" />
-            <span className="font-medium">Shopfloor Not Configured</span>
-          </div>
-          <p className="text-orange-700 text-sm mt-1">
-            No workstations or operators have been set up yet. Complete the shopfloor setup process to start production.
-          </p>
-          <div className="mt-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                const event = new CustomEvent('switchTab', { detail: 'journeys' })
-                window.dispatchEvent(event)
-              }}
-              className="text-orange-700 border-orange-300 hover:bg-orange-100"
-            >
-              <Wrench className="w-4 h-4 mr-2" />
-              Setup Shopfloor
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">Shopfloor Configured</span>
-          </div>
-          <p className="text-green-700 text-sm mt-1">
-            Your shopfloor is ready with {workstations.length} workstations and {operators.length} operators.
-          </p>
-        </div>
-      )}
-
-      {/* Action Bar */}
+      {/* Header */}
       <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Shopfloor Control</h1>
+          <p className="text-gray-600">Execute and monitor production processes in real-time</p>
+        </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => {
-              const event = new CustomEvent('switchTab', { detail: 'work-orders' })
-              window.dispatchEvent(event)
-            }}
-          >
-            <Factory className="w-4 h-4" />
-            View Work Orders
+          <Button variant="outline">
+            <Activity className="w-4 h-4 mr-2" />
+            View Activities
           </Button>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => {
-              const event = new CustomEvent('switchTab', { detail: 'quality' })
-              window.dispatchEvent(event)
-            }}
-          >
-            <CheckCircle className="w-4 h-4" />
+          <Button>
+            <CheckCircle className="w-4 h-4 mr-2" />
             View Quality
           </Button>
         </div>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Workstations</CardTitle>
-            <Factory className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeWorkstations}/{totalWorkstations}</div>
-            <p className="text-xs text-muted-foreground">
-              {Math.round((activeWorkstations / totalWorkstations) * 100)}% utilization
-            </p>
-          </CardContent>
-        </Card>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="processes" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="processes" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Process Execution
+          </TabsTrigger>
+          <TabsTrigger value="oee" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Performance Monitoring
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Operators</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeOperators}/{totalOperators}</div>
-            <p className="text-xs text-muted-foreground">
-              {Math.round((activeOperators / totalOperators) * 100)}% on duty
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Efficiency</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(workstations.reduce((acc, ws) => acc + ws.efficiency, 0) / workstations.length)}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Across all workstations
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Work Orders</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {workOrders.filter(wo => wo.status === "In Progress").length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Currently in production
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Workstations Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Workstations</CardTitle>
-          <CardDescription>
-            Real-time status of production workstations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Workstation</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Operator</TableHead>
-                <TableHead>Work Order</TableHead>
-                <TableHead>Efficiency</TableHead>
-                <TableHead>Utilization</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {workstations.map((workstation: any) => {
-                const operator = operators.find((op: any) => op.id === workstation.currentOperator)
-                const workOrder = workOrders.find((wo: any) => wo.id === workstation.currentWorkOrder)
-                
-                return (
-                  <TableRow key={workstation.id}>
-                    <TableCell className="font-medium">{workstation.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getWorkstationTypeIcon(workstation.type)}
-                        {workstation.type}
+        {/* Process Execution Tab */}
+        <TabsContent value="processes" className="space-y-6">
+          {/* Work Order Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Work Order for Process Execution</CardTitle>
+              <CardDescription>
+                Choose a work order to execute its manufacturing processes with real-time timers and QR codes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {workOrders.filter(wo => wo.status === "In Progress" || wo.status === "Planned").map((workOrder: any) => (
+                  <Card 
+                    key={workOrder.id} 
+                    className={`cursor-pointer transition-colors ${
+                      selectedWorkOrder?.id === workOrder.id 
+                        ? 'ring-2 ring-blue-500 bg-blue-50' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedWorkOrder(workOrder)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium">{workOrder.productName}</h3>
+                        <Badge className={getWorkOrderStatusColor(workOrder.status)}>
+                          {workOrder.status}
+                        </Badge>
                       </div>
-                    </TableCell>
-                    <TableCell>{workstation.location}</TableCell>
-                    <TableCell>
-                      <Badge className={getWorkstationStatusColor(workstation.status)}>
-                        {workstation.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {operator ? (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-gray-500" />
-                          {operator.name}
+                      <p className="text-sm text-gray-600 mb-2">{workOrder.description}</p>
+                      <div className="text-xs text-gray-500">
+                        <div>Work Order: {workOrder.workOrderNumber}</div>
+                        <div>Customer: {workOrder.customer}</div>
+                        <div>Progress: {workOrder.progress}%</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Process Steps and QR Codes */}
+          {selectedWorkOrder && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Process Steps - {selectedWorkOrder.productName}</CardTitle>
+                  <CardDescription>
+                    Execute each manufacturing step with real-time timers and QR code controls
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {activeProcessSteps.map((step, index) => {
+                    const stepQRCodes = activeQRCodes.filter(qr => qr.processStepId === step.id)
+                    
+                    return (
+                      <div key={step.id} className="space-y-6">
+                        {/* Process Step Timer */}
+                        <div className="border rounded-lg p-6 bg-white shadow-sm">
+                          <ProcessTimerComponent
+                            processStepId={step.id}
+                            workOrderId={step.workOrderId}
+                            stepName={step.stepName}
+                            estimatedDuration={step.estimatedDuration}
+                            actualDuration={step.actualDuration}
+                            status={step.status}
+                            startTime={step.startTime}
+                            endTime={step.endTime}
+                            operatorId={step.operatorId}
+                            workstationId={step.workstationId}
+                            qualityCheckRequired={step.qualityCheckRequired}
+                            qualityStatus={step.qualityStatus}
+                            onStart={handleProcessStart}
+                            onPause={handleProcessPause}
+                            onResume={handleProcessResume}
+                            onStop={handleProcessStop}
+                            onComplete={handleProcessComplete}
+                          />
                         </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {workOrder ? (
-                        <span className="font-mono text-sm">{workOrder.id}</span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={workstation.efficiency} className="w-16" />
-                        <span className="text-sm">{workstation.efficiency}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={workstation.utilization} className="w-16" />
-                        <span className="text-sm">{workstation.utilization}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {workOrder && (
-                          <>
-                            {workOrder.status === "Planned" && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => updateWorkOrderStatus(workOrder.id, "In Progress", "Start", "Work order started")}
-                                className="text-green-600 hover:text-green-700"
-                              >
-                                <Play className="w-3 h-3 mr-1" />
-                                Start
-                              </Button>
-                            )}
-                            {workOrder.status === "In Progress" && (
-                              <>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => updateWorkOrderStatus(workOrder.id, "In Progress", "Pause", "Work order paused")}
-                                  className="text-yellow-600 hover:text-yellow-700"
-                                >
-                                  <Pause className="w-3 h-3 mr-1" />
-                                  Pause
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => updateWorkOrderStatus(workOrder.id, "Completed", "Complete", "Work order completed")}
-                                  className="text-blue-600 hover:text-blue-700"
-                                >
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Complete
-                                </Button>
-                              </>
-                            )}
-                          </>
+
+                        {/* QR Codes for this step */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-lg font-semibold flex items-center gap-2">
+                              <Factory className="w-5 h-5" />
+                              QR Code Controls - {step.stepName}
+                            </h4>
+                            <Badge className={getStatusColor(step.status)}>
+                              {step.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {stepQRCodes.map((qrCode) => (
+                              <div key={qrCode.id} className="border rounded-lg p-4 bg-gray-50">
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="text-sm font-medium text-gray-700">{qrCode.type} QR</span>
+                                  <Badge 
+                                    className={qrCode.isUsed ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                                  >
+                                    {qrCode.isUsed ? "Used" : "Available"}
+                                  </Badge>
+                                </div>
+                                <QRCodeGenerator
+                                  data={qrCode.data}
+                                  type={qrCode.type}
+                                  processStepId={qrCode.processStepId}
+                                  workOrderId={qrCode.workOrderId}
+                                  workstationId={qrCode.workstationId}
+                                  operatorId={qrCode.operatorId}
+                                  expiresAt={qrCode.expiresAt}
+                                  isUsed={qrCode.isUsed}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Separator between steps */}
+                        {index < activeProcessSteps.length - 1 && (
+                          <div className="border-t border-gray-200 my-6"></div>
                         )}
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setSelectedWorkstation(workstation)}
-                        >
-                          Details
-                        </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    )
+                  })}
+                </CardContent>
+              </Card>
 
-      {/* Operators Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Operators</CardTitle>
-          <CardDescription>
-            Current status and assignments of production operators
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Operator</TableHead>
-                <TableHead>Employee ID</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Shift</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Workstation</TableHead>
-                <TableHead>Work Order</TableHead>
-                <TableHead>Efficiency</TableHead>
-                <TableHead>Total Hours</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {operators.map((operator: any) => {
-                const workstation = workstations.find((ws: any) => ws.id === operator.currentWorkstation)
-                const workOrder = workOrders.find((wo: any) => wo.id === operator.currentWorkOrder)
-                
-                return (
-                  <TableRow key={operator.id}>
-                    <TableCell className="font-medium">{operator.name}</TableCell>
-                    <TableCell className="font-mono text-sm">{operator.employeeId}</TableCell>
-                    <TableCell>{operator.position}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{operator.shift}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getOperatorStatusColor(operator.status)}>
-                        {operator.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {workstation ? (
-                        <div className="flex items-center gap-2">
-                          {getWorkstationTypeIcon(workstation.type)}
-                          {workstation.name}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {workOrder ? (
-                        <span className="font-mono text-sm">{workOrder.id}</span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={operator.efficiency} className="w-16" />
-                        <span className="text-sm">{operator.efficiency}%</span>
+              {/* Process Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Process Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{activeProcessSteps.length}</div>
+                      <div className="text-sm text-gray-500">Total Steps</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {activeProcessSteps.filter(s => s.status === "Completed").length}
                       </div>
-                    </TableCell>
-                    <TableCell>{operator.totalHours}h</TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      <div className="text-sm text-gray-500">Completed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {activeProcessSteps.filter(s => s.status === "In Progress" || s.status === "Paused").length}
+                      </div>
+                      <div className="text-sm text-gray-500">In Progress</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-600">
+                        {activeProcessSteps.filter(s => s.status === "Pending").length}
+                      </div>
+                      <div className="text-sm text-gray-500">Pending</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </TabsContent>
 
-      {/* Active Work Orders */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Work Orders</CardTitle>
-          <CardDescription>
-            Work orders currently in production on the shopfloor
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Work Order</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Workstation</TableHead>
-                <TableHead>Operator</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {workOrders.filter((wo: any) => wo.status === "In Progress").map((workOrder: any) => {
-                const workstation = workstations.find((ws: any) => ws.currentWorkOrder === workOrder.id)
-                const operator = operators.find((op: any) => op.currentWorkOrder === workOrder.id)
-                
-                return (
-                  <TableRow key={workOrder.id}>
-                    <TableCell className="font-medium">{workOrder.id}</TableCell>
-                    <TableCell>{workOrder.productName}</TableCell>
-                    <TableCell>
-                      {workstation ? (
-                        <div className="flex items-center gap-2">
-                          {getWorkstationTypeIcon(workstation.type)}
-                          {workstation.name}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {operator ? (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-gray-500" />
-                          {operator.name}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={workOrder.progress} className="w-16" />
-                        <span className="text-sm">{workOrder.progress}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getWorkOrderStatusColor(workOrder.status)}>
-                        {workOrder.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{workOrder.dueDate}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => updateWorkOrderStatus(workOrder.id, "In Progress", "Resume", "Work order resumed")}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          <Play className="w-3 h-3 mr-1" />
-                          Resume
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => updateWorkOrderStatus(workOrder.id, "Completed", "Complete", "Work order completed")}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Complete
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            const event = new CustomEvent('switchTab', { detail: 'work-orders' })
-                            window.dispatchEvent(event)
-                          }}
-                        >
-                          Details
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        {/* Performance Monitoring Tab */}
+        <TabsContent value="oee" className="space-y-6">
+          {/* OEE Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Current OEE</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${getOEEStatusColor(currentOEE)}`}>
+                  {formatOEEValue(currentOEE)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Real-time performance
+                </p>
+              </CardContent>
+            </Card>
 
-      {/* Recent Activities */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activities</CardTitle>
-          <CardDescription>
-            Latest shopfloor activities and status changes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Activity</TableHead>
-                <TableHead>Workstation</TableHead>
-                <TableHead>Operator</TableHead>
-                <TableHead>Work Order</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shopfloorActivities.slice(0, 10).map((activity: any) => {
-                const workstation = workstations.find((ws: any) => ws.id === activity.workstationId)
-                const operator = operators.find((op: any) => op.id === activity.operatorId)
-                const workOrder = workOrders.find((wo: any) => wo.id === activity.workOrderId)
-                
-                return (
-                  <TableRow key={activity.id}>
-                    <TableCell className="font-mono text-sm">
-                      {new Date(activity.timestamp).toLocaleTimeString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getActivityIcon(activity.activityType)}
-                        {activity.activityType}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average OEE</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${getOEEStatusColor(averageOEE)}`}>
+                  {formatOEEValue(averageOEE)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Last 24 hours
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">{activeAlerts.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Requires attention
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Production Lines</CardTitle>
+                <Factory className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{productionLines.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Active lines
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Production Lines OEE */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Production Lines Performance</CardTitle>
+              <CardDescription>
+                OEE metrics for each production line
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {productionLines.map((line) => {
+                  const lineOEE = OEECalculator.calculateProductionLineOEE(
+                    oeeMetrics.filter(m => m.productionLineId === line.id)
+                  )
+                  
+                  return (
+                    <div key={line.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <h3 className="font-medium">{line.name}</h3>
+                          <p className="text-sm text-gray-500">{line.description}</p>
+                        </div>
+                        <Badge variant="outline">{line.status}</Badge>
                       </div>
-                    </TableCell>
-                    <TableCell>{workstation?.name || activity.workstationId}</TableCell>
-                    <TableCell>{operator?.name || activity.operatorId}</TableCell>
-                    <TableCell>
-                      {workOrder ? (
-                        <span className="font-mono text-sm">{workOrder.id}</span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {activity.notes || "-"}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <div className={`text-lg font-bold ${getOEEStatusColor(lineOEE.oee)}`}>
+                            {formatOEEValue(lineOEE.oee)}
+                          </div>
+                          <div className="text-xs text-gray-500">OEE</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-medium">{formatDuration(lineOEE.downtime)}</div>
+                          <div className="text-xs text-gray-500">Downtime</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-medium">{lineOEE.defectiveUnits}</div>
+                          <div className="text-xs text-gray-500">Defects</div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

@@ -19,6 +19,7 @@ import type {
   PurchaseOrder,
   Item,
   Location,
+  ProcessStep,
 } from "./types"
 
 // Database configuration
@@ -48,6 +49,7 @@ const DB_KEYS = {
   PURCHASE_ORDERS: `${DB_PREFIX}purchase_orders`,
   ITEMS: `${DB_PREFIX}items`,
   LOCATIONS: `${DB_PREFIX}locations`,
+  PROCESS_STEPS: `${DB_PREFIX}process_steps`,
 } as const
 
 // Database class
@@ -697,6 +699,75 @@ class LocalDatabase {
     return true
   }
 
+  // Process Steps operations
+  getProcessSteps(): ProcessStep[] {
+    return this.getItem<ProcessStep>(DB_KEYS.PROCESS_STEPS)
+  }
+
+  getProcessStepsByWorkOrder(workOrderId: string): ProcessStep[] {
+    const processSteps = this.getProcessSteps()
+    return processSteps.filter(step => step.workOrderId === workOrderId)
+  }
+
+  getProcessStep(id: string): ProcessStep | null {
+    const processSteps = this.getProcessSteps()
+    return processSteps.find(step => step.id === id) || null
+  }
+
+  setProcessSteps(processSteps: ProcessStep[]): void {
+    this.setItem(DB_KEYS.PROCESS_STEPS, processSteps)
+  }
+
+  createProcessStep(processStep: Omit<ProcessStep, "id" | "createdAt" | "updatedAt">): ProcessStep {
+    const processSteps = this.getProcessSteps()
+    const newProcessStep: ProcessStep = {
+      ...processStep,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    processSteps.push(newProcessStep)
+    this.setProcessSteps(processSteps)
+    return newProcessStep
+  }
+
+  updateProcessStep(id: string, updates: Partial<ProcessStep>): ProcessStep | null {
+    const processSteps = this.getProcessSteps()
+    const index = processSteps.findIndex(step => step.id === id)
+    
+    if (index === -1) return null
+    
+    processSteps[index] = {
+      ...processSteps[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    
+    this.setProcessSteps(processSteps)
+    return processSteps[index]
+  }
+
+  deleteProcessStep(id: string): boolean {
+    const processSteps = this.getProcessSteps()
+    const filtered = processSteps.filter(step => step.id !== id)
+    
+    if (filtered.length === processSteps.length) return false
+    
+    this.setProcessSteps(filtered)
+    return true
+  }
+
+  deleteProcessStepsByWorkOrder(workOrderId: string): boolean {
+    const processSteps = this.getProcessSteps()
+    const filtered = processSteps.filter(step => step.workOrderId !== workOrderId)
+    
+    if (filtered.length === processSteps.length) return false
+    
+    this.setProcessSteps(filtered)
+    return true
+  }
+
   // Operator operations
   getOperators(): Operator[] {
     return this.getItem<Operator>(DB_KEYS.OPERATORS)
@@ -755,13 +826,11 @@ class LocalDatabase {
     this.setItem(DB_KEYS.SHOPFLOOR_ACTIVITIES, activities)
   }
 
-  createShopfloorActivity(activity: Omit<ShopfloorActivity, "id" | "createdAt" | "updatedAt">): ShopfloorActivity {
+  createShopfloorActivity(activity: Omit<ShopfloorActivity, "id">): ShopfloorActivity {
     const activities = this.getShopfloorActivities()
     const newActivity: ShopfloorActivity = {
       ...activity,
-      id: this.generateId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      id: this.generateId()
     }
     
     activities.push(newActivity)
@@ -777,8 +846,7 @@ class LocalDatabase {
     
     activities[index] = {
       ...activities[index],
-      ...updates,
-      updatedAt: new Date().toISOString()
+      ...updates
     }
     
     this.setShopfloorActivities(activities)

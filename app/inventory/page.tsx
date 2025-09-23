@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Package, Search, MapPin, Building, DollarSign, TrendingUp, AlertTriangle, Download, Upload, FileText, Plus } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useDatabaseContext } from "@/components/database-provider"
 import type { Location, Item } from "@/lib/types"
+import InventoryLoading from "./loading"
 
-export default function InventoryPage() {
+function InventoryContent() {
+    const searchParams = useSearchParams()
     const { locations = [], items = [], createItem, updateItem, refreshItems } = useDatabaseContext()
-    const [searchTerm, setSearchTerm] = useState("")
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [isUploading, setIsUploading] = useState(false)
     const [uploadMessage, setUploadMessage] = useState("")
@@ -1260,5 +1263,13 @@ Please ensure your file has the correct headers for ${selectedImportType} operat
                 )}
             </main>
         </div>
+    )
+}
+
+export default function InventoryPage() {
+    return (
+        <Suspense fallback={<InventoryLoading />}>
+            <InventoryContent />
+        </Suspense>
     )
 }

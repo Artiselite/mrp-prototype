@@ -450,6 +450,58 @@ export interface ShopfloorActivity {
   efficiency?: number
 }
 
+// Process Tracking types
+export interface ProcessStep {
+  id: string
+  workOrderId: string
+  operationIndex: number
+  stepName: string
+  status: "Pending" | "In Progress" | "Completed" | "Paused"
+  estimatedDuration: number // minutes
+  actualDuration: number // minutes
+  startTime?: string
+  endTime?: string
+  operatorId?: string
+  workstationId?: string
+  qualityCheckRequired: boolean
+  qualityStatus?: "Pending" | "Passed" | "Failed"
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProcessTimer {
+  id: string
+  processStepId: string
+  workOrderId: string
+  operatorId: string
+  workstationId: string
+  startTime: string
+  endTime?: string
+  duration: number // minutes
+  status: "Running" | "Stopped" | "Paused"
+  pauseStartTime?: string
+  totalPauseDuration: number // minutes
+  createdAt: string
+  updatedAt: string
+}
+
+export interface QRCode {
+  id: string
+  type: "Start" | "Stop" | "Pause" | "Resume" | "Quality Check"
+  processStepId: string
+  workOrderId: string
+  workstationId: string
+  operatorId: string
+  data: string // QR code data payload
+  expiresAt: string
+  isUsed: boolean
+  usedAt?: string
+  usedBy?: string
+  createdAt: string
+  updatedAt: string
+}
+
 // Quality Management types
 export interface QualityInspection {
   id: string
@@ -692,4 +744,119 @@ export interface EngineeringProject {
   updatedAt: string
   revision: string
   notes?: string
+}
+
+// OEE (Overall Equipment Effectiveness) types
+export interface OEEMetrics {
+  id: string
+  workstationId: string
+  productionLineId?: string
+  date: string
+  shift: "Day" | "Evening" | "Night"
+  
+  // Availability metrics
+  plannedProductionTime: number // minutes
+  actualProductionTime: number // minutes
+  downtime: number // minutes
+  availability: number // percentage
+  
+  // Performance metrics
+  idealCycleTime: number // minutes per unit
+  actualCycleTime: number // minutes per unit
+  totalUnitsProduced: number
+  performance: number // percentage
+  
+  // Quality metrics
+  goodUnitsProduced: number
+  defectiveUnits: number
+  quality: number // percentage
+  
+  // Overall OEE
+  oee: number // percentage
+  
+  // Breakdown details
+  downtimeReasons: DowntimeReason[]
+  qualityIssues: QualityIssue[]
+  
+  // Calculated metrics
+  throughput: number // units per hour
+  efficiency: number // percentage
+  utilization: number // percentage
+  
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DowntimeReason {
+  id: string
+  category: "Planned Maintenance" | "Unplanned Maintenance" | "Setup/Changeover" | "Material Shortage" | "Quality Issues" | "Operator Issues" | "Equipment Failure" | "Other"
+  description: string
+  duration: number // minutes
+  startTime: string
+  endTime: string
+  responsiblePerson?: string
+  notes?: string
+}
+
+export interface QualityIssue {
+  id: string
+  type: "Dimensional" | "Surface Finish" | "Welding Defect" | "Material Defect" | "Assembly Error" | "Other"
+  description: string
+  quantity: number
+  severity: "Low" | "Medium" | "High" | "Critical"
+  rootCause?: string
+  correctiveAction?: string
+  responsiblePerson?: string
+  resolved: boolean
+  resolvedAt?: string
+}
+
+export interface ProductionLine {
+  id: string
+  name: string
+  description: string
+  workstations: string[] // workstation IDs
+  status: "Active" | "Maintenance" | "Idle" | "Offline"
+  targetOEE: number // percentage
+  currentOEE: number // percentage
+  averageOEE: number // percentage (last 30 days)
+  throughput: number // units per hour
+  capacity: number // units per hour
+  utilization: number // percentage
+  createdAt: string
+  updatedAt: string
+}
+
+export interface OEEAlert {
+  id: string
+  workstationId: string
+  productionLineId?: string
+  type: "Low OEE" | "High Downtime" | "Quality Issue" | "Performance Drop" | "Maintenance Due"
+  severity: "Low" | "Medium" | "High" | "Critical"
+  message: string
+  value: number
+  threshold: number
+  unit: string
+  status: "Active" | "Acknowledged" | "Resolved"
+  acknowledgedBy?: string
+  acknowledgedAt?: string
+  resolvedBy?: string
+  resolvedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface OEETrend {
+  id: string
+  workstationId: string
+  productionLineId?: string
+  period: "Hourly" | "Daily" | "Weekly" | "Monthly"
+  date: string
+  oee: number
+  availability: number
+  performance: number
+  quality: number
+  throughput: number
+  downtime: number
+  defects: number
 }

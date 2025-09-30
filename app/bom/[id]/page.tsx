@@ -272,9 +272,9 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                                 <span className="text-gray-400">-</span>
                               )}
                             </TableCell>
-                            <TableCell>${item.unitCost.toLocaleString()}</TableCell>
+                            <TableCell>RM{item.unitCost.toLocaleString()}</TableCell>
                             <TableCell className="font-medium">
-                              ${(item.totalCost || (item.quantity * item.unitCost)).toLocaleString()}
+                              RM{(item.totalCost || (item.quantity * item.unitCost)).toLocaleString()}
                             </TableCell>
                             <TableCell>{item.supplier || '-'}</TableCell>
                             <TableCell>
@@ -308,7 +308,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                           <div key={index} className="space-y-2">
                             <div className="flex justify-between items-center">
                               <span className="text-sm font-medium">{category.category}</span>
-                              <span className="text-sm font-bold">${category.amount.toLocaleString()}</span>
+                              <span className="text-sm font-bold">RM{category.amount.toLocaleString()}</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                               <div 
@@ -331,7 +331,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                       <div className="space-y-4">
                         <div className="flex justify-between">
                           <span>Material Cost:</span>
-                          <span className="font-medium">${bom.totalCost?.toLocaleString() || '0'}</span>
+                          <span className="font-medium">RM{bom.totalCost?.toLocaleString() || '0'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Items Count:</span>
@@ -347,7 +347,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-4">
                           <span>Total BOM Cost:</span>
-                          <span>${bom.totalCost?.toLocaleString() || '0'}</span>
+                          <span>RM{bom.totalCost?.toLocaleString() || '0'}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -378,7 +378,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                           <TableRow key={index}>
                             <TableCell className="font-medium">{supplier.supplier}</TableCell>
                             <TableCell>{supplier.items} items</TableCell>
-                            <TableCell className="font-medium">${supplier.totalValue.toLocaleString()}</TableCell>
+                            <TableCell className="font-medium">RM{supplier.totalValue.toLocaleString()}</TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(supplier.status)}>
                                 {supplier.status}

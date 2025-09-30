@@ -439,7 +439,7 @@ export default function CreatePurchaseOrderPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium text-sm">${item.totalPrice.toFixed(2)}</div>
+                            <div className="font-medium text-sm">RM{item.totalPrice.toFixed(2)}</div>
                           </TableCell>
                           <TableCell>
                             <Input
@@ -575,20 +575,20 @@ export default function CreatePurchaseOrderPage() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${calculateSubtotal().toFixed(2)}</span>
+                  <span>RM{calculateSubtotal().toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax (8.5%):</span>
-                  <span>${calculateTax(calculateSubtotal()).toFixed(2)}</span>
+                  <span>RM{calculateTax(calculateSubtotal()).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping:</span>
-                  <span>$500.00</span>
+                  <span>RM2,400.00</span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>${calculateTotal().toFixed(2)}</span>
+                    <span>RM{calculateTotal().toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="text-sm text-gray-600">

@@ -472,7 +472,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                           </Badge>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          Customer: {linkedQuotation.customerName} | Value: ${linkedQuotation.total.toLocaleString()}
+                          Customer: {linkedQuotation.customerName} | Value: RM{linkedQuotation.total.toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -593,7 +593,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="unitRate">Unit Rate ($)</Label>
+                            <Label htmlFor="unitRate">Unit Rate (RM)</Label>
                             <Input
                               id="unitRate"
                               type="number"
@@ -661,7 +661,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                         
                         <div className="flex justify-between items-center pt-4">
                           <div className="text-sm text-gray-600">
-                            Total Amount: <span className="font-medium">${(newItem.quantity * newItem.unitRate).toFixed(2)}</span>
+                            Total Amount: <span className="font-medium">RM{(newItem.quantity * newItem.unitRate).toFixed(2)}</span>
                           </div>
                           <div className="flex gap-2">
                             <Button type="button" variant="outline" onClick={() => setIsItemDialogOpen(false)}>
@@ -714,8 +714,8 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                             </div>
                           </TableCell>
                           <TableCell>{item.quantity} {item.unit}</TableCell>
-                          <TableCell>${item.unitRate.toFixed(2)}</TableCell>
-                          <TableCell className="font-medium">${item.totalAmount.toFixed(2)}</TableCell>
+                          <TableCell>RM{item.unitRate.toFixed(2)}</TableCell>
+                          <TableCell className="font-medium">RM{item.totalAmount.toFixed(2)}</TableCell>
                           <TableCell>
                             <div className="space-y-1">
                               <Select 
@@ -869,28 +869,28 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Material Cost</span>
-                    <span className="font-medium">${boq.materialCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{boq.materialCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Labor Cost</span>
-                    <span className="font-medium">${boq.laborCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{boq.laborCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Equipment Cost</span>
-                    <span className="font-medium">${boq.equipmentCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{boq.equipmentCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Subcontract Cost</span>
-                    <span className="font-medium">${boq.subcontractCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{boq.subcontractCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Other Cost</span>
-                    <span className="font-medium">${boq.otherCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{boq.otherCost.toLocaleString()}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total Cost</span>
-                    <span>${boq.totalCost.toLocaleString()}</span>
+                    <span>RM{boq.totalCost.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -962,7 +962,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                         </p>
                       </Link>
                       <p className="text-xs text-gray-500 mt-1">
-                        {linkedQuotation.customerName} | ${linkedQuotation.total.toLocaleString()}
+                        {linkedQuotation.customerName} | RM{linkedQuotation.total.toLocaleString()}
                       </p>
                     </div>
                   )}

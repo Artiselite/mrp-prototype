@@ -58,11 +58,11 @@ export class BOQGenerator {
       includeLabor: true,
       includeEquipment: true,
       includeOverhead: true,
-      laborRate: 50, // $50/hour
-      equipmentRate: 25, // $25/hour
+      laborRate: 240, // RM240/hour (converted from USD)
+      equipmentRate: 120, // RM120/hour (converted from USD)
       overheadPercentage: 15, // 15%
       profitMargin: 20, // 20%
-      currency: 'USD'
+      currency: 'MYR'
     }
 
     const finalOptions = { ...defaultOptions, ...options }
@@ -317,50 +317,50 @@ export class BOQGenerator {
    * Calculate material rate based on material type and current market prices
    */
   private calculateMaterialRate(material: CADMaterial, currency: string): number {
-    // More realistic base rates per unit (USD)
+    // More realistic base rates per unit (RM)
     const baseRates: Record<string, Record<string, number>> = {
       steel: {
-        'ea': 150, // $150 per piece for structural elements
-        'm': 25, // $25 per meter for linear elements
-        'kg': 2.5, // $2.5 per kg for welding materials
-        'l': 15, // $15 per liter for paint
-        'mm': 0.08, // $0.08 per mm for linear
-        'mm²': 0.00015, // $0.00015 per mm² for area
-        'mm³': 0.00008 // $0.00008 per mm³ for volume
+        'ea': 720, // RM720 per piece for structural elements
+        'm': 120, // RM120 per meter for linear elements
+        'kg': 12, // RM12 per kg for welding materials
+        'l': 72, // RM72 per liter for paint
+        'mm': 0.38, // RM0.38 per mm for linear
+        'mm²': 0.00072, // RM0.00072 per mm² for area
+        'mm³': 0.00038 // RM0.00038 per mm³ for volume
       },
       aluminum: {
-        'ea': 200,
-        'm': 35,
-        'kg': 4.5,
-        'l': 20,
-        'mm': 0.12,
-        'mm²': 0.00025,
-        'mm³': 0.00012
+        'ea': 960,
+        'm': 168,
+        'kg': 21.6,
+        'l': 96,
+        'mm': 0.58,
+        'mm²': 0.0012,
+        'mm³': 0.00058
       },
       copper: {
-        'ea': 300,
-        'm': 50,
-        'kg': 8.5,
-        'l': 25,
-        'mm': 0.18,
-        'mm²': 0.00035,
-        'mm³': 0.00018
+        'ea': 1440,
+        'm': 240,
+        'kg': 40.8,
+        'l': 120,
+        'mm': 0.86,
+        'mm²': 0.00168,
+        'mm³': 0.00086
       },
       concrete: {
-        'ea': 100,
-        'm': 15,
-        'kg': 0.8,
-        'l': 12,
-        'mm³': 0.00008
+        'ea': 480,
+        'm': 72,
+        'kg': 3.84,
+        'l': 57.6,
+        'mm³': 0.00038
       },
       other: {
-        'ea': 50,
-        'm': 10,
-        'kg': 3.0,
-        'l': 12,
-        'mm': 0.05,
-        'mm²': 0.0001,
-        'mm³': 0.00005
+        'ea': 240,
+        'm': 48,
+        'kg': 14.4,
+        'l': 57.6,
+        'mm': 0.24,
+        'mm²': 0.00048,
+        'mm³': 0.00024
       }
     }
 

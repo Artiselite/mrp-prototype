@@ -183,7 +183,7 @@ function QuotationsContent() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Value</p>
-                  <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">RM{stats.totalValue.toLocaleString()}</p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
                   <DollarSign className="w-6 h-6 text-green-600" />
@@ -325,7 +325,7 @@ function QuotationsContent() {
                     </TableCell>
                     <TableCell>{quotation?.createdAt}</TableCell>
                     <TableCell>{quotation?.validUntil}</TableCell>
-                    <TableCell className="font-medium">${quotation?.total?.toLocaleString()}</TableCell>
+                    <TableCell className="font-medium">RM{quotation?.total?.toLocaleString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Link href={`/quotations/${quotation?.id}`}>

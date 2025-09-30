@@ -139,7 +139,7 @@ export interface QuotationChange {
 export interface CopperLMEPrice {
   id: string
   date: string
-  price: number // USD per metric ton
+  price: number // RM per metric ton
   currency: string
   source: string
   timestamp: string

@@ -264,7 +264,7 @@ const moduleCharts = {
 /** ---------------------------
  *  Small UI helpers (primitives)
  *  --------------------------*/
-const Currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 })
+const Currency = new Intl.NumberFormat(undefined, { style: "currency", currency: "MYR", maximumFractionDigits: 0 })
 const Integer = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 })
 const Percent = (v: number) => `${Math.round(v)}%`
 
@@ -377,7 +377,7 @@ function EngineeringBarChart({ data, title, yAxisLabel }: { data: any[], title: 
                     <div key={index} className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-gray-600">{item.category}</span>
-                            <span className="font-medium">{yAxisLabel === "Cost" ? `$${item.cost.toLocaleString()}` : `${item.count} (${item.percentage}%)`}</span>
+                            <span className="font-medium">{yAxisLabel === "Cost" ? `RM${item.cost.toLocaleString()}` : `${item.count} (${item.percentage}%)`}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
@@ -511,7 +511,7 @@ export default function DashboardPage() {
 
     // Formatting utilities (memoized to prevent hydration issues)
     const formatters = useMemo(() => ({
-        Currency: new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }),
+        Currency: new Intl.NumberFormat(undefined, { style: "currency", currency: "MYR", maximumFractionDigits: 0 }),
         Integer: new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }),
         Percent: (v: number) => `${Math.round(v)}%`
     }), [])
@@ -653,8 +653,8 @@ export default function DashboardPage() {
                                         afterLabel: function (context: any) {
                                             if (context.datasetIndex === 0) {
                                                 // Units dataset
-                                                const revenue = context.parsed.y * 2; // $2K per unit
-                                                return `Revenue: $${revenue}K`;
+                                                const revenue = context.parsed.y * 2; // RM2K per unit
+                                                return `Revenue: RM${revenue}K`;
                                             } else {
                                                 // Revenue dataset
                                                 const units = context.parsed.y / 2; // 2K per unit
@@ -700,7 +700,7 @@ export default function DashboardPage() {
                                             size: 9
                                         },
                                         callback: function (value: any) {
-                                            return '$' + value + 'K';
+                                            return 'RM' + value + 'K';
                                         }
                                     },
                                     grid: {
@@ -907,15 +907,15 @@ export default function DashboardPage() {
                     <div class="space-y-3 text-xs">
                         <div class="space-y-1">
                             <div class="flex justify-between"><span class="text-green-700">Product A:</span><span class="font-medium text-green-800">1,200 units</span></div>
-                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">$2,400K</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM2,400K</span></div>
                         </div>
                         <div class="space-y-1">
                             <div class="flex justify-between"><span class="text-green-700">Product B:</span><span class="font-medium text-green-800">950 units</span></div>
-                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">$1,900K</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM1,900K</span></div>
                         </div>
                         <div class="space-y-1">
                             <div class="flex justify-between"><span class="text-green-700">Product C:</span><span class="font-medium text-green-800">700 units</span></div>
-                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">$1,400K</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM1,400K</span></div>
                         </div>
                     </div>
                 `
@@ -1185,7 +1185,7 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <div className="font-medium text-orange-700">Potential Impact:</div>
-                                <div className="text-2xl font-bold text-orange-800">$125K</div>
+                                <div className="text-2xl font-bold text-orange-800">RM600K</div>
                                 <div className="text-orange-600">Cost increase</div>
                             </div>
                         </div>
@@ -1202,7 +1202,7 @@ export default function DashboardPage() {
                                 <div className="text-sm text-red-700 space-y-1">
                                     <div>• Delivery delay risk: 23% (3-week delays)</div>
                                     <div>• Historical performance: 78% on-time delivery</div>
-                                    <div>• Impact: $67K potential cost increase</div>
+                                    <div>• Impact: RM321K potential cost increase</div>
                                     <div>• Root cause: Transportation bottlenecks</div>
                                 </div>
                             </div>
@@ -1214,7 +1214,7 @@ export default function DashboardPage() {
                                 <div className="text-sm text-yellow-700 space-y-1">
                                     <div>• Price increase risk: 15% (8% volatility)</div>
                                     <div>• Market trend: Upward pressure</div>
-                                    <div>• Impact: $58K potential cost increase</div>
+                                    <div>• Impact: RM278K potential cost increase</div>
                                     <div>• Root cause: Global supply constraints</div>
                                 </div>
                             </div>
@@ -1248,18 +1248,18 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-3 bg-red-50 rounded border border-red-200">
                                 <div className="font-medium text-red-800 text-center">Risk Cost</div>
-                                <div className="text-2xl font-bold text-red-800 text-center">$125K</div>
+                                <div className="text-2xl font-bold text-red-800 text-center">RM600K</div>
                                 <div className="text-sm text-red-600 text-center">Potential loss</div>
                             </div>
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 text-center">Mitigation Cost</div>
-                                <div className="text-2xl font-bold text-green-800 text-center">$45K</div>
+                                <div className="text-2xl font-bold text-green-800 text-center">RM216K</div>
                                 <div className="text-sm text-green-600 text-center">Prevention cost</div>
                             </div>
                         </div>
                         <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
                             <div className="font-medium text-blue-800 text-center">Net Savings</div>
-                            <div className="text-2xl font-bold text-blue-800 text-center">$80K</div>
+                            <div className="text-2xl font-bold text-blue-800 text-center">RM384K</div>
                             <div className="text-sm text-blue-600 text-center">Risk mitigation value</div>
                         </div>
                     </div>
@@ -1293,7 +1293,7 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <div className="font-medium text-green-700">Annual Savings:</div>
-                                <div className="text-2xl font-bold text-green-800">$89K</div>
+                                <div className="text-2xl font-bold text-green-800">RM427K</div>
                                 <div className="text-green-600">Operational costs</div>
                             </div>
                         </div>
@@ -1378,7 +1378,7 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
                                 <div className="font-medium text-blue-700">Projected Savings:</div>
-                                <div className="text-2xl font-bold text-blue-800">$67K</div>
+                                <div className="text-2xl font-bold text-blue-800">RM321K</div>
                                 <div className="text-blue-600">Annual savings</div>
                             </div>
                             <div>
@@ -1400,7 +1400,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-blue-50 rounded border border-blue-200">
                                 <div className="font-medium text-blue-800 mb-2">Safety Stock Reduction</div>
                                 <div className="text-sm text-blue-700">
-                                    <div>• Savings: $28K (40% of total)</div>
+                                    <div>• Savings: RM134K (40% of total)</div>
                                     <div>• Items affected: 45 high-value items</div>
                                     <div>• Risk assessment: Low impact</div>
                                 </div>
@@ -1408,7 +1408,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 mb-2">JIT Implementation</div>
                                 <div className="text-sm text-green-700">
-                                    <div>• Savings: $23K (33% of total)</div>
+                                    <div>• Savings: RM110K (33% of total)</div>
                                     <div>• Items affected: 23 items</div>
                                     <div>• Lead time optimization</div>
                                 </div>
@@ -1416,7 +1416,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-purple-50 rounded border border-purple-200">
                                 <div className="font-medium text-purple-800 mb-2">Carrying Costs</div>
                                 <div className="text-sm text-purple-700">
-                                    <div>• Savings: $16K (24% of total)</div>
+                                    <div>• Savings: RM77K (24% of total)</div>
                                     <div>• Reduced storage costs</div>
                                     <div>• Lower insurance costs</div>
                                 </div>
@@ -1430,7 +1430,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
                                 <div className="font-medium text-yellow-800">Phase 1 (Month 1): High-Value Items</div>
                                 <div className="text-sm text-yellow-700 mt-1">
-                                    • 8 high-value items ($18K savings)<br />
+                                    • 8 high-value items (RM86K savings)<br />
                                     • Immediate impact items<br />
                                     • Low-risk implementation
                                 </div>
@@ -1438,7 +1438,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
                                 <div className="font-medium text-blue-800">Phase 2 (Month 2): Fast-Moving Items</div>
                                 <div className="text-sm text-blue-700 mt-1">
-                                    • 12 fast-moving items ($12K savings)<br />
+                                    • 12 fast-moving items (RM58K savings)<br />
                                     • High turnover items<br />
                                     • Moderate risk assessment
                                 </div>
@@ -1446,7 +1446,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-green-50 rounded border-l-4 border-green-400">
                                 <div className="font-medium text-green-800">Phase 3 (Month 3): Long-Lead Items</div>
                                 <div className="text-sm text-green-700 mt-1">
-                                    • 3 long-lead items ($8K savings)<br />
+                                    • 3 long-lead items (RM38K savings)<br />
                                     • Strategic items<br />
                                     • Careful risk management
                                 </div>
@@ -1583,7 +1583,7 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <div className="font-medium text-green-700">Annual Savings:</div>
-                                <div className="text-2xl font-bold text-green-800">$34K</div>
+                                <div className="text-2xl font-bold text-green-800">RM163K</div>
                                 <div className="text-green-600">Material costs</div>
                             </div>
                         </div>
@@ -2164,13 +2164,13 @@ export default function DashboardPage() {
                                         <div className="flex items-center justify-between mb-2">
                                             <div className="font-semibold text-blue-800 text-sm">Inventory Reduction</div>
                                             <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                                $45K Savings
+                                                RM216K Savings
                                             </Badge>
                                         </div>
                                         <div className="text-xs text-blue-600 mb-2">
                                             <div className="flex items-center space-x-1 mb-1">
                                                 <DollarSign className="w-3 h-3" />
-                                                <span>Projected: $67K annual savings</span>
+                                                <span>Projected: RM321K annual savings</span>
                                             </div>
                                             <div>• Reduce safety stock by 15%</div>
                                             <div>• Implement JIT for 23 items</div>

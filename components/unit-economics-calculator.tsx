@@ -46,7 +46,7 @@ export default function UnitEconomicsCalculator({
     overheadCost: initialData?.overheadCost || 0,
     profitMargin: initialData?.profitMargin || 0,
     quantity: initialData?.quantity || 1,
-    currency: initialData?.currency || 'USD',
+    currency: initialData?.currency || 'MYR',
     createdAt: initialData?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   })
@@ -60,8 +60,8 @@ export default function UnitEconomicsCalculator({
   const mockCopperLME: CopperLMEPrice = {
     id: 'lme_001',
     date: new Date().toISOString().split('T')[0],
-    price: 8500, // USD per metric ton
-    currency: 'USD',
+    price: 40000, // RM per metric ton
+    currency: 'MYR',
     source: 'LME',
     timestamp: new Date().toISOString(),
     change24h: 125,
@@ -259,7 +259,7 @@ export default function UnitEconomicsCalculator({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label className="text-sm text-gray-600">Current Price</Label>
-                <div className="text-2xl font-bold">${copperLME.price.toLocaleString()}</div>
+                <div className="text-2xl font-bold">RM{copperLME.price.toLocaleString()}</div>
                 <div className="text-sm text-gray-500">per metric ton</div>
               </div>
               <div>
@@ -316,7 +316,7 @@ export default function UnitEconomicsCalculator({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="baseMaterialCost">Base Material Cost ($)</Label>
+                    <Label htmlFor="baseMaterialCost">Base Material Cost (RM)</Label>
                     <Input
                       id="baseMaterialCost"
                       type="number"
@@ -337,7 +337,7 @@ export default function UnitEconomicsCalculator({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="laborCost">Labor Cost ($)</Label>
+                    <Label htmlFor="laborCost">Labor Cost (RM)</Label>
                     <Input
                       id="laborCost"
                       type="number"
@@ -346,7 +346,7 @@ export default function UnitEconomicsCalculator({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="overheadCost">Overhead Cost ($)</Label>
+                    <Label htmlFor="overheadCost">Overhead Cost (RM)</Label>
                     <Input
                       id="overheadCost"
                       type="number"
@@ -387,7 +387,7 @@ export default function UnitEconomicsCalculator({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="MYR">MYR</SelectItem>
                       <SelectItem value="EUR">EUR</SelectItem>
                       <SelectItem value="GBP">GBP</SelectItem>
                     </SelectContent>
@@ -405,33 +405,33 @@ export default function UnitEconomicsCalculator({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-gray-600">Copper Cost</Label>
-                    <div className="text-lg font-semibold">${economics.copperCost.toFixed(2)}</div>
+                    <div className="text-lg font-semibold">RM{economics.copperCost.toFixed(2)}</div>
                   </div>
                   <div>
                     <Label className="text-sm text-gray-600">Total Material Cost</Label>
-                    <div className="text-lg font-semibold">${economics.totalMaterialCost.toFixed(2)}</div>
+                    <div className="text-lg font-semibold">RM{economics.totalMaterialCost.toFixed(2)}</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-gray-600">Total Cost</Label>
-                    <div className="text-lg font-semibold">${economics.totalCost.toFixed(2)}</div>
+                    <div className="text-lg font-semibold">RM{economics.totalCost.toFixed(2)}</div>
                   </div>
                   <div>
                     <Label className="text-sm text-gray-600">Profit Amount</Label>
-                    <div className="text-lg font-semibold">${economics.profitAmount.toFixed(2)}</div>
+                    <div className="text-lg font-semibold">RM{economics.profitAmount.toFixed(2)}</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-gray-600">Unit Price</Label>
-                    <div className="text-xl font-bold">${economics.unitPrice.toFixed(2)}</div>
+                    <div className="text-xl font-bold">RM{economics.unitPrice.toFixed(2)}</div>
                   </div>
                   <div>
                     <Label className="text-sm text-gray-600">Total Price</Label>
-                    <div className="text-xl font-bold">${economics.totalPrice.toFixed(2)}</div>
+                    <div className="text-xl font-bold">RM{economics.totalPrice.toFixed(2)}</div>
                   </div>
                 </div>
 
@@ -489,31 +489,31 @@ export default function UnitEconomicsCalculator({
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="p-2 font-medium">Copper Price ($/ton)</td>
-                        <td className="text-right p-2">${analysis.scenarios.copperPriceMin.toFixed(0)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.copperPriceCurrent.toFixed(0)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.copperPriceMax.toFixed(0)}</td>
+                        <td className="p-2 font-medium">Copper Price (RM/ton)</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.copperPriceMin.toFixed(0)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.copperPriceCurrent.toFixed(0)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.copperPriceMax.toFixed(0)}</td>
                         <td className="text-right p-2">±15%</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="p-2 font-medium">Material Cost ($)</td>
-                        <td className="text-right p-2">${analysis.scenarios.materialCostMin.toFixed(2)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.materialCostCurrent.toFixed(2)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.materialCostMax.toFixed(2)}</td>
+                        <td className="p-2 font-medium">Material Cost (RM)</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.materialCostMin.toFixed(2)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.materialCostCurrent.toFixed(2)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.materialCostMax.toFixed(2)}</td>
                         <td className="text-right p-2">±10%</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="p-2 font-medium">Total Cost ($)</td>
-                        <td className="text-right p-2">${analysis.scenarios.totalCostMin.toFixed(2)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.totalCostCurrent.toFixed(2)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.totalCostMax.toFixed(2)}</td>
+                        <td className="p-2 font-medium">Total Cost (RM)</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.totalCostMin.toFixed(2)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.totalCostCurrent.toFixed(2)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.totalCostMax.toFixed(2)}</td>
                         <td className="text-right p-2">±8%</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="p-2 font-medium">Profit ($)</td>
-                        <td className="text-right p-2">${analysis.scenarios.profitMin.toFixed(2)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.profitCurrent.toFixed(2)}</td>
-                        <td className="text-right p-2">${analysis.scenarios.profitMax.toFixed(2)}</td>
+                        <td className="p-2 font-medium">Profit (RM)</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.profitMin.toFixed(2)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.profitCurrent.toFixed(2)}</td>
+                        <td className="text-right p-2">RM{analysis.scenarios.profitMax.toFixed(2)}</td>
                         <td className="text-right p-2">±12%</td>
                       </tr>
                       <tr>
@@ -563,7 +563,7 @@ export default function UnitEconomicsCalculator({
                       <div className="text-center">
                         <div className="text-sm text-red-600 font-medium">Worst Case</div>
                         <div className="text-2xl font-bold text-red-600">
-                          ${analysis.scenarios.totalCostMax.toFixed(0)}
+                          RM{analysis.scenarios.totalCostMax.toFixed(0)}
                         </div>
                         <div className="text-sm text-gray-500">Total Cost</div>
                         <div className="text-sm text-red-600">
@@ -578,7 +578,7 @@ export default function UnitEconomicsCalculator({
                       <div className="text-center">
                         <div className="text-sm text-blue-600 font-medium">Current</div>
                         <div className="text-2xl font-bold text-blue-600">
-                          ${analysis.scenarios.totalCostCurrent.toFixed(0)}
+                          RM{analysis.scenarios.totalCostCurrent.toFixed(0)}
                         </div>
                         <div className="text-sm text-gray-500">Total Cost</div>
                         <div className="text-sm text-blue-600">
@@ -593,7 +593,7 @@ export default function UnitEconomicsCalculator({
                       <div className="text-center">
                         <div className="text-sm text-green-600 font-medium">Best Case</div>
                         <div className="text-2xl font-bold text-green-600">
-                          ${analysis.scenarios.totalCostMin.toFixed(0)}
+                          RM{analysis.scenarios.totalCostMin.toFixed(0)}
                         </div>
                         <div className="text-sm text-gray-500">Total Cost</div>
                         <div className="text-sm text-green-600">

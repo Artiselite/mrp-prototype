@@ -174,8 +174,8 @@ export default function CreateInvoicePage() {
                   <TableRow>
                     <TableHead>Description</TableHead>
                     <TableHead>Quantity</TableHead>
-                    <TableHead>Rate ($)</TableHead>
-                    <TableHead>Amount ($)</TableHead>
+                    <TableHead>Rate (RM)</TableHead>
+                    <TableHead>Amount (RM)</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -205,7 +205,7 @@ export default function CreateInvoicePage() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">
-                        ${item.amount.toLocaleString()}
+                        RM{item.amount.toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
@@ -233,15 +233,15 @@ export default function CreateInvoicePage() {
                   <div className="w-64 space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span className="font-medium">${calculateSubtotal().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateSubtotal().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax (8.5%):</span>
-                      <span className="font-medium">${calculateTax().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateTax().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                       <span>Total:</span>
-                      <span>${calculateTotal().toLocaleString()}</span>
+                      <span>RM{calculateTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

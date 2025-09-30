@@ -290,7 +290,7 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                         <div>
                           <Label className="text-xs font-medium text-green-600">TOTAL VALUE</Label>
-                          <p className="text-lg font-bold text-green-900">${quotation.total.toLocaleString()}</p>
+                          <p className="text-lg font-bold text-green-900">RM{quotation.total.toLocaleString()}</p>
                         </div>
                         <div>
                           <Label className="text-xs font-medium text-green-600">CREATED</Label>

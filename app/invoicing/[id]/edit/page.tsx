@@ -362,8 +362,8 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                     <TableRow>
                       <TableHead>Description</TableHead>
                       <TableHead>Quantity</TableHead>
-                      <TableHead>Unit Price ($)</TableHead>
-                      <TableHead>Total ($)</TableHead>
+                      <TableHead>Unit Price (RM)</TableHead>
+                      <TableHead>Total (RM)</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -396,7 +396,7 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                           />
                         </TableCell>
                         <TableCell className="font-medium">
-                          ${item.totalPrice.toLocaleString()}
+                          RM{item.totalPrice.toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
@@ -420,15 +420,15 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                   <div className="w-80 space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span className="font-medium">${calculateSubtotal().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateSubtotal().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax (8.5%):</span>
-                      <span className="font-medium">${calculateTax().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateTax().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                       <span>Total:</span>
-                      <span>${calculateTotal().toLocaleString()}</span>
+                      <span>RM{calculateTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -518,15 +518,15 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
               <CardContent className="space-y-3">
                 <div>
                   <Label className="text-xs font-medium text-gray-500">SUBTOTAL</Label>
-                  <p className="text-lg font-bold">${calculateSubtotal().toLocaleString()}</p>
+                  <p className="text-lg font-bold">RM{calculateSubtotal().toLocaleString()}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">TAX (8.5%)</Label>
-                  <p className="text-sm">${calculateTax().toLocaleString()}</p>
+                  <p className="text-sm">RM{calculateTax().toLocaleString()}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">TOTAL</Label>
-                  <p className="text-xl font-bold text-blue-600">${calculateTotal().toLocaleString()}</p>
+                  <p className="text-xl font-bold text-blue-600">RM{calculateTotal().toLocaleString()}</p>
                 </div>
               </CardContent>
             </Card>
@@ -541,7 +541,7 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                   <Badge className="bg-blue-100 text-blue-800" variant="outline">
                     Items ({lineItems.length})
                   </Badge>
-                  <span className="text-sm font-medium">${calculateSubtotal().toLocaleString()}</span>
+                  <span className="text-sm font-medium">RM{calculateSubtotal().toLocaleString()}</span>
                 </div>
               </CardContent>
             </Card>
@@ -558,7 +558,7 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">AMOUNT DUE</Label>
-                  <p className="text-lg font-bold text-red-600">${calculateTotal().toLocaleString()}</p>
+                  <p className="text-lg font-bold text-red-600">RM{calculateTotal().toLocaleString()}</p>
                 </div>
               </CardContent>
             </Card>

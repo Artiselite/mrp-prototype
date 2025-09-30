@@ -97,7 +97,7 @@ export default function BOMPage() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Value</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${boms.reduce((total, bom) => total + (bom.totalCost || 0), 0).toLocaleString()}
+                    RM{boms.reduce((total, bom) => total + (bom.totalCost || 0), 0).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -196,7 +196,7 @@ export default function BOMPage() {
                         {bom.itemCount || bom.items?.length || 0} items
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">${bom.totalCost?.toLocaleString() || '0'}</TableCell>
+                    <TableCell className="font-medium">RM{bom.totalCost?.toLocaleString() || '0'}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(bom.status || "Draft")}>
                         {bom.status || "Draft"}

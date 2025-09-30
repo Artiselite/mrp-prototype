@@ -44,7 +44,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
   const [paymentHistory] = useState([
     {
       date: invoice?.issueDate || "2024-01-30",
-      amount: `$${invoice?.total.toLocaleString() || "18,750"}`,
+      amount: `RM${invoice?.total.toLocaleString() || "90,000"}`,
       method: "Bank Transfer",
       reference: "TXN-789456123",
       status: invoice?.status === "Paid" ? "Completed" : "Pending"
@@ -77,7 +77,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
       subject: "Payment Received",
       from: "System",
       to: "Accounts Team",
-      content: `Payment of $${invoice?.total.toLocaleString() || "18,750"} received via bank transfer. Invoice marked as paid.`
+      content: `Payment of RM${invoice?.total.toLocaleString() || "90,000"} received via bank transfer. Invoice marked as paid.`
     }
   ])
 
@@ -256,8 +256,8 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
                               </Badge>
                             </TableCell>
                             <TableCell>{item.quantity}</TableCell>
-                            <TableCell>${item.unitPrice.toLocaleString()}</TableCell>
-                            <TableCell className="text-right font-medium">${item.totalPrice.toLocaleString()}</TableCell>
+                            <TableCell>RM{item.unitPrice.toLocaleString()}</TableCell>
+                            <TableCell className="text-right font-medium">RM{item.totalPrice.toLocaleString()}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -268,15 +268,15 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
                       <div className="w-80 space-y-2">
                         <div className="flex justify-between">
                           <span>Subtotal:</span>
-                          <span className="font-medium">${invoice.subtotal.toLocaleString()}</span>
+                          <span className="font-medium">RM{invoice.subtotal.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Tax:</span>
-                          <span className="font-medium">${invoice.tax.toLocaleString()}</span>
+                          <span className="font-medium">RM{invoice.tax.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-2">
                           <span>Total:</span>
-                          <span>${invoice.total.toLocaleString()}</span>
+                          <span>RM{invoice.total.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -418,7 +418,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Total Amount</label>
-                          <p className="mt-1 text-xl font-bold">${invoice.total.toLocaleString()}</p>
+                          <p className="mt-1 text-xl font-bold">RM{invoice.total.toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
@@ -444,7 +444,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">TOTAL AMOUNT</label>
-                  <p className="text-xl font-bold">${invoice.total.toLocaleString()}</p>
+                  <p className="text-xl font-bold">RM{invoice.total.toLocaleString()}</p>
                 </div>
                 {invoice.status === "Paid" && (
                   <div>

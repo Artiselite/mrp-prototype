@@ -603,7 +603,7 @@ export const engineeringChanges: EngineeringChange[] = [
     status: "Implemented",
     reason: "Customer requested additional connection points",
     description: "Added two additional bolt holes for mounting brackets",
-    impact: "Increased fabrication time by 2 hours, additional material cost $150",
+    impact: "Increased fabrication time by 2 hours, additional material cost RM720",
     costImpact: 150,
     scheduleImpact: 2,
     proposedBy: "John Smith (Customer)",
@@ -2341,7 +2341,7 @@ export const invoices: Invoice[] = [
     subtotal: 6000.0,
     tax: 480.0,
     total: 6480.0,
-    amount: "$6,480.00",
+    amount: "RM31,104.00",
     issueDate: "2024-02-20",
     dueDate: "2024-03-21",
     dateIssued: "2024-02-20",
@@ -2366,7 +2366,7 @@ export const invoices: Invoice[] = [
     subtotal: 4160.0,
     tax: 332.8,
     total: 4492.8,
-    amount: "$4,492.80",
+    amount: "RM21,565.44",
     issueDate: "2024-02-25",
     dueDate: "2024-03-26",
     dateIssued: "2024-02-25",
@@ -2392,7 +2392,7 @@ export const invoices: Invoice[] = [
     subtotal: 2160.0,
     tax: 172.8,
     total: 2332.8,
-    amount: "$2,332.80",
+    amount: "RM11,197.44",
     issueDate: "2024-03-01",
     dueDate: "2024-03-31",
     dateIssued: "2024-03-01",
@@ -2719,7 +2719,7 @@ export const statusColors = {
 }
 
 export const formatCurrency = (amount: number): string =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
+  new Intl.NumberFormat("en-MY", { style: "currency", currency: "MYR" }).format(amount)
 
 export const formatDate = (dateString: string): string =>
   new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })

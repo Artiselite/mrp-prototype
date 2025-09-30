@@ -283,9 +283,15 @@ export default function ProjectManagementPage() {
                 <Search className="w-4 h-4 mr-2" />
                 Refresh
               </Button>
-              <Button onClick={openCreateDialog}>
+              <Link href="/projects/create">
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Project
+                </Button>
+              </Link>
+              <Button variant="outline" onClick={openCreateDialog}>
                 <Plus className="w-4 h-4 mr-2" />
-                New Project
+                Quick Create
               </Button>
             </div>
           </div>

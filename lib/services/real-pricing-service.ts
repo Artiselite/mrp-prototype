@@ -126,7 +126,7 @@ export class RealPricingService {
           grade: 'A36',
           unit: 'kg',
           price: 0.85,
-          currency: 'USD',
+          currency: 'MYR',
           lastUpdated: new Date().toISOString(),
           source: 'MetalMiner'
         },
@@ -135,7 +135,7 @@ export class RealPricingService {
           grade: 'A572',
           unit: 'kg',
           price: 0.95,
-          currency: 'USD',
+          currency: 'MYR',
           lastUpdated: new Date().toISOString(),
           source: 'SteelBenchmarker'
         }
@@ -162,7 +162,7 @@ export class RealPricingService {
           grade: '6061-T6',
           unit: 'kg',
           price: 2.15,
-          currency: 'USD',
+          currency: 'MYR',
           lastUpdated: new Date().toISOString(),
           source: 'LME'
         }
@@ -187,7 +187,7 @@ export class RealPricingService {
           grade: 'C110',
           unit: 'kg',
           price: 8.50,
-          currency: 'USD',
+          currency: 'MYR',
           lastUpdated: new Date().toISOString(),
           source: 'LME'
         }

@@ -58,9 +58,9 @@ export interface OverheadCostData {
 
 export class CostCalculationService {
   private static instance: CostCalculationService
-  private copperLMEPrice: number = 8500 // USD per metric ton
+  private copperLMEPrice: number = 40000 // RM per metric ton (converted from USD)
   private overheadRate: number = 0.15 // 15% of labor cost
-  private engineeringRate: number = 125 // USD per hour
+  private engineeringRate: number = 600 // RM per hour (converted from USD)
 
   static getInstance(): CostCalculationService {
     if (!CostCalculationService.instance) {

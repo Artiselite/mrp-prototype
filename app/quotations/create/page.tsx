@@ -1429,13 +1429,13 @@ export default function CreateQuotationPage() {
                   id: 'temp-ue',
                   quotationId: 'temp-quotation',
                   baseMaterialCost: formData.materialCost || 0,
-                  copperWeight: formData.materialCost ? Math.round(formData.materialCost / 100) : 0, // Estimate: ~$100 per kg copper
-                  copperLMEPrice: 8500, // TODO: Fetch from LME API
+                  copperWeight: formData.materialCost ? Math.round(formData.materialCost / 480) : 0, // Estimate: ~RM480 per kg copper
+                  copperLMEPrice: 40000, // TODO: Fetch from LME API
                   laborCost: formData.laborCost || 0,
                   overheadCost: formData.overheadCost || 0,
                   profitMargin: 15, // Default profit margin
                   quantity: lineItems.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0) || 1,
-                  currency: 'USD',
+                  currency: 'MYR',
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString()
                 }}

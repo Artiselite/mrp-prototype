@@ -905,13 +905,13 @@ export default function EditQuotationPage() {
                     id: `ue_${quotationId}`,
                     quotationId,
                     baseMaterialCost: formData.materialCost || 0,
-                    copperWeight: formData.materialCost ? Math.round(formData.materialCost / 100) : 0, // Estimate: ~$100 per kg copper
-                    copperLMEPrice: 8500, // TODO: Fetch from LME API
+                    copperWeight: formData.materialCost ? Math.round(formData.materialCost / 480) : 0, // Estimate: ~RM480 per kg copper
+                    copperLMEPrice: 40000, // TODO: Fetch from LME API
                     laborCost: formData.laborCost || 0,
                     overheadCost: formData.overheadCost || 0,
                     profitMargin: calculateTotal() > 0 ? ((formData.profitMargin || 0) / calculateTotal()) * 100 : 15,
                     quantity: lineItems.reduce((sum, item) => sum + item.quantity, 0) || 1,
-                    currency: 'USD',
+                    currency: 'MYR',
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                   }}

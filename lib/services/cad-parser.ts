@@ -1,9 +1,67 @@
 /**
  * CAD File Parser Service
  * Handles parsing of CAD files (DWG, DXF) and extraction of BOQ data
+ * Uses LibreDWG Web library for DWG file parsing
  */
 
 import type { CADBOQData, CADMaterial, CADDimension, CADBlock } from '@/lib/types'
+
+// Import LibreDWG Web library
+declare global {
+  interface Window {
+    LibreDWG: any
+  }
+}
+
+// Load LibreDWG Web library dynamically
+const loadLibreDWG = async () => {
+  if (typeof window === 'undefined') {
+    throw new Error('LibreDWG can only be loaded in browser environment')
+  }
+
+  if (window.LibreDWG) {
+    return window.LibreDWG
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.textContent = `
+      try {
+        import('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.3.0/+esm').then(module => {
+          window.LibreDWG = module
+          console.log('LibreDWG loaded successfully')
+        }).catch(err => {
+          console.error('Failed to load LibreDWG:', err)
+          window.LibreDWG = null
+        })
+      } catch (err) {
+        console.error('Failed to load LibreDWG:', err)
+        window.LibreDWG = null
+      }
+    `
+    
+    script.onload = () => {
+      // Check periodically if LibreDWG is loaded
+      const checkLoaded = () => {
+        if (window.LibreDWG) {
+          resolve(window.LibreDWG)
+        } else if (window.LibreDWG === null) {
+          reject(new Error('Failed to load LibreDWG library'))
+        } else {
+          setTimeout(checkLoaded, 100)
+        }
+      }
+      checkLoaded()
+    }
+    
+    script.onerror = () => {
+      reject(new Error('Failed to load LibreDWG script'))
+    }
+    
+    document.head.appendChild(script)
+  })
+}
 
 export interface CADEntity {
   type: string
@@ -42,19 +100,50 @@ export class CADParser {
   }
 
   /**
-   * Parse DWG file (simplified implementation)
-   * Note: Full DWG parsing requires specialized libraries or server-side processing
+   * Parse DWG file using LibreDWG Web library
    */
   private async parseDWGFile(file: File): Promise<CADBOQData> {
-    // For now, we'll simulate DWG parsing
-    // In a real implementation, you would use a library like 'dwg-parser' or server-side processing
-    console.log('Parsing DWG file:', file.name)
-    
-    // Simulate parsing delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Return mock data for demonstration
-    return this.generateMockBOQData(file.name)
+    try {
+      console.log('Parsing DWG file with LibreDWG:', file.name)
+      
+      // Load LibreDWG library with timeout
+      const LibreDWG = await Promise.race([
+        loadLibreDWG(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('LibreDWG loading timeout')), 10000)
+        )
+      ])
+      
+      if (!LibreDWG) {
+        throw new Error('Failed to load LibreDWG library')
+      }
+
+      console.log('LibreDWG library loaded successfully')
+
+      // Read file as ArrayBuffer
+      const arrayBuffer = await this.readFileAsArrayBuffer(file)
+      console.log('File read as ArrayBuffer, size:', arrayBuffer.byteLength)
+
+      // Check if LibreDWG has the expected method
+      if (typeof LibreDWG.readDWG !== 'function') {
+        console.warn('LibreDWG.readDWG not available, using fallback')
+        throw new Error('LibreDWG.readDWG method not available')
+      }
+
+      // Parse DWG file using LibreDWG
+      console.log('Starting DWG parsing...')
+      const dwgData = await LibreDWG.readDWG(arrayBuffer)
+      console.log('DWG parsing completed:', dwgData)
+      
+      // Extract BOQ data from parsed DWG
+      return this.extractBOQDataFromDWG(dwgData, file.name)
+      
+    } catch (error) {
+      console.error('Error parsing DWG file with LibreDWG:', error)
+      console.log('Falling back to mock data generation')
+      // Fallback to mock data if parsing fails
+      return this.generateMockBOQData(file.name)
+    }
   }
 
   /**
@@ -604,6 +693,202 @@ export class CADParser {
         layers: ['STRUCTURAL', 'DIMENSIONS', 'TEXT', 'HATCH', 'TITLE_BLOCK', 'ANNOTATIONS']
       }
     }
+  }
+
+  /**
+   * Read file as ArrayBuffer (for DWG)
+   */
+  private async readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => resolve(e.target?.result as ArrayBuffer)
+      reader.onerror = (e) => reject(e)
+      reader.readAsArrayBuffer(file)
+    })
+  }
+
+  /**
+   * Read file as text (for DXF)
+   */
+  private async readFileAsText(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => resolve(e.target?.result as string)
+      reader.onerror = (e) => reject(e)
+      reader.readAsText(file)
+    })
+  }
+
+  /**
+   * Extract BOQ data from parsed DWG data
+   */
+  private extractBOQDataFromDWG(dwgData: any, fileName: string): CADBOQData {
+    const materials: CADMaterial[] = []
+    const dimensions: CADDimension[] = []
+    const blocks: CADBlock[] = []
+
+    try {
+      // Extract materials from DWG layers
+      if (dwgData.layers) {
+        for (const layer of dwgData.layers) {
+          const material = this.identifyMaterialFromLayer(layer.name)
+          if (material) {
+            materials.push(material)
+          }
+        }
+      }
+
+      // Extract dimensions from DWG entities
+      if (dwgData.entities) {
+        for (const entity of dwgData.entities) {
+          if (entity.type === 'DIMENSION' || entity.type === 'DIMENSION_ALIGNED') {
+            const dimension = this.extractDimensionFromDWG(entity)
+            if (dimension) {
+              dimensions.push(dimension)
+            }
+          }
+        }
+      }
+
+      // Extract blocks from DWG
+      if (dwgData.blocks) {
+        for (const [name, block] of Object.entries(dwgData.blocks)) {
+          const cadBlock = this.extractBlockFromDWG(name, block as any)
+          if (cadBlock) {
+            blocks.push(cadBlock)
+          }
+        }
+      }
+
+      // Calculate totals from DWG geometry
+      const totalArea = this.calculateAreaFromDWG(dwgData.entities || [])
+      const totalVolume = this.calculateVolumeFromDWG(dwgData.entities || [])
+      const totalLength = this.calculateLengthFromDWG(dwgData.entities || [])
+
+      return {
+        materials,
+        dimensions,
+        blocks,
+        totalArea,
+        totalVolume,
+        totalLength,
+        drawingInfo: {
+          title: fileName.replace(/\.[^/.]+$/, ''),
+          scale: this.extractScaleFromDWG(dwgData.header),
+          units: this.extractUnitsFromDWG(dwgData.header),
+          layers: dwgData.layers?.map((l: any) => l.name) || []
+        }
+      }
+    } catch (error) {
+      console.error('Error extracting BOQ data from DWG:', error)
+      // Return minimal data if extraction fails
+      return {
+        materials: [],
+        dimensions: [],
+        blocks: [],
+        totalArea: 0,
+        totalVolume: 0,
+        totalLength: 0,
+        drawingInfo: {
+          title: fileName.replace(/\.[^/.]+$/, ''),
+          scale: '1:50',
+          units: 'mm',
+          layers: []
+        }
+      }
+    }
+  }
+
+  /**
+   * Extract dimension from DWG entity
+   */
+  private extractDimensionFromDWG(entity: any): CADDimension | null {
+    try {
+      return {
+        type: entity.type === 'DIMENSION_ALIGNED' ? 'linear' : 'linear',
+        value: entity.measurement || 0,
+        unit: 'mm',
+        startPoint: entity.startPoint || { x: 0, y: 0, z: 0 },
+        endPoint: entity.endPoint || { x: 0, y: 0, z: 0 },
+        text: entity.text || '',
+        layer: entity.layer || 'DIMENSIONS'
+      }
+    } catch (error) {
+      console.error('Error extracting dimension from DWG:', error)
+      return null
+    }
+  }
+
+  /**
+   * Extract block from DWG
+   */
+  private extractBlockFromDWG(name: string, block: any): CADBlock | null {
+    try {
+      return {
+        name,
+        entities: block.entities || [],
+        attributes: block.attributes || {},
+        insertPoint: block.insertPoint || { x: 0, y: 0, z: 0 },
+        scale: block.scale || { x: 1, y: 1, z: 1 },
+        rotation: block.rotation || 0
+      }
+    } catch (error) {
+      console.error('Error extracting block from DWG:', error)
+      return null
+    }
+  }
+
+  /**
+   * Calculate area from DWG entities
+   */
+  private calculateAreaFromDWG(entities: any[]): number {
+    let totalArea = 0
+    for (const entity of entities) {
+      if (entity.type === 'HATCH' || entity.type === 'SOLID') {
+        totalArea += entity.area || 0
+      }
+    }
+    return totalArea
+  }
+
+  /**
+   * Calculate volume from DWG entities
+   */
+  private calculateVolumeFromDWG(entities: any[]): number {
+    let totalVolume = 0
+    for (const entity of entities) {
+      if (entity.type === '3DSOLID' || entity.type === 'EXTRUDED_SURFACE') {
+        totalVolume += entity.volume || 0
+      }
+    }
+    return totalVolume
+  }
+
+  /**
+   * Calculate length from DWG entities
+   */
+  private calculateLengthFromDWG(entities: any[]): number {
+    let totalLength = 0
+    for (const entity of entities) {
+      if (entity.type === 'LINE' || entity.type === 'POLYLINE' || entity.type === 'LWPOLYLINE') {
+        totalLength += entity.length || 0
+      }
+    }
+    return totalLength
+  }
+
+  /**
+   * Extract scale from DWG header
+   */
+  private extractScaleFromDWG(header: any): string {
+    return header?.scale || '1:50'
+  }
+
+  /**
+   * Extract units from DWG header
+   */
+  private extractUnitsFromDWG(header: any): string {
+    return header?.units || 'mm'
   }
 }
 

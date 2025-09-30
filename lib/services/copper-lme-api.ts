@@ -24,8 +24,8 @@ export class CopperLMEAPI {
     const mockPrice = {
       id: 'lme_copper_' + Date.now(),
       date: new Date().toISOString().split('T')[0],
-      price: 8500 + (Math.random() - 0.5) * 200, // Simulate price volatility
-      currency: 'USD',
+      price: 40000 + (Math.random() - 0.5) * 1000, // Simulate price volatility in RM
+      currency: 'MYR',
       source: 'LME',
       timestamp: new Date().toISOString(),
       change24h: (Math.random() - 0.5) * 300,
@@ -43,7 +43,7 @@ export class CopperLMEAPI {
     await new Promise(resolve => setTimeout(resolve, 300))
 
     const prices: CopperLMEPrice[] = []
-    const basePrice = 8500
+    const basePrice = 40000
     const today = new Date()
 
     for (let i = days; i >= 0; i--) {
@@ -58,7 +58,7 @@ export class CopperLMEAPI {
         id: `lme_copper_${date.toISOString().split('T')[0]}`,
         date: date.toISOString().split('T')[0],
         price: Math.round(price),
-        currency: 'USD',
+        currency: 'MYR',
         source: 'LME',
         timestamp: date.toISOString(),
         change24h: i === 0 ? (Math.random() - 0.5) * 300 : undefined,
@@ -77,8 +77,8 @@ export class CopperLMEAPI {
       {
         id: 'copper_lme',
         commodity: 'Copper',
-        price: 8500 + (Math.random() - 0.5) * 200,
-        currency: 'USD',
+        price: 40000 + (Math.random() - 0.5) * 1000,
+        currency: 'MYR',
         unit: 'per metric ton',
         source: 'LME',
         lastUpdated: new Date().toISOString(),
@@ -90,8 +90,8 @@ export class CopperLMEAPI {
       {
         id: 'aluminum_lme',
         commodity: 'Aluminum',
-        price: 2200 + (Math.random() - 0.5) * 100,
-        currency: 'USD',
+        price: 10560 + (Math.random() - 0.5) * 480,
+        currency: 'MYR',
         unit: 'per metric ton',
         source: 'LME',
         lastUpdated: new Date().toISOString(),
@@ -103,8 +103,8 @@ export class CopperLMEAPI {
       {
         id: 'zinc_lme',
         commodity: 'Zinc',
-        price: 2800 + (Math.random() - 0.5) * 150,
-        currency: 'USD',
+        price: 13440 + (Math.random() - 0.5) * 720,
+        currency: 'MYR',
         unit: 'per metric ton',
         source: 'LME',
         lastUpdated: new Date().toISOString(),
@@ -189,13 +189,13 @@ export const calculatePriceImpact = (
   return (copperCostChange / baseCost) * 100
 }
 
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
+export const formatCurrency = (amount: number, currency: string = 'MYR'): string => {
+  return new Intl.NumberFormat('en-MY', {
     style: 'currency',
     currency: currency
   }).format(amount)
 }
 
 export const formatPrice = (price: number, unit: string = 'per metric ton'): string => {
-  return `$${price.toLocaleString()} ${unit}`
+  return `RM${price.toLocaleString()} ${unit}`
 }

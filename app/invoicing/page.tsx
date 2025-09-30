@@ -115,7 +115,7 @@ export default function InvoicingPage() {
                     <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                     <TableCell>{invoice.customerName}</TableCell>
                     <TableCell>{invoice.project || "—"}</TableCell>
-                    <TableCell className="font-medium">${invoice.total.toLocaleString()}</TableCell>
+                    <TableCell className="font-medium">RM{invoice.total.toLocaleString()}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
                         {invoice.status}
@@ -180,7 +180,7 @@ export default function InvoicingPage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Total Amount</Label>
-                    <p className="font-bold text-lg">${selectedInvoice.total.toLocaleString()}</p>
+                    <p className="font-bold text-lg">RM{selectedInvoice.total.toLocaleString()}</p>
                   </div>
                 </div>
                 
@@ -200,8 +200,8 @@ export default function InvoicingPage() {
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.description}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
-                          <TableCell>${item.unitPrice.toLocaleString()}</TableCell>
-                          <TableCell className="font-medium">${item.totalPrice.toLocaleString()}</TableCell>
+                          <TableCell>RM{item.unitPrice.toLocaleString()}</TableCell>
+                          <TableCell className="font-medium">RM{item.totalPrice.toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="border-t-2">
@@ -209,7 +209,7 @@ export default function InvoicingPage() {
                           Subtotal:
                         </TableCell>
                         <TableCell className="font-bold">
-                          ${selectedInvoice.subtotal.toLocaleString()}
+                          RM{selectedInvoice.subtotal.toLocaleString()}
                         </TableCell>
                       </TableRow>
                       <TableRow>
@@ -217,7 +217,7 @@ export default function InvoicingPage() {
                           Tax:
                         </TableCell>
                         <TableCell className="font-bold">
-                          ${selectedInvoice.tax.toLocaleString()}
+                          RM{selectedInvoice.tax.toLocaleString()}
                         </TableCell>
                       </TableRow>
                       <TableRow className="border-t">
@@ -225,7 +225,7 @@ export default function InvoicingPage() {
                           Total:
                         </TableCell>
                         <TableCell className="font-bold text-lg">
-                          ${selectedInvoice.total.toLocaleString()}
+                          RM{selectedInvoice.total.toLocaleString()}
                         </TableCell>
                       </TableRow>
                     </TableBody>

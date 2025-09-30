@@ -116,7 +116,7 @@ export default function BOQPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Value</p>
-                  <p className="text-2xl font-bold text-gray-900">${stats.totalValue.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">RM{stats.totalValue.toLocaleString()}</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
                   <DollarSign className="w-6 h-6 text-purple-600" />
@@ -214,7 +214,7 @@ export default function BOQPage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
-                      ${boq.totalCost.toLocaleString()}
+                      RM{boq.totalCost.toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">

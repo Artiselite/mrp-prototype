@@ -8,8 +8,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "MRP For Steel Manufacturing",
-  description: "Material Requirements Planning for Steel Manufacturing",
+  title: "MRP",
+  description: "Material Requirements Planning",
   generator: "v0.app",
 }
 

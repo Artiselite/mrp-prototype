@@ -24,6 +24,8 @@ import type {
   DrawingApproval,
   DrawingComment,
   ProcessStep,
+  ProjectSubcontractor,
+  SubcontractorWorkOrder,
 } from "../types"
 
 // Database hook for easy state management
@@ -53,6 +55,8 @@ export function useDatabase() {
   const [items, setItems] = useState<Item[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [processSteps, setProcessSteps] = useState<ProcessStep[]>([])
+  const [projectSubcontractors, setProjectSubcontractors] = useState<ProjectSubcontractor[]>([])
+  const [subcontractorWorkOrders, setSubcontractorWorkOrders] = useState<SubcontractorWorkOrder[]>([])
 
   // Initialize database
   useEffect(() => {
@@ -95,6 +99,8 @@ export function useDatabase() {
       setItems(db.getItems())
       setLocations(db.getLocations())
       setProcessSteps(db.getProcessSteps())
+      setProjectSubcontractors(db.getProjectSubcontractors())
+      setSubcontractorWorkOrders(db.getSubcontractorWorkOrders())
     }
   }, [isInitialized])
 
@@ -545,6 +551,60 @@ export function useDatabase() {
     return success
   }, [refreshQualityTests])
 
+  // Project Subcontractor functions
+  const refreshProjectSubcontractors = useCallback(() => {
+    setProjectSubcontractors(db.getProjectSubcontractors())
+  }, [])
+
+  const getProjectSubcontractorsByProject = useCallback((projectId: string) => {
+    return db.getProjectSubcontractorsByProject(projectId)
+  }, [])
+
+  const createProjectSubcontractor = useCallback((projectSubcontractor: Omit<ProjectSubcontractor, "id" | "createdAt" | "updatedAt">) => {
+    const newProjectSubcontractor = db.createProjectSubcontractor(projectSubcontractor)
+    refreshProjectSubcontractors()
+    return newProjectSubcontractor
+  }, [refreshProjectSubcontractors])
+
+  const updateProjectSubcontractor = useCallback((id: string, updates: Partial<ProjectSubcontractor>) => {
+    const updated = db.updateProjectSubcontractor(id, updates)
+    if (updated) refreshProjectSubcontractors()
+    return updated
+  }, [refreshProjectSubcontractors])
+
+  const deleteProjectSubcontractor = useCallback((id: string) => {
+    const success = db.deleteProjectSubcontractor(id)
+    if (success) refreshProjectSubcontractors()
+    return success
+  }, [refreshProjectSubcontractors])
+
+  // Subcontractor Work Order functions
+  const refreshSubcontractorWorkOrders = useCallback(() => {
+    setSubcontractorWorkOrders(db.getSubcontractorWorkOrders())
+  }, [])
+
+  const getSubcontractorWorkOrdersByProject = useCallback((projectId: string) => {
+    return db.getSubcontractorWorkOrdersByProject(projectId)
+  }, [])
+
+  const createSubcontractorWorkOrder = useCallback((workOrder: Omit<SubcontractorWorkOrder, "id" | "createdAt" | "updatedAt">) => {
+    const newWorkOrder = db.createSubcontractorWorkOrder(workOrder)
+    refreshSubcontractorWorkOrders()
+    return newWorkOrder
+  }, [refreshSubcontractorWorkOrders])
+
+  const updateSubcontractorWorkOrder = useCallback((id: string, updates: Partial<SubcontractorWorkOrder>) => {
+    const updated = db.updateSubcontractorWorkOrder(id, updates)
+    if (updated) refreshSubcontractorWorkOrders()
+    return updated
+  }, [refreshSubcontractorWorkOrders])
+
+  const deleteSubcontractorWorkOrder = useCallback((id: string) => {
+    const success = db.deleteSubcontractorWorkOrder(id)
+    if (success) refreshSubcontractorWorkOrders()
+    return success
+  }, [refreshSubcontractorWorkOrders])
+
   return {
     // Database status
     isInitialized,
@@ -572,6 +632,8 @@ export function useDatabase() {
     items,
     locations,
     processSteps,
+    projectSubcontractors,
+    subcontractorWorkOrders,
     
     // Functions
     refreshCustomers,
@@ -675,5 +737,19 @@ export function useDatabase() {
     createQualityTest,
     updateQualityTest,
     deleteQualityTest,
+    
+    // Project Subcontractor functions
+    refreshProjectSubcontractors,
+    getProjectSubcontractorsByProject,
+    createProjectSubcontractor,
+    updateProjectSubcontractor,
+    deleteProjectSubcontractor,
+    
+    // Subcontractor Work Order functions
+    refreshSubcontractorWorkOrders,
+    getSubcontractorWorkOrdersByProject,
+    createSubcontractorWorkOrder,
+    updateSubcontractorWorkOrder,
+    deleteSubcontractorWorkOrder,
   }
 }

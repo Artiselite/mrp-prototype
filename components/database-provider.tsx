@@ -1,7 +1,8 @@
 "use client"
 
-import { createContext, useContext, ReactNode } from "react"
+import { createContext, useContext, ReactNode, useEffect } from "react"
 import { useDatabase } from "@/lib/hooks/useDatabase"
+import { dataIntegrationService } from "@/lib/services/data-integration"
 
 // Create database context
 const DatabaseContext = createContext<ReturnType<typeof useDatabase> | null>(null)
@@ -9,6 +10,21 @@ const DatabaseContext = createContext<ReturnType<typeof useDatabase> | null>(nul
 // Database provider component
 export function DatabaseProvider({ children }: { children: ReactNode }) {
   const database = useDatabase()
+
+  // Initialize data integration service when database is ready
+  useEffect(() => {
+    if (database.isInitialized) {
+      dataIntegrationService.initialize({
+        quotations: database.quotations || [],
+        boms: database.billsOfMaterials || [],
+        workOrders: database.productionWorkOrders || [],
+        processSteps: database.processSteps || [],
+        engineeringProjects: database.engineeringProjects || [],
+        engineeringDrawings: database.engineeringDrawings || [],
+        boqs: database.billsOfQuantities || []
+      })
+    }
+  }, [database.isInitialized, database.quotations, database.billsOfMaterials, database.productionWorkOrders, database.processSteps, database.engineeringProjects, database.engineeringDrawings, database.billsOfQuantities])
 
   return (
     <DatabaseContext.Provider value={database}>
@@ -48,6 +64,8 @@ export function useDatabaseContext() {
       items: [],
       locations: [],
       processSteps: [],
+      projectSubcontractors: [],
+      subcontractorWorkOrders: [],
       // Add empty functions to prevent errors
       refreshCustomers: () => {},
       createCustomer: () => ({} as any),
@@ -117,6 +135,16 @@ export function useDatabaseContext() {
       createLocation: () => ({} as any),
       updateLocation: () => ({} as any),
       deleteLocation: () => false,
+      refreshProjectSubcontractors: () => {},
+      getProjectSubcontractorsByProject: () => [],
+      createProjectSubcontractor: () => ({} as any),
+      updateProjectSubcontractor: () => ({} as any),
+      deleteProjectSubcontractor: () => false,
+      refreshSubcontractorWorkOrders: () => {},
+      getSubcontractorWorkOrdersByProject: () => [],
+      createSubcontractorWorkOrder: () => ({} as any),
+      updateSubcontractorWorkOrder: () => ({} as any),
+      deleteSubcontractorWorkOrder: () => false,
     }
   }
   

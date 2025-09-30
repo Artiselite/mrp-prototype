@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ArrowLeft, Edit, Download, Upload, MessageSquare, Clock, User, FileText, CheckCircle, XCircle, AlertTriangle, Eye, Link as LinkIcon } from 'lucide-react'
 import Link from "next/link"
 import { useDatabaseContext } from '@/components/database-provider'
+import CADToBOQConverter from '@/components/cad-to-boq-converter'
 import type { EngineeringDrawing, Quotation } from '@/lib/types'
 
 export default function DrawingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,6 +31,7 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
   const [showApprovalDialog, setShowApprovalDialog] = useState(false)
   const [showCommentDialog, setShowCommentDialog] = useState(false)
   const [selectedApproval, setSelectedApproval] = useState<any>(null)
+  const [showCADConverter, setShowCADConverter] = useState(false)
 
   // Resolve the async params
   useEffect(() => {
@@ -716,9 +718,14 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
                   <Download className="w-4 h-4 mr-2" />
                   Export Package
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => setShowCADConverter(true)}
+                >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Generate BOM
+                  Generate BOQ from CAD
                 </Button>
               </CardContent>
             </Card>
@@ -835,6 +842,25 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* CAD to BOQ Converter Modal */}
+      {showCADConverter && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <CADToBOQConverter
+                onBOQGenerated={(boqData) => {
+                  console.log('BOQ generated:', boqData)
+                  setShowCADConverter(false)
+                  // You could navigate to BOQ creation page here
+                }}
+                onClose={() => setShowCADConverter(false)}
+                initialDrawingId={drawingId || undefined}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

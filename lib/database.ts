@@ -20,6 +20,8 @@ import type {
   Item,
   Location,
   ProcessStep,
+  ProjectSubcontractor,
+  SubcontractorWorkOrder,
 } from "./types"
 
 // Database configuration
@@ -50,6 +52,8 @@ const DB_KEYS = {
   ITEMS: `${DB_PREFIX}items`,
   LOCATIONS: `${DB_PREFIX}locations`,
   PROCESS_STEPS: `${DB_PREFIX}process_steps`,
+  PROJECT_SUBCONTRACTORS: `${DB_PREFIX}project_subcontractors`,
+  SUBCONTRACTOR_WORK_ORDERS: `${DB_PREFIX}subcontractor_work_orders`,
 } as const
 
 // Database class
@@ -100,7 +104,8 @@ class LocalDatabase {
       const { customers, suppliers, quotations, salesOrders, engineeringDrawings, 
         engineeringProjects, engineeringChanges, billsOfMaterials, billsOfQuantities, 
         productionWorkOrders, workstations, operators, shopfloorActivities, 
-        qualityInspections, qualityTests, qualityMetrics, invoices, purchaseOrders, items, locations } = await import("./data")
+        qualityInspections, qualityTests, qualityMetrics, invoices, purchaseOrders, items, locations,
+        projectSubcontractors, subcontractorWorkOrders } = await import("./data")
 
       console.log("Seeding database with:", { customers: customers.length, suppliers: suppliers.length, quotations: quotations.length })
 
@@ -163,6 +168,12 @@ class LocalDatabase {
 
       // Seed locations
       this.setLocations(locations)
+
+      // Seed project subcontractors
+      this.setProjectSubcontractors(projectSubcontractors)
+
+      // Seed subcontractor work orders
+      this.setSubcontractorWorkOrders(subcontractorWorkOrders)
 
       console.log("Database seeding completed successfully")
     } catch (error) {
@@ -1353,6 +1364,132 @@ class LocalDatabase {
     if (filtered.length === changes.length) return false
 
     this.setEngineeringChanges(filtered)
+    return true
+  }
+
+  // Project Subcontractor operations
+  getProjectSubcontractors(): ProjectSubcontractor[] {
+    return this.getItem<ProjectSubcontractor>(DB_KEYS.PROJECT_SUBCONTRACTORS)
+  }
+
+  getProjectSubcontractorsByProject(projectId: string): ProjectSubcontractor[] {
+    const projectSubcontractors = this.getProjectSubcontractors()
+    return projectSubcontractors.filter(ps => ps.projectId === projectId)
+  }
+
+  getProjectSubcontractor(id: string): ProjectSubcontractor | null {
+    const projectSubcontractors = this.getProjectSubcontractors()
+    return projectSubcontractors.find(ps => ps.id === id) || null
+  }
+
+  setProjectSubcontractors(projectSubcontractors: ProjectSubcontractor[]): void {
+    this.setItem(DB_KEYS.PROJECT_SUBCONTRACTORS, projectSubcontractors)
+  }
+
+  createProjectSubcontractor(projectSubcontractor: Omit<ProjectSubcontractor, "id" | "createdAt" | "updatedAt">): ProjectSubcontractor {
+    const projectSubcontractors = this.getProjectSubcontractors()
+    const newProjectSubcontractor = {
+      ...projectSubcontractor,
+      id: this.generateId(),
+      progress: 0,
+      actualCost: 0,
+      actualDuration: 0,
+    }
+
+    const updatedProjectSubcontractor = this.updateTimestamps(newProjectSubcontractor, true)
+    projectSubcontractors.push(updatedProjectSubcontractor)
+    this.setProjectSubcontractors(projectSubcontractors)
+
+    return updatedProjectSubcontractor
+  }
+
+  updateProjectSubcontractor(id: string, updates: Partial<ProjectSubcontractor>): ProjectSubcontractor | null {
+    const projectSubcontractors = this.getProjectSubcontractors()
+    const index = projectSubcontractors.findIndex(ps => ps.id === id)
+
+    if (index === -1) return null
+
+    const updatedProjectSubcontractor = this.updateTimestamps({
+      ...projectSubcontractors[index],
+      ...updates,
+    })
+
+    projectSubcontractors[index] = updatedProjectSubcontractor
+    this.setProjectSubcontractors(projectSubcontractors)
+
+    return updatedProjectSubcontractor
+  }
+
+  deleteProjectSubcontractor(id: string): boolean {
+    const projectSubcontractors = this.getProjectSubcontractors()
+    const filtered = projectSubcontractors.filter(ps => ps.id !== id)
+
+    if (filtered.length === projectSubcontractors.length) return false
+
+    this.setProjectSubcontractors(filtered)
+    return true
+  }
+
+  // Subcontractor Work Order operations
+  getSubcontractorWorkOrders(): SubcontractorWorkOrder[] {
+    return this.getItem<SubcontractorWorkOrder>(DB_KEYS.SUBCONTRACTOR_WORK_ORDERS)
+  }
+
+  getSubcontractorWorkOrdersByProject(projectId: string): SubcontractorWorkOrder[] {
+    const workOrders = this.getSubcontractorWorkOrders()
+    return workOrders.filter(wo => wo.projectId === projectId)
+  }
+
+  getSubcontractorWorkOrder(id: string): SubcontractorWorkOrder | null {
+    const workOrders = this.getSubcontractorWorkOrders()
+    return workOrders.find(wo => wo.id === id) || null
+  }
+
+  setSubcontractorWorkOrders(workOrders: SubcontractorWorkOrder[]): void {
+    this.setItem(DB_KEYS.SUBCONTRACTOR_WORK_ORDERS, workOrders)
+  }
+
+  createSubcontractorWorkOrder(workOrder: Omit<SubcontractorWorkOrder, "id" | "createdAt" | "updatedAt">): SubcontractorWorkOrder {
+    const workOrders = this.getSubcontractorWorkOrders()
+    const newWorkOrder = {
+      ...workOrder,
+      id: this.generateId(),
+      progress: 0,
+      actualCost: 0,
+      actualDuration: 0,
+    }
+
+    const updatedWorkOrder = this.updateTimestamps(newWorkOrder, true)
+    workOrders.push(updatedWorkOrder)
+    this.setSubcontractorWorkOrders(workOrders)
+
+    return updatedWorkOrder
+  }
+
+  updateSubcontractorWorkOrder(id: string, updates: Partial<SubcontractorWorkOrder>): SubcontractorWorkOrder | null {
+    const workOrders = this.getSubcontractorWorkOrders()
+    const index = workOrders.findIndex(wo => wo.id === id)
+
+    if (index === -1) return null
+
+    const updatedWorkOrder = this.updateTimestamps({
+      ...workOrders[index],
+      ...updates,
+    })
+
+    workOrders[index] = updatedWorkOrder
+    this.setSubcontractorWorkOrders(workOrders)
+
+    return updatedWorkOrder
+  }
+
+  deleteSubcontractorWorkOrder(id: string): boolean {
+    const workOrders = this.getSubcontractorWorkOrders()
+    const filtered = workOrders.filter(wo => wo.id !== id)
+
+    if (filtered.length === workOrders.length) return false
+
+    this.setSubcontractorWorkOrders(filtered)
     return true
   }
 }

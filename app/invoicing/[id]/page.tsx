@@ -1,96 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Edit, Download, Send, Receipt, CheckCircle, Clock, DollarSign, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Download, Send, Receipt, CheckCircle, Clock, DollarSign, FileText, Loader2 } from 'lucide-react'
 import Link from "next/link"
+import { useDatabaseContext } from "@/components/database-provider"
+import type { Invoice, Customer } from "@/lib/types"
 
-export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
-  const [invoice] = useState({
-    id: "INV-2024-001",
-    workOrderId: "WO-2024-003",
-    project: "Custom Fabricated Brackets",
-    customer: "Industrial Corp",
-    customerAddress: "123 Industrial Blvd, Manufacturing City, MC 12345",
-    contactPerson: "Robert Johnson",
-    email: "r.johnson@industrialcorp.com",
-    phone: "(555) 987-6543",
-    status: "Paid",
-    amount: "$18,750",
-    subtotal: 17284,
-    tax: 1466,
-    total: 18750,
-    dateIssued: "2024-01-26",
-    dateDue: "2024-02-25",
-    datePaid: "2024-01-30",
-    paymentMethod: "Bank Transfer",
-    invoiceNumber: "INV-2024-001",
-    terms: "Net 30 days",
-    notes: "Payment terms: Net 30 days. Late payments subject to 1.5% monthly service charge."
-  })
+interface InvoiceDetailsPageProps {
+  params: Promise<{ id: string }>
+}
 
-  const [lineItems] = useState([
-    { 
-      id: 1,
-      description: "Material Cost (A572 Grade 50)", 
-      quantity: "8 tons", 
-      rate: "$1,200", 
-      amount: "$9,600",
-      category: "Materials"
-    },
-    { 
-      id: 2,
-      description: "Fabrication Labor", 
-      quantity: "40 hrs", 
-      rate: "$85", 
-      amount: "$3,400",
-      category: "Labor"
-    },
-    { 
-      id: 3,
-      description: "Machining Services", 
-      quantity: "16 hrs", 
-      rate: "$120", 
-      amount: "$1,920",
-      category: "Services"
-    },
-    { 
-      id: 4,
-      description: "Quality Inspection", 
-      quantity: "1", 
-      rate: "$500", 
-      amount: "$500",
-      category: "Services"
-    },
-    { 
-      id: 5,
-      description: "Delivery & Setup", 
-      quantity: "1", 
-      rate: "$750", 
-      amount: "$750",
-      category: "Services"
-    },
-    { 
-      id: 6,
-      description: "Project Management", 
-      quantity: "1", 
-      rate: "$1,114", 
-      amount: "$1,114",
-      category: "Services"
+export default function InvoiceDetailPage({ params }: InvoiceDetailsPageProps) {
+  const { invoices, customers, isLoading } = useDatabaseContext()
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null)
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [customer, setCustomer] = useState<Customer | null>(null)
+
+  // Resolve params
+  useEffect(() => {
+    params.then(setResolvedParams)
+  }, [params])
+
+  // Find invoice and customer data
+  useEffect(() => {
+    if (resolvedParams && invoices.length > 0) {
+      const foundInvoice = invoices.find(inv => inv.id === resolvedParams.id)
+      if (foundInvoice) {
+        setInvoice(foundInvoice)
+        const foundCustomer = customers.find(cust => cust.id === foundInvoice.customerId)
+        if (foundCustomer) {
+          setCustomer(foundCustomer)
+        }
+      }
     }
-  ])
+  }, [resolvedParams, invoices, customers])
 
+  // Mock data for demonstration - in a real app, this would come from the database
   const [paymentHistory] = useState([
     {
-      date: "2024-01-30",
-      amount: "$18,750",
+      date: invoice?.issueDate || "2024-01-30",
+      amount: `$${invoice?.total.toLocaleString() || "18,750"}`,
       method: "Bank Transfer",
       reference: "TXN-789456123",
-      status: "Completed"
+      status: invoice?.status === "Paid" ? "Completed" : "Pending"
     }
   ])
 
@@ -98,29 +55,29 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     {
       id: 1,
       type: "Email",
-      date: "2024-01-26 09:00",
-      subject: "Invoice INV-2024-001 - Custom Fabricated Brackets",
+      date: `${invoice?.issueDate || "2024-01-26"} 09:00`,
+      subject: `Invoice ${invoice?.invoiceNumber || "INV-2024-001"} - ${invoice?.project || "Custom Fabricated Brackets"}`,
       from: "Accounts Receivable",
-      to: "Robert Johnson",
-      content: "Please find attached your invoice for the completed Custom Fabricated Brackets project."
+      to: customer?.contactPerson || "Customer",
+      content: `Please find attached your invoice for the completed ${invoice?.project || "project"}.`
     },
     {
       id: 2,
       type: "Email",
-      date: "2024-01-28 14:30",
+      date: `${invoice?.issueDate || "2024-01-28"} 14:30`,
       subject: "Payment Confirmation Request",
-      from: "Robert Johnson",
+      from: customer?.contactPerson || "Customer",
       to: "Accounts Receivable",
-      content: "Invoice received. Payment will be processed by January 30th via bank transfer."
+      content: "Invoice received. Payment will be processed according to terms."
     },
     {
       id: 3,
       type: "System",
-      date: "2024-01-30 11:45",
+      date: `${invoice?.issueDate || "2024-01-30"} 11:45`,
       subject: "Payment Received",
       from: "System",
       to: "Accounts Team",
-      content: "Payment of $18,750 received via bank transfer. Invoice marked as paid."
+      content: `Payment of $${invoice?.total.toLocaleString() || "18,750"} received via bank transfer. Invoice marked as paid.`
     }
   ])
 
@@ -144,6 +101,37 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     }
   }
 
+  // Loading state
+  if (isLoading || !resolvedParams) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading invoice details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Invoice not found
+  if (!invoice) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invoice Not Found</h1>
+          <p className="text-gray-600 mb-4">The invoice you're looking for doesn't exist.</p>
+          <Link href="/invoicing">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Invoicing
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -159,12 +147,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
               </Link>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">{invoice.id}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h1>
                   <Badge className={getStatusColor(invoice.status)}>
                     {invoice.status}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600">{invoice.project} - {invoice.customer}</p>
+                <p className="text-sm text-gray-600">{invoice.project || "Project"} - {invoice.customerName}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -172,10 +160,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                 <Download className="w-4 h-4 mr-2" />
                 Download PDF
               </Button>
-              <Button variant="outline">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Invoice
-              </Button>
+              <Link href={`/invoicing/${invoice.id}/edit`}>
+                <Button variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Invoice
+                </Button>
+              </Link>
               {invoice.status === "Draft" && (
                 <Button>
                   <Send className="w-4 h-4 mr-2" />
@@ -221,19 +211,19 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-2">Bill To:</h3>
                         <div className="text-gray-700">
-                          <p className="font-medium">{invoice.customer}</p>
-                          <p>{invoice.customerAddress}</p>
-                          <p className="mt-2">Attn: {invoice.contactPerson}</p>
-                          <p>{invoice.email}</p>
-                          <p>{invoice.phone}</p>
+                          <p className="font-medium">{invoice.customerName}</p>
+                          <p>{customer?.address || "Address not available"}</p>
+                          <p className="mt-2">Attn: {customer?.contactPerson || "Contact Person"}</p>
+                          <p>{customer?.email || "Email not available"}</p>
+                          <p>{customer?.phone || "Phone not available"}</p>
                         </div>
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-2">Project Details:</h3>
                         <div className="text-gray-700">
-                          <p><span className="font-medium">Project:</span> {invoice.project}</p>
-                          <p><span className="font-medium">Work Order:</span> {invoice.workOrderId}</p>
-                          <p><span className="font-medium">Terms:</span> {invoice.terms}</p>
+                          <p><span className="font-medium">Project:</span> {invoice.project || "N/A"}</p>
+                          <p><span className="font-medium">Sales Order:</span> {invoice.salesOrderId || "N/A"}</p>
+                          <p><span className="font-medium">Revision:</span> {invoice.revision}</p>
                         </div>
                       </div>
                     </div>
@@ -257,17 +247,17 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {lineItems.map((item) => (
+                        {invoice.items.map((item) => (
                           <TableRow key={item.id}>
                             <TableCell className="font-medium">{item.description}</TableCell>
                             <TableCell>
-                              <Badge className={getCategoryColor(item.category)} variant="outline">
-                                {item.category}
+                              <Badge className="bg-blue-100 text-blue-800" variant="outline">
+                                Item
                               </Badge>
                             </TableCell>
                             <TableCell>{item.quantity}</TableCell>
-                            <TableCell>{item.rate}</TableCell>
-                            <TableCell className="text-right font-medium">{item.amount}</TableCell>
+                            <TableCell>${item.unitPrice.toLocaleString()}</TableCell>
+                            <TableCell className="text-right font-medium">${item.totalPrice.toLocaleString()}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -281,7 +271,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                           <span className="font-medium">${invoice.subtotal.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Tax (8.5%):</span>
+                          <span>Tax:</span>
                           <span className="font-medium">${invoice.tax.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-2">
@@ -348,11 +338,11 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-green-600" />
                           <span className="font-medium text-green-800">
-                            Invoice fully paid on {invoice.datePaid}
+                            Invoice fully paid on {invoice.issueDate}
                           </span>
                         </div>
                         <p className="text-sm text-green-700 mt-1">
-                          Payment method: {invoice.paymentMethod}
+                          Payment method: Bank Transfer
                         </p>
                       </div>
                     )}
@@ -401,34 +391,34 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                           <p className="mt-1 font-medium">{invoice.invoiceNumber}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Work Order</label>
-                          <p className="mt-1">{invoice.workOrderId}</p>
+                          <label className="text-sm font-medium text-gray-500">Sales Order</label>
+                          <p className="mt-1">{invoice.salesOrderId || "N/A"}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Customer</label>
-                          <p className="mt-1">{invoice.customer}</p>
+                          <p className="mt-1">{invoice.customerName}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Project</label>
-                          <p className="mt-1">{invoice.project}</p>
+                          <p className="mt-1">{invoice.project || "N/A"}</p>
                         </div>
                       </div>
                       <div className="space-y-4">
                         <div>
                           <label className="text-sm font-medium text-gray-500">Date Issued</label>
-                          <p className="mt-1">{invoice.dateIssued}</p>
+                          <p className="mt-1">{invoice.issueDate}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Due Date</label>
-                          <p className="mt-1">{invoice.dateDue}</p>
+                          <p className="mt-1">{invoice.dueDate}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Payment Terms</label>
-                          <p className="mt-1">{invoice.terms}</p>
+                          <label className="text-sm font-medium text-gray-500">Revision</label>
+                          <p className="mt-1">{invoice.revision}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Total Amount</label>
-                          <p className="mt-1 text-xl font-bold">{invoice.amount}</p>
+                          <p className="mt-1 text-xl font-bold">${invoice.total.toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
@@ -454,12 +444,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">TOTAL AMOUNT</label>
-                  <p className="text-xl font-bold">{invoice.amount}</p>
+                  <p className="text-xl font-bold">${invoice.total.toLocaleString()}</p>
                 </div>
                 {invoice.status === "Paid" && (
                   <div>
                     <label className="text-xs font-medium text-gray-500">PAID ON</label>
-                    <p className="text-sm font-medium">{invoice.datePaid}</p>
+                    <p className="text-sm font-medium">{invoice.issueDate}</p>
                   </div>
                 )}
               </CardContent>

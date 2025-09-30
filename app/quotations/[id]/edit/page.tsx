@@ -14,6 +14,8 @@ import { ArrowLeft, Save, Plus, Trash2, Calculator, Send, AlertCircle, Clock } f
 import Link from "next/link"
 import { useDatabaseContext } from '@/components/database-provider'
 import type { Quotation, QuotationItem } from '@/lib/types'
+import UnitEconomicsCalculator from '@/components/unit-economics-calculator'
+import { dataIntegrationService } from '@/lib/services/data-integration'
 
 export default function EditQuotationPage() {
   const params = useParams()
@@ -45,7 +47,13 @@ export default function EditQuotationPage() {
     technicalSpecifications: "",
     deliveryTerms: "",
     paymentTerms: "Net 30",
-    warrantyTerms: "1 Year Standard Warranty"
+    warrantyTerms: "1 Year Standard Warranty",
+    // Cost breakdown fields
+    engineeringCost: 0,
+    materialCost: 0,
+    laborCost: 0,
+    overheadCost: 0,
+    profitMargin: 0
   })
 
   const [lineItems, setLineItems] = useState<QuotationItem[]>([])
@@ -108,7 +116,13 @@ export default function EditQuotationPage() {
           technicalSpecifications: foundQuotation.technicalSpecifications,
           deliveryTerms: foundQuotation.deliveryTerms,
           paymentTerms: foundQuotation.paymentTerms,
-          warrantyTerms: foundQuotation.warrantyTerms
+          warrantyTerms: foundQuotation.warrantyTerms,
+          // Cost breakdown fields
+          engineeringCost: foundQuotation.engineeringCost,
+          materialCost: foundQuotation.materialCost,
+          laborCost: foundQuotation.laborCost,
+          overheadCost: foundQuotation.overheadCost,
+          profitMargin: foundQuotation.profitMargin
         })
 
         // Populate line items with itemId if it's from master
@@ -123,7 +137,13 @@ export default function EditQuotationPage() {
   }, [isInitialized, quotations, customers, items, quotationId])
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    // Handle numeric fields
+    const numericFields = ['engineeringCost', 'materialCost', 'laborCost', 'overheadCost', 'profitMargin']
+    if (numericFields.includes(field)) {
+      setFormData(prev => ({ ...prev, [field]: parseFloat(value) || 0 }))
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }))
+    }
   }
 
   const handleCustomerSelection = (customerId: string) => {
@@ -286,6 +306,11 @@ export default function EditQuotationPage() {
         description: formData.description,
         items: lineItems,
         subtotal: calculateSubtotal(),
+        engineeringCost: formData.engineeringCost,
+        materialCost: formData.materialCost,
+        laborCost: formData.laborCost,
+        overheadCost: formData.overheadCost,
+        profitMargin: formData.profitMargin,
         tax: calculateTax(),
         total: calculateTotal(),
         validUntil: formData.validUntil,
@@ -616,29 +641,28 @@ export default function EditQuotationPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[1200px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[200px]">Item Selection</TableHead>
-                        <TableHead className="w-[160px]">Part Number</TableHead>
-                        <TableHead className="min-w-[280px]">Description</TableHead>
-                        <TableHead className="w-[90px]">Quantity</TableHead>
-                        <TableHead className="w-[120px]">Unit Price ($)</TableHead>
-                        <TableHead className="w-[120px]">Total Price ($)</TableHead>
-                        <TableHead className="w-[130px]">Delivery Date</TableHead>
-                        <TableHead className="w-[100px]">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[15%]">Item Selection</TableHead>
+                      <TableHead className="w-[12%]">Part Number</TableHead>
+                      <TableHead className="w-[20%]">Description</TableHead>
+                      <TableHead className="w-[8%]">Quantity</TableHead>
+                      <TableHead className="w-[12%]">Unit Price ($)</TableHead>
+                      <TableHead className="w-[12%]">Total Price ($)</TableHead>
+                      <TableHead className="w-[13%]">Delivery Date</TableHead>
+                      <TableHead className="w-[8%]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
                     <TableBody>
                       {lineItems.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="p-2 min-w-[200px]">
+                          <TableCell className="p-2">
                             {!isInitialized || !items ? (
                               <div className="text-sm text-gray-500">Loading items...</div>
                             ) : (
                               <Select value={(item as any).itemId || ""} onValueChange={(value) => selectItemFromMaster(item.id, value)}>
-                                <SelectTrigger className="w-full text-sm min-w-0">
+                                <SelectTrigger className="w-full text-sm">
                                   <SelectValue placeholder="Select item..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -660,7 +684,7 @@ export default function EditQuotationPage() {
                               </Select>
                             )}
                           </TableCell>
-                          <TableCell className="p-2 min-w-[160px]">
+                          <TableCell className="p-2">
                             <div className="text-sm">
                               {(item as any).itemId ?
                                 items?.find(i => i.id === (item as any).itemId)?.partNumber || 'N/A' :
@@ -668,13 +692,13 @@ export default function EditQuotationPage() {
                               }
                             </div>
                           </TableCell>
-                          <TableCell className="p-2 min-w-[280px]">
+                          <TableCell className="p-2">
                             <Input
                               placeholder="Item description"
                               value={item.description}
                               onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
                               disabled={!!(item as any).itemId}
-                              className="w-full text-sm min-w-0"
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -683,7 +707,7 @@ export default function EditQuotationPage() {
                               type="number"
                               value={item.quantity.toString()}
                               onChange={(e) => updateLineItem(item.id, 'quantity', e.target.value)}
-                              className="w-full text-sm min-w-0"
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -694,7 +718,7 @@ export default function EditQuotationPage() {
                               value={item.unitPrice.toString()}
                               onChange={(e) => updateLineItem(item.id, 'unitPrice', e.target.value)}
                               disabled={!!(item as any).itemId}
-                              className="w-full text-sm min-w-0"
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell className="p-2 font-medium">
@@ -705,7 +729,7 @@ export default function EditQuotationPage() {
                               type="date"
                               value={item.deliveryDate.split('T')[0]}
                               onChange={(e) => updateLineItem(item.id, 'deliveryDate', e.target.value)}
-                              className="w-full text-sm min-w-0"
+                              className="w-full text-sm"
                             />
                           </TableCell>
                           <TableCell className="p-2">
@@ -725,7 +749,6 @@ export default function EditQuotationPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
 
                 {/* Totals */}
                 <div className="mt-6 flex justify-end">
@@ -744,6 +767,166 @@ export default function EditQuotationPage() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Cost Breakdown */}
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Cost Breakdown</CardTitle>
+                    <CardDescription>Detailed cost analysis and profit margins</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="engineeringCost">Engineering Cost ($)</Label>
+                    <Input
+                      id="engineeringCost"
+                      type="number"
+                      step="0.01"
+                      value={formData.engineeringCost}
+                      onChange={(e) => handleInputChange("engineeringCost", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="materialCost">Material Cost ($)</Label>
+                    <Input
+                      id="materialCost"
+                      type="number"
+                      step="0.01"
+                      value={formData.materialCost}
+                      onChange={(e) => handleInputChange("materialCost", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="laborCost">Labor Cost ($)</Label>
+                    <Input
+                      id="laborCost"
+                      type="number"
+                      step="0.01"
+                      value={formData.laborCost}
+                      onChange={(e) => handleInputChange("laborCost", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="overheadCost">Overhead Cost ($)</Label>
+                    <Input
+                      id="overheadCost"
+                      type="number"
+                      step="0.01"
+                      value={formData.overheadCost}
+                      onChange={(e) => handleInputChange("overheadCost", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="profitMargin">Profit Margin ($)</Label>
+                  <Input
+                    id="profitMargin"
+                    type="number"
+                    step="0.01"
+                    value={formData.profitMargin}
+                      onChange={(e) => handleInputChange("profitMargin", e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                {/* Cost Summary */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Cost Summary</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-medium">${calculateSubtotal().toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Engineering Cost:</span>
+                      <span className="font-medium">${formData.engineeringCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Material Cost:</span>
+                      <span className="font-medium">${formData.materialCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Labor Cost:</span>
+                      <span className="font-medium">${formData.laborCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Overhead Cost:</span>
+                      <span className="font-medium">${formData.overheadCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm border-t pt-2">
+                      <span className="text-gray-600">Total Cost:</span>
+                      <span className="font-medium">
+                        ${(formData.engineeringCost + formData.materialCost + formData.laborCost + formData.overheadCost).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Profit Margin:</span>
+                      <span className="font-medium text-green-600">${formData.profitMargin.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Tax (8.5%):</span>
+                      <span className="font-medium">${calculateTax().toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t pt-2 text-blue-600">
+                      <span>Total Quotation:</span>
+                      <span>${calculateTotal().toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Unit Economics Calculator */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Unit Economics Calculator</CardTitle>
+                <CardDescription>
+                  Advanced unit economics analysis with copper LME volatility and sensitivity analysis
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UnitEconomicsCalculator 
+                  quotationId={quotationId}
+                  initialData={{
+                    id: `ue_${quotationId}`,
+                    quotationId,
+                    baseMaterialCost: formData.materialCost || 0,
+                    copperWeight: formData.materialCost ? Math.round(formData.materialCost / 100) : 0, // Estimate: ~$100 per kg copper
+                    copperLMEPrice: 8500, // TODO: Fetch from LME API
+                    laborCost: formData.laborCost || 0,
+                    overheadCost: formData.overheadCost || 0,
+                    profitMargin: calculateTotal() > 0 ? ((formData.profitMargin || 0) / calculateTotal()) * 100 : 15,
+                    quantity: lineItems.reduce((sum, item) => sum + item.quantity, 0) || 1,
+                    currency: 'USD',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                  }}
+                  onSave={(data) => {
+                    console.log('Unit economics data saved:', data)
+                    // Update form data with calculated values
+                    setFormData(prev => ({
+                      ...prev,
+                      materialCost: data.baseMaterialCost,
+                      laborCost: data.laborCost,
+                      overheadCost: data.overheadCost,
+                      profitMargin: (data.profitMargin / 100) * calculateTotal()
+                    }))
+                  }}
+                />
               </CardContent>
             </Card>
 
@@ -850,6 +1033,23 @@ export default function EditQuotationPage() {
                   <Label className="text-xs font-medium text-gray-500">TOTAL</Label>
                   <p className="text-xl font-bold text-blue-600">${calculateTotal().toLocaleString()}</p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Save className="w-4 h-4 mr-2" />
+                  Export to PDF
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Send className="w-4 h-4 mr-2" />
+                  Send to Customer
+                </Button>
               </CardContent>
             </Card>
 

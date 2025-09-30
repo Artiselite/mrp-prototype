@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,63 +9,64 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Plus, Trash2, Calculator, Send, DollarSign } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Calculator, Send, DollarSign, Loader2 } from 'lucide-react'
 import Link from "next/link"
+import { useDatabaseContext } from "@/components/database-provider"
+import type { Invoice, Customer, InvoiceItem } from "@/lib/types"
 
-export default function EditInvoicePage({ params }: { params: { id: string } }) {
+interface EditInvoicePageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function EditInvoicePage({ params }: EditInvoicePageProps) {
+  const { invoices, customers, updateInvoice, isLoading } = useDatabaseContext()
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null)
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  
   const [formData, setFormData] = useState({
-    workOrderId: "WO-2024-003",
-    customer: "Industrial Corp",
-    customerAddress: "123 Industrial Blvd, Manufacturing City, MC 12345",
-    contactPerson: "Robert Johnson",
-    email: "r.johnson@industrialcorp.com",
-    phone: "(555) 987-6543",
-    project: "Custom Fabricated Brackets",
-    status: "paid",
-    dateIssued: "2024-01-26",
-    dateDue: "2024-02-25",
-    terms: "Net 30 days",
-    notes: "Payment terms: Net 30 days. Late payments subject to 1.5% monthly service charge."
+    salesOrderId: "",
+    customerId: "",
+    customerName: "",
+    project: "",
+    status: "Draft" as "Draft" | "Sent" | "Paid" | "Overdue" | "Cancelled",
+    issueDate: "",
+    dueDate: "",
+    notes: ""
   })
 
-  const [lineItems, setLineItems] = useState([
-    { 
-      id: 1,
-      description: "Material Cost (A572 Grade 50)", 
-      quantity: "8", 
-      unit: "tons",
-      rate: "1200", 
-      amount: 9600,
-      category: "materials"
-    },
-    { 
-      id: 2,
-      description: "Fabrication Labor", 
-      quantity: "40", 
-      unit: "hours",
-      rate: "85", 
-      amount: 3400,
-      category: "labor"
-    },
-    { 
-      id: 3,
-      description: "Machining Services", 
-      quantity: "16", 
-      unit: "hours",
-      rate: "120", 
-      amount: 1920,
-      category: "services"
-    },
-    { 
-      id: 4,
-      description: "Quality Inspection", 
-      quantity: "1", 
-      unit: "project",
-      rate: "500", 
-      amount: 500,
-      category: "services"
+  const [lineItems, setLineItems] = useState<InvoiceItem[]>([])
+
+  // Resolve params
+  useEffect(() => {
+    params.then(setResolvedParams)
+  }, [params])
+
+  // Load invoice data
+  useEffect(() => {
+    if (resolvedParams && invoices.length > 0) {
+      const foundInvoice = invoices.find(inv => inv.id === resolvedParams.id)
+      if (foundInvoice) {
+        setInvoice(foundInvoice)
+        setFormData({
+          salesOrderId: foundInvoice.salesOrderId || "",
+          customerId: foundInvoice.customerId,
+          customerName: foundInvoice.customerName,
+          project: foundInvoice.project || "",
+          status: foundInvoice.status,
+          issueDate: foundInvoice.issueDate,
+          dueDate: foundInvoice.dueDate,
+          notes: foundInvoice.notes || ""
+        })
+        setLineItems(foundInvoice.items)
+        
+        const foundCustomer = customers.find(cust => cust.id === foundInvoice.customerId)
+        if (foundCustomer) {
+          setCustomer(foundCustomer)
+        }
+      }
     }
-  ])
+  }, [resolvedParams, invoices, customers])
 
   const [revisionNotes, setRevisionNotes] = useState("")
 
@@ -74,30 +75,29 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
   }
 
   const addLineItem = () => {
-    const newItem = {
-      id: Date.now(),
+    const newItem: InvoiceItem = {
+      id: Date.now().toString(),
       description: "",
-      quantity: "",
-      unit: "hours",
-      rate: "",
-      amount: 0,
-      category: "services"
+      quantity: 0,
+      unitPrice: 0,
+      totalPrice: 0
     }
     setLineItems([...lineItems, newItem])
   }
 
-  const removeLineItem = (id: number) => {
+  const removeLineItem = (id: string) => {
     setLineItems(lineItems.filter(item => item.id !== id))
   }
 
-  const updateLineItem = (id: number, field: string, value: string) => {
+  const updateLineItem = (id: string, field: string, value: string | number) => {
     setLineItems(lineItems.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value }
-        if (field === 'quantity' || field === 'rate') {
-          const quantity = parseFloat(updatedItem.quantity) || 0
-          const rate = parseFloat(updatedItem.rate) || 0
-          updatedItem.amount = quantity * rate
+        if (field === 'quantity' || field === 'unitPrice') {
+          const quantity = typeof value === 'number' ? value : parseFloat(value.toString()) || 0
+          const unitPrice = field === 'unitPrice' ? quantity : item.unitPrice
+          const quantityValue = field === 'quantity' ? quantity : item.quantity
+          updatedItem.totalPrice = quantityValue * unitPrice
         }
         return updatedItem
       }
@@ -106,7 +106,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
   }
 
   const calculateSubtotal = () => {
-    return lineItems.reduce((total, item) => total + item.amount, 0)
+    return lineItems.reduce((total, item) => total + item.totalPrice, 0)
   }
 
   const calculateTax = () => {
@@ -118,8 +118,28 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
   }
 
   const handleSave = (action: "draft" | "update" | "send") => {
-    console.log("Saving invoice:", { ...formData, lineItems, revisionNotes, action })
-    // Handle save logic here
+    if (!invoice) return
+    
+    const subtotal = calculateSubtotal()
+    const tax = calculateTax()
+    const total = calculateTotal()
+    
+    const updatedInvoice: Partial<Invoice> = {
+      salesOrderId: formData.salesOrderId,
+      project: formData.project,
+      status: formData.status,
+      issueDate: formData.issueDate,
+      dueDate: formData.dueDate,
+      notes: formData.notes,
+      items: lineItems,
+      subtotal,
+      tax,
+      total,
+      revision: (parseInt(invoice.revision) + 1).toString()
+    }
+    
+    updateInvoice(invoice.id, updatedInvoice)
+    console.log("Invoice updated:", { ...formData, lineItems, revisionNotes, action })
   }
 
   const getStatusColor = (status: string) => {
@@ -141,6 +161,36 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
     }
   }
 
+  // Loading state
+  if (isLoading || !resolvedParams) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading invoice...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Invoice not found
+  if (!invoice) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invoice Not Found</h1>
+          <p className="text-gray-600 mb-4">The invoice you're trying to edit doesn't exist.</p>
+          <Link href="/invoicing">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Invoicing
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -148,14 +198,14 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-4">
-              <Link href={`/invoicing/${params.id}`}>
+              <Link href={`/invoicing/${resolvedParams?.id}`}>
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Invoice
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Edit Invoice - INV-2024-001</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Edit Invoice - {invoice.invoiceNumber}</h1>
                 <p className="text-sm text-gray-600">Update invoice details and line items</p>
               </div>
             </div>
@@ -190,17 +240,13 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="workOrder">Source Work Order</Label>
-                    <Select value={formData.workOrderId} onValueChange={(value) => handleInputChange("workOrderId", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="WO-2024-001">WO-2024-001 - Industrial Warehouse Frame</SelectItem>
-                        <SelectItem value="WO-2024-002">WO-2024-002 - Bridge Support Beams</SelectItem>
-                        <SelectItem value="WO-2024-003">WO-2024-003 - Custom Fabricated Brackets</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="salesOrder">Sales Order</Label>
+                    <Input 
+                      id="salesOrder" 
+                      value={formData.salesOrderId}
+                      onChange={(e) => handleInputChange("salesOrderId", e.target.value)}
+                      placeholder="SO-2024-001"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="status">Invoice Status</Label>
@@ -219,21 +265,21 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dateIssued">Date Issued</Label>
+                    <Label htmlFor="issueDate">Date Issued</Label>
                     <Input 
-                      id="dateIssued" 
+                      id="issueDate" 
                       type="date"
-                      value={formData.dateIssued}
-                      onChange={(e) => handleInputChange("dateIssued", e.target.value)}
+                      value={formData.issueDate}
+                      onChange={(e) => handleInputChange("issueDate", e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="dateDue">Due Date</Label>
+                    <Label htmlFor="dueDate">Due Date</Label>
                     <Input 
-                      id="dateDue" 
+                      id="dueDate" 
                       type="date"
-                      value={formData.dateDue}
-                      onChange={(e) => handleInputChange("dateDue", e.target.value)}
+                      value={formData.dueDate}
+                      onChange={(e) => handleInputChange("dueDate", e.target.value)}
                     />
                   </div>
                 </div>
@@ -244,52 +290,52 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
             <Card>
               <CardHeader>
                 <CardTitle>Customer Information</CardTitle>
-                <CardDescription>Update billing information</CardDescription>
+                <CardDescription>Customer details (read-only)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="customer">Customer Name *</Label>
+                    <Label htmlFor="customer">Customer Name</Label>
                     <Input 
                       id="customer" 
-                      value={formData.customer}
-                      onChange={(e) => handleInputChange("customer", e.target.value)}
+                      value={formData.customerName}
+                      disabled
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contactPerson">Contact Person *</Label>
+                    <Label htmlFor="contactPerson">Contact Person</Label>
                     <Input 
                       id="contactPerson" 
-                      value={formData.contactPerson}
-                      onChange={(e) => handleInputChange("contactPerson", e.target.value)}
+                      value={customer?.contactPerson || ""}
+                      disabled
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="customerAddress">Billing Address *</Label>
+                  <Label htmlFor="customerAddress">Billing Address</Label>
                   <Textarea 
                     id="customerAddress" 
                     rows={3}
-                    value={formData.customerAddress}
-                    onChange={(e) => handleInputChange("customerAddress", e.target.value)}
+                    value={customer?.address || ""}
+                    disabled
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input 
                       id="email" 
                       type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      value={customer?.email || ""}
+                      disabled
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone *</Label>
+                    <Label htmlFor="phone">Phone</Label>
                     <Input 
                       id="phone" 
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      value={customer?.phone || ""}
+                      disabled
                     />
                   </div>
                 </div>
@@ -314,31 +360,16 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Category</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Quantity</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Rate ($)</TableHead>
-                      <TableHead>Amount ($)</TableHead>
+                      <TableHead>Unit Price ($)</TableHead>
+                      <TableHead>Total ($)</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {lineItems.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell>
-                          <Select value={item.category} onValueChange={(value) => updateLineItem(item.id, 'category', value)}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="materials">Materials</SelectItem>
-                              <SelectItem value="labor">Labor</SelectItem>
-                              <SelectItem value="services">Services</SelectItem>
-                              <SelectItem value="delivery">Delivery</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
                         <TableCell>
                           <Input
                             placeholder="Item description"
@@ -349,16 +380,9 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                         <TableCell>
                           <Input
                             placeholder="8"
+                            type="number"
                             value={item.quantity}
-                            onChange={(e) => updateLineItem(item.id, 'quantity', e.target.value)}
-                            className="w-20"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            placeholder="tons"
-                            value={item.unit}
-                            onChange={(e) => updateLineItem(item.id, 'unit', e.target.value)}
+                            onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                             className="w-20"
                           />
                         </TableCell>
@@ -366,19 +390,16 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                           <Input
                             placeholder="1200"
                             type="number"
-                            value={item.rate}
-                            onChange={(e) => updateLineItem(item.id, 'rate', e.target.value)}
+                            value={item.unitPrice}
+                            onChange={(e) => updateLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                             className="w-24"
                           />
                         </TableCell>
                         <TableCell className="font-medium">
-                          ${item.amount.toLocaleString()}
+                          ${item.totalPrice.toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="sm">
-                              <Calculator className="w-4 h-4" />
-                            </Button>
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -442,18 +463,13 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="terms">Payment Terms</Label>
-                  <Select value={formData.terms} onValueChange={(value) => handleInputChange("terms", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Net 15 days">Net 15 days</SelectItem>
-                      <SelectItem value="Net 30 days">Net 30 days</SelectItem>
-                      <SelectItem value="Net 45 days">Net 45 days</SelectItem>
-                      <SelectItem value="Due on receipt">Due on receipt</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="project">Project</Label>
+                  <Input 
+                    id="project" 
+                    value={formData.project}
+                    onChange={(e) => handleInputChange("project", e.target.value)}
+                    placeholder="Project name"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notes & Terms</Label>
@@ -485,11 +501,11 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">INVOICE DATE</Label>
-                  <p className="text-sm font-medium">{formData.dateIssued}</p>
+                  <p className="text-sm font-medium">{formData.issueDate}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">DUE DATE</Label>
-                  <p className="text-sm">{formData.dateDue}</p>
+                  <p className="text-sm">{formData.dueDate}</p>
                 </div>
               </CardContent>
             </Card>
@@ -521,21 +537,12 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                 <CardTitle className="text-lg">Line Item Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {['materials', 'labor', 'services', 'delivery'].map(category => {
-                  const categoryItems = lineItems.filter(item => item.category === category)
-                  const categoryTotal = categoryItems.reduce((sum, item) => sum + item.amount, 0)
-                  
-                  if (categoryItems.length === 0) return null
-                  
-                  return (
-                    <div key={category} className="flex justify-between items-center">
-                      <Badge className={getCategoryColor(category)} variant="outline">
-                        {category.charAt(0).toUpperCase() + category.slice(1)} ({categoryItems.length})
-                      </Badge>
-                      <span className="text-sm font-medium">${categoryTotal.toLocaleString()}</span>
-                    </div>
-                  )
-                })}
+                <div className="flex justify-between items-center">
+                  <Badge className="bg-blue-100 text-blue-800" variant="outline">
+                    Items ({lineItems.length})
+                  </Badge>
+                  <span className="text-sm font-medium">${calculateSubtotal().toLocaleString()}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -546,8 +553,8 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <Label className="text-xs font-medium text-gray-500">TERMS</Label>
-                  <p className="text-sm">{formData.terms}</p>
+                  <Label className="text-xs font-medium text-gray-500">STATUS</Label>
+                  <p className="text-sm">{formData.status}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">AMOUNT DUE</Label>

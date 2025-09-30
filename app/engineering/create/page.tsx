@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, FileText, User, Calendar, Upload, X, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Save, FileText, User, Calendar, Upload, X, Link as LinkIcon, Calculator } from 'lucide-react'
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { useDatabaseContext } from "@/components/database-provider"
+import CADToBOQConverter from "@/components/cad-to-boq-converter"
 import EngineeringCreateLoading from "./loading"
 
 function CreateEngineeringDrawingContent() {
@@ -59,6 +60,10 @@ function CreateEngineeringDrawingContent() {
         url?: string;
     }>>([])
     const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+    const [showCADConverter, setShowCADConverter] = useState(false)
+    const [generatedBOQData, setGeneratedBOQData] = useState<any>(null)
+    const [isDragOver, setIsDragOver] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Auto-populate form when coming from quotation
     useEffect(() => {
@@ -174,6 +179,94 @@ function CreateEngineeringDrawingContent() {
             default:
                 return 'Document'
         }
+    }
+
+    const handleCADFileUpload = (file: File) => {
+        const fileId = `${file.name}-${Date.now()}`
+        const newFile = {
+            name: file.name,
+            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+            type: getFileType(file.name),
+            file: file,
+            url: URL.createObjectURL(file)
+        }
+
+        setUploadedFiles(prev => [...prev, newFile])
+
+        // Simulate upload progress
+        setUploadProgress(prev => ({ ...prev, [fileId]: 0 }))
+        const interval = setInterval(() => {
+            setUploadProgress(prev => {
+                const currentProgress = prev[fileId] || 0
+                if (currentProgress >= 100) {
+                    clearInterval(interval)
+                    return prev
+                }
+                return { ...prev, [fileId]: currentProgress + 10 }
+            })
+        }, 100)
+
+        // Show CAD converter for CAD files
+        if (['dwg', 'dxf'].includes(file.name.split('.').pop()?.toLowerCase() || '')) {
+            setShowCADConverter(true)
+        }
+    }
+
+    const handleBOQGenerated = (boqData: any) => {
+        setGeneratedBOQData(boqData)
+        setShowCADConverter(false)
+        // You could also automatically create a BOQ here if needed
+        console.log('BOQ generated:', boqData)
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragOver(true)
+    }
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragOver(false)
+    }
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragOver(false)
+        
+        const files = Array.from(e.dataTransfer.files)
+        files.forEach(file => {
+            const fileId = `${file.name}-${Date.now()}`
+            const newFile = {
+                name: file.name,
+                size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+                type: getFileType(file.name),
+                file: file,
+                url: URL.createObjectURL(file)
+            }
+
+            setUploadedFiles(prev => [...prev, newFile])
+
+            // Simulate upload progress
+            setUploadProgress(prev => ({ ...prev, [fileId]: 0 }))
+            const interval = setInterval(() => {
+                setUploadProgress(prev => {
+                    const currentProgress = prev[fileId] || 0
+                    if (currentProgress >= 100) {
+                        clearInterval(interval)
+                        return prev
+                    }
+                    return { ...prev, [fileId]: currentProgress + 10 }
+                })
+            }, 100)
+
+            // Show CAD converter for CAD files
+            if (['dwg', 'dxf'].includes(file.name.split('.').pop()?.toLowerCase() || '')) {
+                setShowCADConverter(true)
+            }
+        })
     }
 
     const removeFile = (index: number) => {
@@ -655,20 +748,62 @@ function CreateEngineeringDrawingContent() {
                             <CardDescription>Upload CAD files, PDFs, specifications, and related documents</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            {/* CAD to BOQ Feature */}
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h4 className="font-medium text-blue-900">CAD to BOQ Conversion</h4>
+                                        <p className="text-sm text-blue-700">
+                                            Upload DWG or DXF files to automatically generate Bill of Quantities
+                                        </p>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowCADConverter(true)}
+                                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                                    >
+                                        <Calculator className="w-4 h-4 mr-2" />
+                                        Convert CAD to BOQ
+                                    </Button>
+                                </div>
+                            </div>
+
                             {/* Upload Area */}
-                            <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                            <div 
+                                className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                                    isDragOver 
+                                        ? 'border-blue-400 bg-blue-50' 
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
                                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                                 <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-900">Drop files here or click to upload</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {isDragOver ? 'Drop files here' : 'Drop files here or click to upload'}
+                                    </p>
                                     <p className="text-xs text-gray-500">Supports: DWG, DXF, PDF, DOC, XLS, Images (Max 10MB each)</p>
                                 </div>
                                 <input
+                                    ref={fileInputRef}
                                     type="file"
                                     multiple
                                     accept=".dwg,.dxf,.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
                                     onChange={handleFileUpload}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    className="hidden"
                                 />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="mt-4"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Choose Files
+                                </Button>
                             </div>
 
                             {/* Uploaded Files */}
@@ -741,6 +876,20 @@ function CreateEngineeringDrawingContent() {
                     ) : null}
                 </form>
             </main>
+
+            {/* CAD to BOQ Converter Modal */}
+            {showCADConverter && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <CADToBOQConverter
+                                onBOQGenerated={handleBOQGenerated}
+                                onClose={() => setShowCADConverter(false)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

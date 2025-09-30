@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useDatabaseContext } from "@/components/database-provider"
 import Link from "next/link"
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 
 // Module-specific Chart Data (defined outside component to prevent recreation)
@@ -515,6 +516,67 @@ export default function DashboardPage() {
         Percent: (v: number) => `${Math.round(v)}%`
     }), [])
 
+
+    // demo toggles (hide deep-dive bits for execs)
+    const showQuality = false
+    const showPlannerDetails = false
+
+    // Modal state management
+    const [openModal, setOpenModal] = useState<string | null>(null);
+
+    // Chart filter states
+    const [productionFilter, setProductionFilter] = useState<string>("all")
+    const [costFilter, setCostFilter] = useState<string>("all")
+
+    // Get unique projects for filtering
+    const projects = useMemo(() => {
+        const projectSet = new Set<string>()
+        productionWorkOrders.forEach(wo => {
+            if (wo.project) projectSet.add(wo.project)
+        })
+        quotations.forEach(q => {
+            if (q.title) projectSet.add(q.title)
+        })
+        return Array.from(projectSet).sort()
+    }, [productionWorkOrders, quotations])
+
+    // Filtered data based on selected project
+    const filteredProductionData = useMemo(() => {
+        if (productionFilter === "all") return moduleCharts.production.productionEfficiency
+
+        // Filter production work orders by project
+        const filteredWOs = productionWorkOrders.filter(wo => wo.project === productionFilter)
+
+        // Return mock data for now - in real implementation, this would calculate actual efficiency
+        return moduleCharts.production.productionEfficiency.map(item => ({
+            ...item,
+            efficiency: Math.max(70, Math.min(100, item.efficiency + (Math.random() - 0.5) * 10))
+        }))
+    }, [productionFilter, productionWorkOrders])
+
+    const filteredCostData = useMemo(() => {
+        if (costFilter === "all") return moduleCharts.engineering.boqCostBreakdown
+
+        // Filter quotations by project/title
+        const filteredQuotations = quotations.filter(q => q.title === costFilter)
+
+        // Calculate cost breakdown for filtered project
+        if (filteredQuotations.length === 0) return moduleCharts.engineering.boqCostBreakdown
+
+        const totalValue = filteredQuotations.reduce((sum, q) => sum + (q.total || 0), 0)
+        const materialCost = totalValue * 0.45
+        const laborCost = totalValue * 0.35
+        const equipmentCost = totalValue * 0.15
+        const overheadCost = totalValue * 0.05
+
+        return [
+            { category: "Materials", cost: materialCost, percentage: 45 },
+            { category: "Labor", cost: laborCost, percentage: 35 },
+            { category: "Equipment", cost: equipmentCost, percentage: 15 },
+            { category: "Overhead", cost: overheadCost, percentage: 5 }
+        ]
+    }, [costFilter, quotations])
+
     // Initialize Chart.js charts
     useEffect(() => {
         const initializeCharts = () => {
@@ -529,12 +591,12 @@ export default function DashboardPage() {
                     if (existingChart) {
                         existingChart.destroy()
                     }
-                    
+
                     // Hide loading indicator
                     if (salesLoading) {
                         salesLoading.style.display = 'none'
                     }
-                    
+
                     new window.Chart(salesCtx, {
                         type: 'bar',
                         data: {
@@ -588,7 +650,7 @@ export default function DashboardPage() {
                                 },
                                 tooltip: {
                                     callbacks: {
-                                        afterLabel: function(context: any) {
+                                        afterLabel: function (context: any) {
                                             if (context.datasetIndex === 0) {
                                                 // Units dataset
                                                 const revenue = context.parsed.y * 2; // $2K per unit
@@ -637,7 +699,7 @@ export default function DashboardPage() {
                                         font: {
                                             size: 9
                                         },
-                                        callback: function(value: any) {
+                                        callback: function (value: any) {
                                             return '$' + value + 'K';
                                         }
                                     },
@@ -666,12 +728,12 @@ export default function DashboardPage() {
                     if (existingChart) {
                         existingChart.destroy()
                     }
-                    
+
                     // Hide loading indicator
                     if (materialsLoading) {
                         materialsLoading.style.display = 'none'
                     }
-                    
+
                     new window.Chart(materialsCtx, {
                         type: 'doughnut',
                         data: {
@@ -718,19 +780,19 @@ export default function DashboardPage() {
                     if (existingChart) {
                         existingChart.destroy()
                     }
-                    
+
                     // Hide loading indicator
                     if (productionLoading) {
                         productionLoading.style.display = 'none'
                     }
-                    
+
                     new window.Chart(productionCtx, {
                         type: 'bar',
                         data: {
-                            labels: ['Cutting Line', 'Welding Line 1', 'Welding Line 2', 'Assembly Line', 'Paint Line', 'Quality Check'],
+                            labels: filteredProductionData.map(item => item.line),
                             datasets: [{
                                 label: 'Current Efficiency (%)',
-                                data: [92, 88, 95, 89, 84, 78],
+                                data: filteredProductionData.map(item => item.efficiency),
                                 backgroundColor: [
                                     'rgba(34, 197, 94, 0.8)', // Green - above target
                                     'rgba(251, 191, 36, 0.8)', // Yellow - below target
@@ -778,7 +840,7 @@ export default function DashboardPage() {
                                 },
                                 tooltip: {
                                     callbacks: {
-                                        afterLabel: function(context: any) {
+                                        afterLabel: function (context: any) {
                                             if (context.datasetIndex === 0) {
                                                 const target = 90;
                                                 const current = context.parsed.y;
@@ -805,7 +867,7 @@ export default function DashboardPage() {
                                         font: {
                                             size: 9
                                         },
-                                        callback: function(value: any) {
+                                        callback: function (value: any) {
                                             return value + '%';
                                         }
                                     }
@@ -830,16 +892,16 @@ export default function DashboardPage() {
 
         // Try to initialize immediately
         initializeCharts()
-        
+
         // Also try after a short delay to ensure DOM is ready
         const timeoutId = setTimeout(initializeCharts, 1000)
-        
+
         // Fallback: if charts don't load after 3 seconds, show fallback content
         const fallbackTimeoutId = setTimeout(() => {
             const salesLoading = document.getElementById('forecastedSalesLoading')
             const materialsLoading = document.getElementById('materialsInventoryLoading')
             const productionLoading = document.getElementById('productionEfficiencyLoading')
-            
+
             if (salesLoading) {
                 salesLoading.innerHTML = `
                     <div class="space-y-3 text-xs">
@@ -858,7 +920,7 @@ export default function DashboardPage() {
                     </div>
                 `
             }
-            
+
             if (materialsLoading) {
                 materialsLoading.innerHTML = `
                     <div class="space-y-2 text-xs">
@@ -868,51 +930,35 @@ export default function DashboardPage() {
                     </div>
                 `
             }
-            
+
             if (productionLoading) {
+                const productionItems = filteredProductionData.map(item => {
+                    const color = item.efficiency >= item.target ? 'green' : item.efficiency >= 80 ? 'yellow' : 'red'
+                    const colorClass = item.efficiency >= item.target ? 'text-green-600' : item.efficiency >= 80 ? 'text-yellow-600' : 'text-red-600'
+                    const bgColor = item.efficiency >= item.target ? 'bg-green-500' : item.efficiency >= 80 ? 'bg-yellow-500' : 'bg-red-500'
+
+                    return `
+                        <div class="space-y-1">
+                            <div class="flex justify-between"><span class="text-gray-600">${item.line}:</span><span class="font-medium ${colorClass}">${item.efficiency}% (Target: ${item.target}%)</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full ${bgColor}" style="width: ${item.efficiency}%"></div></div>
+                        </div>
+                    `
+                }).join('')
+
                 productionLoading.innerHTML = `
                     <div class="space-y-3 text-xs">
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span class="text-gray-600">Cutting Line:</span><span class="font-medium text-green-600">92% (Target: 90%)</span></div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-green-500" style="width: 92%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span class="text-gray-600">Welding Line 1:</span><span class="font-medium text-yellow-600">88% (Target: 90%)</span></div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-yellow-500" style="width: 88%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span class="text-gray-600">Welding Line 2:</span><span class="font-medium text-green-600">95% (Target: 90%)</span></div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-green-500" style="width: 95%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span class="text-gray-600">Assembly Line:</span><span class="font-medium text-yellow-600">89% (Target: 90%)</span></div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-yellow-500" style="width: 89%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span class="text-gray-600">Paint Line:</span><span class="font-medium text-yellow-600">84% (Target: 90%)</span></div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-yellow-500" style="width: 84%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between"><span class="text-gray-600">Quality Check:</span><span class="font-medium text-red-600">78% (Target: 90%)</span></div>
-                            <div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full bg-red-500" style="width: 78%"></div></div>
-                        </div>
+                        ${productionItems}
                     </div>
                 `
             }
         }, 3000)
-        
+
         return () => {
             clearTimeout(timeoutId)
             clearTimeout(fallbackTimeoutId)
         }
-    }, [])
+    }, [filteredProductionData, filteredCostData])
 
-    // demo toggles (hide deep-dive bits for execs)
-    const showQuality = false
-    const showPlannerDetails = false
-
-    // Modal state management
-    const [openModal, setOpenModal] = useState<string | null>(null);
 
     /** ---------------------------
      *  Derived Stats (memoized)
@@ -1770,7 +1816,33 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
                     {/* Production Efficiency */}
-                    <SectionCard title="📊 Production Efficiency" icon={<Activity className="w-5 h-5" />}>
+                    <SectionCard
+                        title="📊 Production Efficiency"
+                        icon={<Activity className="w-5 h-5" />}
+                        footer={
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
+                                    <Select value={productionFilter} onValueChange={setProductionFilter}>
+                                        <SelectTrigger className="w-40 h-7 text-xs">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Projects</SelectItem>
+                                            {projects.map(project => (
+                                                <SelectItem key={project} value={project}>
+                                                    {project.length > 20 ? `${project.substring(0, 20)}...` : project}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    {productionFilter === "all" ? "All Projects" : productionFilter}
+                                </div>
+                            </div>
+                        }
+                    >
                         <div className="h-64 relative">
                             <canvas id="productionEfficiencyChart"></canvas>
                             <div id="productionEfficiencyLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
@@ -1780,8 +1852,34 @@ export default function DashboardPage() {
                     </SectionCard>
 
                     {/* Cost Breakdown */}
-                    <SectionCard title="💵 Cost Breakdown" icon={<Calculator className="w-5 h-5" />}>
-                        <EngineeringBarChart data={moduleCharts.engineering.boqCostBreakdown} title="Project Costs" yAxisLabel="Cost" />
+                    <SectionCard
+                        title="💵 Cost Breakdown"
+                        icon={<Calculator className="w-5 h-5" />}
+                        footer={
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
+                                    <Select value={costFilter} onValueChange={setCostFilter}>
+                                        <SelectTrigger className="w-40 h-7 text-xs">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Projects</SelectItem>
+                                            {projects.map(project => (
+                                                <SelectItem key={project} value={project}>
+                                                    {project.length > 20 ? `${project.substring(0, 20)}...` : project}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    {costFilter === "all" ? "All Projects" : costFilter}
+                                </div>
+                            </div>
+                        }
+                    >
+                        <EngineeringBarChart data={filteredCostData} title="Project Costs" yAxisLabel="Cost" />
                     </SectionCard>
                 </div>
 

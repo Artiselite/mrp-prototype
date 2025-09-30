@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Search, Filter, Eye, Edit, FileText, Calculator, Settings, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { Plus, Search, Filter, Eye, Edit, FileText, Calculator, Settings, DollarSign, Clock, CheckCircle, AlertCircle, BarChart3, TrendingUp } from 'lucide-react'
 import { useDatabaseContext } from '@/components/database-provider'
+import MarketDataDashboard from '@/components/market-data-dashboard'
 
 function QuotationsContent() {
   const { quotations, engineeringDrawings, isInitialized } = useDatabaseContext()
@@ -255,14 +256,23 @@ function QuotationsContent() {
           </CardContent>
         </Card>
 
-        {/* Quotations Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Quotations</CardTitle>
-            <CardDescription>
-              Customer quotations and ETO proposals with engineering integration
-            </CardDescription>
-          </CardHeader>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="quotations" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="quotations">Quotations</TabsTrigger>
+            <TabsTrigger value="unit-economics">Unit Economics</TabsTrigger>
+            <TabsTrigger value="market-data">Market Data</TabsTrigger>
+          </TabsList>
+
+          {/* Quotations Tab */}
+          <TabsContent value="quotations">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Quotations</CardTitle>
+                <CardDescription>
+                  Customer quotations and ETO proposals with engineering integration
+                </CardDescription>
+              </CardHeader>
 
           <CardContent>
             <Table>
@@ -333,6 +343,11 @@ function QuotationsContent() {
                             <Calculator className="w-4 h-4" />
                           </Button>
                         )}
+                        <Link href={`/quotations/${quotation?.id}/unit-economics`}>
+                          <Button variant="ghost" size="sm" title="Unit Economics">
+                            <BarChart3 className="w-4 h-4" />
+                          </Button>
+                        </Link>
                         {getWorkflowStage(quotation) === 'PO Received' && (
                           <Button variant="ghost" size="sm" title="Convert to Sales Order">
                             <Settings className="w-4 h-4" />
@@ -354,6 +369,51 @@ function QuotationsContent() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          {/* Unit Economics Tab */}
+          <TabsContent value="unit-economics">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Unit Economics Calculator
+                </CardTitle>
+                <CardDescription>
+                  Calculate unit economics with copper LME volatility analysis for quotations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Unit Economics Calculator</h3>
+                  <p className="text-gray-600 mb-4">
+                    Select a quotation to calculate unit economics with copper LME volatility analysis
+                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-500">
+                      • Real-time copper LME price integration
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      • Sensitivity analysis with min/max scenarios
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      • Risk assessment and recommendations
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      • Scenario planning for volatile markets
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Market Data Tab */}
+          <TabsContent value="market-data">
+            <MarketDataDashboard />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   )

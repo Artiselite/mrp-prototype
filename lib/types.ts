@@ -135,6 +135,75 @@ export interface QuotationChange {
   notes?: string
 }
 
+// Unit Economics Calculator Types
+export interface CopperLMEPrice {
+  id: string
+  date: string
+  price: number // USD per metric ton
+  currency: string
+  source: string
+  timestamp: string
+  change24h?: number
+  changePercent24h?: number
+}
+
+export interface UnitEconomicsInput {
+  id: string
+  quotationId: string
+  projectId?: string
+  baseMaterialCost: number
+  copperWeight: number // in kg
+  copperLMEPrice: number // current LME price
+  laborCost: number
+  overheadCost: number
+  profitMargin: number
+  quantity: number
+  currency: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SensitivityAnalysis {
+  id: string
+  quotationId: string
+  baseScenario: UnitEconomicsInput
+  scenarios: {
+    copperPriceMin: number
+    copperPriceMax: number
+    copperPriceCurrent: number
+    materialCostMin: number
+    materialCostMax: number
+    materialCostCurrent: number
+    totalCostMin: number
+    totalCostMax: number
+    totalCostCurrent: number
+    profitMin: number
+    profitMax: number
+    profitCurrent: number
+    marginMin: number
+    marginMax: number
+    marginCurrent: number
+  }
+  riskLevel: "Low" | "Medium" | "High" | "Critical"
+  recommendations: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MarketData {
+  id: string
+  commodity: string
+  price: number
+  currency: string
+  unit: string
+  source: string
+  lastUpdated: string
+  change24h: number
+  changePercent24h: number
+  volatility: number
+  trend: "Up" | "Down" | "Stable"
+}
+
 // Sales Order types
 export interface SalesOrderItem {
   id: string
@@ -859,4 +928,117 @@ export interface OEETrend {
   throughput: number
   downtime: number
   defects: number
+}
+
+// Project Subcontractor types (using suppliers as subcontractors)
+export interface ProjectSubcontractor {
+  id: string
+  projectId: string
+  supplierId: string // References supplier from supplier master
+  supplierName: string
+  workDescription: string
+  workType: "Fabrication" | "Assembly" | "Welding" | "Machining" | "Coating" | "Testing" | "Installation" | "Other"
+  status: "Pending" | "Assigned" | "In Progress" | "Completed" | "On Hold" | "Cancelled"
+  priority: "Low" | "Medium" | "High" | "Critical"
+  estimatedCost: number
+  actualCost: number
+  estimatedDuration: number // days
+  actualDuration: number // days
+  startDate: string
+  dueDate: string
+  completionDate?: string
+  progress: number // percentage
+  assignedBy: string
+  assignedAt: string
+  specifications: string
+  deliverables: string[]
+  qualityRequirements: string[]
+  safetyRequirements: string[]
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SubcontractorWorkOrder {
+  id: string
+  projectId: string
+  projectSubcontractorId: string
+  supplierId: string // References supplier from supplier master
+  supplierName: string
+  workOrderNumber: string
+  workDescription: string
+  workType: "Fabrication" | "Assembly" | "Welding" | "Machining" | "Coating" | "Testing" | "Installation" | "Other"
+  status: "Draft" | "Sent" | "Acknowledged" | "In Progress" | "Completed" | "On Hold" | "Cancelled"
+  priority: "Low" | "Medium" | "High" | "Critical"
+  estimatedCost: number
+  actualCost: number
+  estimatedDuration: number // days
+  actualDuration: number // days
+  startDate: string
+  dueDate: string
+  completionDate?: string
+  progress: number // percentage
+  specifications: string
+  deliverables: string[]
+  qualityRequirements: string[]
+  safetyRequirements: string[]
+  materialsProvided: string[]
+  materialsRequired: string[]
+  toolsRequired: string[]
+  specialInstructions: string
+  createdBy: string
+  assignedTo: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+// CAD Parser types
+export interface CADMaterial {
+  name: string
+  type: string
+  grade?: string
+  thickness?: number
+  dimensions?: {
+    length: number
+    width: number
+    height: number
+  }
+  quantity: number
+  unit: string
+  specifications?: string
+}
+
+export interface CADDimension {
+  type: 'linear' | 'angular' | 'radial' | 'diameter'
+  value: number
+  unit: string
+  startPoint: { x: number; y: number; z: number }
+  endPoint: { x: number; y: number; z: number }
+  text: string
+  layer: string
+}
+
+export interface CADBlock {
+  name: string
+  entities: any[]
+  attributes: Record<string, string>
+  insertPoint: { x: number; y: number; z: number }
+  scale: { x: number; y: number; z: number }
+  rotation: number
+}
+
+export interface CADBOQData {
+  materials: CADMaterial[]
+  dimensions: CADDimension[]
+  blocks: CADBlock[]
+  totalArea: number
+  totalVolume: number
+  totalLength: number
+  drawingInfo: {
+    title: string
+    scale: string
+    units: string
+    layers: string[]
+  }
 }

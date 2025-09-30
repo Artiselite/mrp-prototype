@@ -36,12 +36,6 @@ export default function InvoicingPage() {
     setIsDetailDialogOpen(true)
   }
 
-  const calculateSubtotal = (lineItems: any[]) => {
-    return lineItems.reduce((sum: number, item: any) => {
-      const amount = parseFloat(item.amount.replace('$', '').replace(',', ''))
-      return sum + amount
-    }, 0)
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -118,17 +112,17 @@ export default function InvoicingPage() {
               <TableBody>
                 {invoices.map((invoice: any) => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.customer}</TableCell>
-                    <TableCell>{invoice.project}</TableCell>
-                    <TableCell className="font-medium">{invoice.amount}</TableCell>
+                    <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                    <TableCell>{invoice.customerName}</TableCell>
+                    <TableCell>{invoice.project || "—"}</TableCell>
+                    <TableCell className="font-medium">${invoice.total.toLocaleString()}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
                         {invoice.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{invoice.dateIssued || "—"}</TableCell>
-                    <TableCell>{invoice.dateDue || "—"}</TableCell>
+                    <TableCell>{invoice.issueDate || "—"}</TableCell>
+                    <TableCell>{invoice.dueDate || "—"}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Link href={`/invoicing/${invoice.id}`}>
@@ -172,11 +166,11 @@ export default function InvoicingPage() {
                 <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div>
                     <Label className="text-sm font-medium">Customer</Label>
-                    <p>{selectedInvoice.customer}</p>
+                    <p>{selectedInvoice.customerName}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Project</Label>
-                    <p>{selectedInvoice.project}</p>
+                    <p>{selectedInvoice.project || "—"}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Status</Label>
@@ -186,7 +180,7 @@ export default function InvoicingPage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Total Amount</Label>
-                    <p className="font-bold text-lg">{selectedInvoice.amount}</p>
+                    <p className="font-bold text-lg">${selectedInvoice.total.toLocaleString()}</p>
                   </div>
                 </div>
                 
@@ -202,12 +196,12 @@ export default function InvoicingPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedInvoice.lineItems.map((item: any, index: number) => (
+                      {selectedInvoice.items.map((item: any, index: number) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.description}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
-                          <TableCell>{item.rate}</TableCell>
-                          <TableCell className="font-medium">{item.amount}</TableCell>
+                          <TableCell>${item.unitPrice.toLocaleString()}</TableCell>
+                          <TableCell className="font-medium">${item.totalPrice.toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="border-t-2">
@@ -215,15 +209,15 @@ export default function InvoicingPage() {
                           Subtotal:
                         </TableCell>
                         <TableCell className="font-bold">
-                          ${calculateSubtotal(selectedInvoice.lineItems).toLocaleString()}
+                          ${selectedInvoice.subtotal.toLocaleString()}
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell colSpan={3} className="text-right font-semibold">
-                          Tax (8.5%):
+                          Tax:
                         </TableCell>
                         <TableCell className="font-bold">
-                          ${(calculateSubtotal(selectedInvoice.lineItems) * 0.085).toLocaleString()}
+                          ${selectedInvoice.tax.toLocaleString()}
                         </TableCell>
                       </TableRow>
                       <TableRow className="border-t">
@@ -231,17 +225,17 @@ export default function InvoicingPage() {
                           Total:
                         </TableCell>
                         <TableCell className="font-bold text-lg">
-                          {selectedInvoice.amount}
+                          ${selectedInvoice.total.toLocaleString()}
                         </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
                 </div>
 
-                {selectedInvoice.status === "Paid" && selectedInvoice.datePaid && (
+                {selectedInvoice.status === "Paid" && selectedInvoice.issueDate && (
                   <div className="p-4 bg-green-50 rounded-lg">
                     <p className="text-green-800 font-medium">
-                      ✓ Payment received on {selectedInvoice.datePaid}
+                      ✓ Payment received on {selectedInvoice.issueDate}
                     </p>
                   </div>
                 )}

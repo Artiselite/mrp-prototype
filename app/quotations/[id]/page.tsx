@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { ArrowLeft, Edit, Download, Send, FileText, CheckCircle, AlertCircle, Clock, Settings, Mail, ShoppingCart, Upload } from 'lucide-react'
+import { ArrowLeft, Edit, Download, Send, FileText, CheckCircle, AlertCircle, Clock, Settings, Mail, ShoppingCart, Upload, DollarSign, ChevronDown, ChevronUp, TrendingUp, Factory, Zap, Calculator } from 'lucide-react'
 import Link from "next/link"
 import { useDatabaseContext } from '@/components/database-provider'
 import type { Quotation } from '@/lib/types'
+import UnitEconomicsCalculator from '@/components/unit-economics-calculator'
+import { dataIntegrationService, type IntegratedQuotationData } from '@/lib/services/data-integration'
 
 export default function QuotationDetailPage() {
   const params = useParams()
@@ -22,6 +24,7 @@ export default function QuotationDetailPage() {
   const { quotations, salesOrders, updateQuotation, createSalesOrder, isInitialized } = useDatabaseContext()
 
   const [quotation, setQuotation] = useState<Quotation | null>(null)
+  const [integratedData, setIntegratedData] = useState<IntegratedQuotationData | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false)
   const [isSalesOrderDialogOpen, setIsSalesOrderDialogOpen] = useState(false)
@@ -32,11 +35,26 @@ export default function QuotationDetailPage() {
   const [poAmount, setPOAmount] = useState('')
   const [poFile, setPOFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isUnitEconomicsExpanded, setIsUnitEconomicsExpanded] = useState(false)
+  const [isProductionFeasibilityExpanded, setIsProductionFeasibilityExpanded] = useState(false)
 
   useEffect(() => {
     if (isInitialized && quotations && quotationId) {
       const foundQuotation = quotations.find(q => q.id === quotationId)
       setQuotation(foundQuotation || null)
+      
+      if (foundQuotation) {
+        // Initialize data integration service with available data
+        dataIntegrationService.initialize({
+          quotations,
+          // Add other data sources as they become available
+        })
+        
+        // Get integrated data
+        const integrated = dataIntegrationService.getIntegratedQuotationData(quotationId)
+        setIntegratedData(integrated)
+      }
+      
       setLoading(false)
     }
   }, [isInitialized, quotations, quotationId])
@@ -316,6 +334,130 @@ export default function QuotationDetailPage() {
     setPOFile(null)
   }
 
+  // Unit Economics calculations
+  const calculateUnitEconomics = (quotation: Quotation | null, integratedData: IntegratedQuotationData | null) => {
+    if (!quotation || !quotation.items || quotation.items.length === 0) {
+      return {
+        totalQuantity: 0,
+        unitCost: 0,
+        unitPrice: 0,
+        unitMargin: 0,
+        unitMarginPercent: 0,
+        marginColor: 'text-gray-500'
+      }
+    }
+
+    const totalQuantity = quotation.items.reduce((sum, item) => sum + item.quantity, 0)
+    
+    // Use integrated data if available, otherwise fallback to quotation data
+    let unitCost, unitPrice, unitMargin
+    
+    if (integratedData) {
+      unitCost = integratedData.unitEconomics.unitCost
+      unitPrice = integratedData.unitEconomics.unitPrice
+      unitMargin = integratedData.unitEconomics.profitMargin
+    } else {
+      // Fallback calculation using quotation data
+      const totalCost = quotation.materialCost + quotation.laborCost + quotation.overheadCost
+      unitCost = totalQuantity > 0 ? totalCost / totalQuantity : 0
+      const unitProfit = totalQuantity > 0 ? quotation.profitMargin / totalQuantity : 0
+      unitPrice = unitCost + unitProfit
+      unitMargin = unitProfit
+    }
+    
+    const unitMarginPercent = unitPrice > 0 ? (unitMargin / unitPrice) * 100 : 0
+
+    // Traffic light colors for margin
+    let marginColor = 'text-gray-500'
+    if (unitMarginPercent >= 20) {
+      marginColor = 'text-green-600'
+    } else if (unitMarginPercent >= 10) {
+      marginColor = 'text-yellow-600'
+    } else if (unitMarginPercent > 0) {
+      marginColor = 'text-orange-600'
+    } else {
+      marginColor = 'text-red-600'
+    }
+
+    return {
+      totalQuantity,
+      unitCost,
+      unitPrice,
+      unitMargin,
+      unitMarginPercent,
+      marginColor
+    }
+  }
+
+  // Business process feasibility data (VSM for quotation-to-delivery flow)
+  const getProductionFeasibility = (quotation: Quotation | null) => {
+    if (!quotation) return null
+
+    // Business process steps with realistic load percentages based on quotation status
+    const steps = [
+      { 
+        name: 'Quotation', 
+        cycleTime: 2, 
+        waitTime: 1, 
+        load: quotation.status === 'Draft' ? 95 : 20, 
+        color: 'bg-blue-500',
+        status: quotation.status,
+        description: 'Initial quote preparation'
+      },
+      { 
+        name: 'Sales Order', 
+        cycleTime: 1, 
+        waitTime: 3, 
+        load: quotation.convertedToSO ? 15 : (quotation.poReceived ? 85 : 0), 
+        color: 'bg-green-500',
+        status: quotation.convertedToSO ? 'Completed' : quotation.poReceived ? 'In Progress' : 'Pending',
+        description: 'Customer PO and order conversion'
+      },
+      { 
+        name: 'Project Scoping', 
+        cycleTime: 3, 
+        waitTime: 2, 
+        load: quotation.engineeringProjectId ? 60 : (quotation.workflowStage === 'Engineering' ? 90 : 0), 
+        color: 'bg-purple-500',
+        status: quotation.engineeringProjectId ? 'In Progress' : 'Pending',
+        description: 'Engineering and technical design'
+      },
+      { 
+        name: 'Production Line', 
+        cycleTime: 5, 
+        waitTime: 1, 
+        load: quotation.convertedToSO ? 75 : 0, 
+        color: 'bg-orange-500',
+        status: quotation.convertedToSO ? 'Ready' : 'Pending',
+        description: 'Manufacturing and assembly'
+      },
+      { 
+        name: 'Invoicing', 
+        cycleTime: 1, 
+        waitTime: 2, 
+        load: quotation.convertedToSO ? 40 : 0, 
+        color: 'bg-indigo-500',
+        status: quotation.convertedToSO ? 'Ready' : 'Pending',
+        description: 'Billing and payment processing'
+      }
+    ]
+
+    // Find bottleneck (highest load)
+    const bottleneck = steps.reduce((max, step) => step.load > max.load ? step : max, steps[0])
+
+    // Calculate total process time
+    const totalCycleTime = steps.reduce((sum, step) => sum + step.cycleTime, 0)
+    const totalWaitTime = steps.reduce((sum, step) => sum + step.waitTime, 0)
+
+    return {
+      steps,
+      bottleneck,
+      totalCycleTime,
+      totalWaitTime,
+      currentStage: quotation.workflowStage || 'Draft'
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -393,10 +535,11 @@ export default function QuotationDetailPage() {
           </div>
         </div>
 
-        {/* ETO Workflow Status */}
+        {/* Combined Workflow Progress and Production Feasibility */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            {/* Workflow Progress - Always Visible */}
+            <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold">Workflow Progress</h3>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -420,6 +563,166 @@ export default function QuotationDetailPage() {
                   <span className="text-sm">PO Received</span>
                 </div>
               </div>
+            </div>
+
+            {/* Production Feasibility - Expandable Section */}
+            <div className="border-t pt-6">
+              <div 
+                className="flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors p-2 -m-2 rounded"
+                onClick={() => setIsProductionFeasibilityExpanded(!isProductionFeasibilityExpanded)}
+              >
+                <h4 className="text-lg font-semibold flex items-center gap-2">
+                  <Factory className="w-5 h-5" />
+                  VSM Analysis
+                </h4>
+                {isProductionFeasibilityExpanded ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </div>
+              
+              {isProductionFeasibilityExpanded && (
+                <div className="mt-4 space-y-4">
+                  {(() => {
+                    const feasibility = getProductionFeasibility(quotation)
+                    if (!feasibility) return null
+
+                    return (
+                      <>
+                        {/* Bottleneck Analysis */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Zap className="w-4 h-4 text-gray-600" />
+                            <span className="text-sm font-medium text-gray-800">Process Bottleneck Analysis</span>
+                          </div>
+                          
+                          {/* Combined Bottleneck Bar */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs text-gray-600">
+                              <span>Process Load Distribution</span>
+                              <span>Bottleneck: {feasibility.bottleneck.name}</span>
+                            </div>
+                            
+                            <div className="flex h-4 bg-gray-200 rounded-full overflow-hidden">
+                              {feasibility.steps.map((step, index) => (
+                                <div
+                                  key={step.name}
+                                  className={`${step.color} transition-all duration-300 ${
+                                    step.name === feasibility.bottleneck.name ? 'ring-2 ring-red-400 ring-opacity-50' : ''
+                                  }`}
+                                  style={{ 
+                                    width: `${(step.load / Math.max(...feasibility.steps.map(s => s.load))) * 100}%`,
+                                    minWidth: step.load > 0 ? '8px' : '0px'
+                                  }}
+                                  title={`${step.name}: ${step.load}% load`}
+                                />
+                              ))}
+                            </div>
+                            
+                            {/* Load Ratios */}
+                            <div className="grid grid-cols-2 gap-4 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Bottleneck Load:</span>
+                                <span className="font-medium text-red-600">{feasibility.bottleneck.load}%</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Avg Load:</span>
+                                <span className="font-medium text-gray-700">
+                                  {Math.round(feasibility.steps.reduce((sum, step) => sum + step.load, 0) / feasibility.steps.length)}%
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Bottleneck Impact */}
+                            <div className="text-xs text-gray-500 mt-2">
+                              <span className="font-medium">Impact:</span> {feasibility.bottleneck.name} is 
+                              <span className="font-medium text-red-600 mx-1">
+                                {Math.round((feasibility.bottleneck.load / Math.max(...feasibility.steps.map(s => s.load))) * 100)}%
+                              </span>
+                              of the total process load
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* VSM Timeline */}
+                        <div className="space-y-3">
+                          <h5 className="text-sm font-medium text-gray-700">Business Process Flow</h5>
+                          {feasibility.steps.map((step, index) => (
+                            <div key={step.name} className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-gray-700">{step.name}</span>
+                                  <span className={`text-xs px-2 py-1 rounded-full ${
+                                    step.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                    step.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                    step.status === 'Ready' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {step.status}
+                                  </span>
+                                </div>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  step.load >= 90 ? 'bg-red-100 text-red-800' :
+                                  step.load >= 75 ? 'bg-orange-100 text-orange-800' :
+                                  step.load >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                                  step.load > 0 ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-500'
+                                }`}>
+                                  {step.load}% load
+                                </span>
+                              </div>
+                              
+                              <p className="text-xs text-gray-500">{step.description}</p>
+                              
+                              {/* Gantt-style bars */}
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500 w-12">Process:</span>
+                                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className={`h-2 rounded-full ${step.color}`}
+                                      style={{ width: `${Math.min(step.cycleTime * 15, 100)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-gray-500">{step.cycleTime}d</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500 w-12">Wait:</span>
+                                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="h-2 rounded-full bg-gray-400"
+                                      style={{ width: `${Math.min(step.waitTime * 15, 100)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-gray-500">{step.waitTime}d</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Summary */}
+                        <div className="border-t pt-3">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-500">Total Process Time:</span>
+                              <span className="ml-2 font-medium">{feasibility.totalCycleTime}d</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Total Wait Time:</span>
+                              <span className="ml-2 font-medium">{feasibility.totalWaitTime}d</span>
+                            </div>
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500">
+                            Current Stage: <span className="font-medium">{feasibility.currentStage}</span>
+                          </div>
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -530,7 +833,7 @@ export default function QuotationDetailPage() {
                   </TableBody>
                 </Table>
 
-                {/* Summary */}
+                {/* Simple Summary */}
                 <div className="mt-6 pt-6 border-t">
                   <div className="flex justify-end">
                     <div className="w-64 space-y-2">
@@ -558,9 +861,10 @@ export default function QuotationDetailPage() {
 
             {/* Tabs */}
             <Tabs defaultValue="revisions" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="revisions">Revisions</TabsTrigger>
                 <TabsTrigger value="attachments">Attachments</TabsTrigger>
+                <TabsTrigger value="unit-economics">Unit Economics</TabsTrigger>
               </TabsList>
 
               <TabsContent value="revisions" className="space-y-4">
@@ -628,11 +932,210 @@ export default function QuotationDetailPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              <TabsContent value="unit-economics" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Unit Economics Calculator</CardTitle>
+                    <CardDescription>
+                      Advanced unit economics analysis with copper LME volatility and sensitivity analysis
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+          <UnitEconomicsCalculator
+            quotationId={quotationId}
+            initialData={integratedData ? {
+              id: `ue_${quotationId}`,
+              quotationId,
+              baseMaterialCost: integratedData.unitEconomics.baseMaterialCost,
+              copperWeight: integratedData.unitEconomics.copperWeight,
+              copperLMEPrice: integratedData.unitEconomics.copperLMEPrice,
+              laborCost: integratedData.unitEconomics.laborCost,
+              overheadCost: integratedData.unitEconomics.overheadCost,
+              profitMargin: integratedData.unitEconomics.profitMargin,
+              quantity: integratedData.unitEconomics.quantity,
+              currency: 'USD',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            } : {
+              id: `ue_${quotationId}`,
+              quotationId,
+              baseMaterialCost: quotation?.materialCost || 0,
+              copperWeight: quotation?.materialCost ? Math.round(quotation.materialCost / 100) : 0, // Estimate: ~$100 per kg copper
+              copperLMEPrice: 8500, // TODO: Fetch from LME API
+              laborCost: quotation?.laborCost || 0,
+              overheadCost: quotation?.overheadCost || 0,
+              profitMargin: quotation?.items && quotation.items.length > 0 ?
+                ((quotation.profitMargin || 0) / quotation.items.reduce((sum, item) => sum + item.quantity, 0)) * 100 : 15,
+              quantity: quotation?.items?.reduce((sum, item) => sum + item.quantity, 0) || 1,
+              currency: 'USD',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }}
+            onSave={(data) => {
+              console.log('Unit economics data saved:', data)
+              // Update quotation with new cost data
+              if (quotation) {
+                const updatedQuotation = {
+                  ...quotation,
+                  materialCost: data.baseMaterialCost,
+                  laborCost: data.laborCost,
+                  overheadCost: data.overheadCost,
+                  profitMargin: (data.profitMargin / 100) * quotation.subtotal
+                }
+                updateQuotation(quotationId, updatedQuotation)
+              }
+            }}
+          />
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Cost Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Cost Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">${quotation.total.toLocaleString()}</div>
+                    <div className="text-sm text-blue-700">Total Quotation Value</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-medium">${quotation.subtotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Engineering:</span>
+                    <span className="font-medium">${quotation.engineeringCost.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Materials:</span>
+                    <span className="font-medium">${quotation.materialCost.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Labor:</span>
+                    <span className="font-medium">${quotation.laborCost.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Overhead:</span>
+                    <span className="font-medium">${quotation.overheadCost.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span className="text-gray-600">Profit:</span>
+                    <span className="font-medium text-green-600">${quotation.profitMargin.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Tax:</span>
+                    <span className="font-medium">${quotation.tax.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded p-2">
+                  <div className="text-xs text-gray-600 text-center">
+                    Profit Margin: {quotation.total > 0 ? ((quotation.profitMargin / quotation.total) * 100).toFixed(1) : 0}%
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Unit Economics Panel */}
+            <Card>
+              <CardHeader 
+                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setIsUnitEconomicsExpanded(!isUnitEconomicsExpanded)}
+              >
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Unit Economics
+                  </CardTitle>
+                  {isUnitEconomicsExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+              </CardHeader>
+              {isUnitEconomicsExpanded && (
+                <CardContent className="space-y-4">
+                  {(() => {
+                    const unitEcon = calculateUnitEconomics(quotation, integratedData)
+                    return (
+                      <>
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">
+                              ${unitEcon.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-sm text-blue-700">Unit Price</div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="text-lg font-semibold text-gray-700">
+                              ${unitEcon.unitCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-xs text-gray-500">Unit Cost</div>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="text-lg font-semibold text-gray-700">
+                              {unitEcon.totalQuantity}
+                            </div>
+                            <div className="text-xs text-gray-500">Total Quantity</div>
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium text-gray-600">Unit Margin:</span>
+                            <div className="text-right">
+                              <div className={`text-lg font-bold ${unitEcon.marginColor}`}>
+                                ${unitEcon.unitMargin.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                              </div>
+                              <div className={`text-sm ${unitEcon.marginColor}`}>
+                                {unitEcon.unitMarginPercent.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Traffic light indicator */}
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${
+                              unitEcon.unitMarginPercent >= 20 ? 'bg-green-500' :
+                              unitEcon.unitMarginPercent >= 10 ? 'bg-yellow-500' :
+                              unitEcon.unitMarginPercent > 0 ? 'bg-orange-500' : 'bg-red-500'
+                            }`} />
+                            <span className="text-xs text-gray-500">
+                              {unitEcon.unitMarginPercent >= 20 ? 'Excellent margin' :
+                               unitEcon.unitMarginPercent >= 10 ? 'Good margin' :
+                               unitEcon.unitMarginPercent > 0 ? 'Low margin' : 'Negative margin'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                          <strong>Calculation:</strong> Unit Cost = (Materials + Labor + Overhead) ÷ Quantity | Unit Price = Unit Cost + Unit Profit
+                        </div>
+                      </>
+                    )
+                  })()}
+                </CardContent>
+              )}
+            </Card>
+
             {/* Quick Info */}
             <Card>
               <CardHeader>
@@ -658,10 +1161,6 @@ export default function QuotationDetailPage() {
                 <div>
                   <Label className="text-xs font-medium text-gray-500">SALES PERSON</Label>
                   <p className="text-sm">{quotation.salesPerson}</p>
-                </div>
-                <div>
-                  <Label className="text-xs font-medium text-gray-500">TOTAL VALUE</Label>
-                  <p className="text-lg font-bold">${quotation.total.toLocaleString()}</p>
                 </div>
               </CardContent>
             </Card>

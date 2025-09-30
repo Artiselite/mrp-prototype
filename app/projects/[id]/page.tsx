@@ -22,22 +22,56 @@ import {
   Wrench,
   Factory,
   Plus,
-  Eye
+  Eye,
+  Trash2
 } from "lucide-react"
 import Link from "next/link"
 import { useDatabaseContext } from "@/components/database-provider"
 import { formatDate, formatCurrency } from "@/lib/data"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [projectId, setProjectId] = useState<string | null>(null)
   const { 
     engineeringProjects: projects = [], 
     productionWorkOrders: workOrders = [],
+    suppliers = [],
+    projectSubcontractors = [],
+    subcontractorWorkOrders = [],
+    getProjectSubcontractorsByProject,
+    getSubcontractorWorkOrdersByProject,
+    createProjectSubcontractor,
+    updateProjectSubcontractor,
+    deleteProjectSubcontractor,
+    createSubcontractorWorkOrder,
+    updateSubcontractorWorkOrder,
+    deleteSubcontractorWorkOrder,
     isInitialized
   } = useDatabaseContext()
 
   const [project, setProject] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isSubconDialogOpen, setIsSubconDialogOpen] = useState(false)
+  const [editingSubcon, setEditingSubcon] = useState<any>(null)
+  const [subconFormData, setSubconFormData] = useState({
+    supplierId: "",
+    workDescription: "",
+    workType: "Fabrication" as "Fabrication" | "Assembly" | "Welding" | "Machining" | "Coating" | "Testing" | "Installation" | "Other",
+    priority: "Medium" as "Low" | "Medium" | "High" | "Critical",
+    estimatedCost: "",
+    estimatedDuration: "",
+    startDate: "",
+    dueDate: "",
+    specifications: "",
+    deliverables: "",
+    qualityRequirements: "",
+    safetyRequirements: "",
+    notes: ""
+  })
 
   // Resolve the async params
   useEffect(() => {
@@ -90,6 +124,151 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   // Get related work orders for this project
   const relatedWorkOrders = workOrders.filter((wo: any) => wo.projectId === projectId)
+  
+  // Get related subcontractors for this project
+  const relatedProjectSubcontractors = projectId ? getProjectSubcontractorsByProject(projectId) : []
+  const relatedSubcontractorWorkOrders = projectId ? getSubcontractorWorkOrdersByProject(projectId) : []
+
+  // Subcontractor management functions
+  const openSubconDialog = () => {
+    setEditingSubcon(null)
+    setSubconFormData({
+      supplierId: "",
+      workDescription: "",
+      workType: "Fabrication",
+      priority: "Medium",
+      estimatedCost: "",
+      estimatedDuration: "",
+      startDate: new Date().toISOString().split('T')[0],
+      dueDate: "",
+      specifications: "",
+      deliverables: "",
+      qualityRequirements: "",
+      safetyRequirements: "",
+      notes: ""
+    })
+    setIsSubconDialogOpen(true)
+  }
+
+  const openEditSubconDialog = (subcon: any) => {
+    setEditingSubcon(subcon)
+    setSubconFormData({
+      supplierId: subcon.supplierId || "",
+      workDescription: subcon.workDescription || "",
+      workType: subcon.workType || "Fabrication",
+      priority: subcon.priority || "Medium",
+      estimatedCost: subcon.estimatedCost?.toString() || "",
+      estimatedDuration: subcon.estimatedDuration?.toString() || "",
+      startDate: subcon.startDate || "",
+      dueDate: subcon.dueDate || "",
+      specifications: subcon.specifications || "",
+      deliverables: subcon.deliverables?.join(', ') || "",
+      qualityRequirements: subcon.qualityRequirements?.join(', ') || "",
+      safetyRequirements: subcon.safetyRequirements?.join(', ') || "",
+      notes: subcon.notes || ""
+    })
+    setIsSubconDialogOpen(true)
+  }
+
+  const handleCreateSubcon = async () => {
+    if (!projectId || !subconFormData.supplierId || !subconFormData.workDescription) {
+      alert("Please fill in all required fields")
+      return
+    }
+
+    try {
+      const selectedSupplier = suppliers.find(s => s.id === subconFormData.supplierId)
+      if (!selectedSupplier) {
+        alert("Selected supplier not found")
+        return
+      }
+
+      const newProjectSubcon = {
+        projectId,
+        supplierId: subconFormData.supplierId,
+        supplierName: selectedSupplier.name,
+        workDescription: subconFormData.workDescription,
+        workType: subconFormData.workType,
+        status: "Pending" as const,
+        priority: subconFormData.priority,
+        estimatedCost: parseFloat(subconFormData.estimatedCost) || 0,
+        actualCost: 0,
+        estimatedDuration: parseInt(subconFormData.estimatedDuration) || 0,
+        actualDuration: 0,
+        startDate: subconFormData.startDate,
+        dueDate: subconFormData.dueDate,
+        progress: 0,
+        assignedBy: "Current User", // In a real app, this would be the logged-in user
+        assignedAt: new Date().toISOString(),
+        specifications: subconFormData.specifications,
+        deliverables: subconFormData.deliverables.split(',').map(d => d.trim()).filter(d => d),
+        qualityRequirements: subconFormData.qualityRequirements.split(',').map(q => q.trim()).filter(q => q),
+        safetyRequirements: subconFormData.safetyRequirements.split(',').map(s => s.trim()).filter(s => s),
+        notes: subconFormData.notes
+      }
+
+      await createProjectSubcontractor(newProjectSubcon)
+      setIsSubconDialogOpen(false)
+      setEditingSubcon(null)
+      alert("Subcontractor assigned successfully!")
+    } catch (error) {
+      console.error("Error creating project subcontractor:", error)
+      alert("Failed to assign subcontractor")
+    }
+  }
+
+  const handleUpdateSubcon = async () => {
+    if (!editingSubcon || !subconFormData.supplierId || !subconFormData.workDescription) {
+      alert("Please fill in all required fields")
+      return
+    }
+
+    try {
+      const selectedSupplier = suppliers.find(s => s.id === subconFormData.supplierId)
+      if (!selectedSupplier) {
+        alert("Selected supplier not found")
+        return
+      }
+
+      const updatedProjectSubcon = {
+        ...editingSubcon,
+        supplierId: subconFormData.supplierId,
+        supplierName: selectedSupplier.name,
+        workDescription: subconFormData.workDescription,
+        workType: subconFormData.workType,
+        priority: subconFormData.priority,
+        estimatedCost: parseFloat(subconFormData.estimatedCost) || 0,
+        estimatedDuration: parseInt(subconFormData.estimatedDuration) || 0,
+        startDate: subconFormData.startDate,
+        dueDate: subconFormData.dueDate,
+        specifications: subconFormData.specifications,
+        deliverables: subconFormData.deliverables.split(',').map(d => d.trim()).filter(d => d),
+        qualityRequirements: subconFormData.qualityRequirements.split(',').map(q => q.trim()).filter(q => q),
+        safetyRequirements: subconFormData.safetyRequirements.split(',').map(s => s.trim()).filter(s => s),
+        notes: subconFormData.notes
+      }
+
+      await updateProjectSubcontractor(editingSubcon.id, updatedProjectSubcon)
+      setIsSubconDialogOpen(false)
+      setEditingSubcon(null)
+      alert("Subcontractor updated successfully!")
+    } catch (error) {
+      console.error("Error updating project subcontractor:", error)
+      alert("Failed to update subcontractor")
+    }
+  }
+
+  const handleDeleteSubcon = async (subconId: string) => {
+    if (confirm("Are you sure you want to remove this subcontractor from the project?")) {
+      try {
+        await deleteProjectSubcontractor(subconId)
+        alert("Subcontractor removed successfully!")
+      } catch (error) {
+        console.error("Error deleting project subcontractor:", error)
+        alert("Failed to remove subcontractor")
+      }
+    }
+  }
 
   if (loading || !projectId) {
     return (
@@ -176,9 +355,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           {/* Main Content */}
           <div className="col-span-3">
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="workorders">Work Orders</TabsTrigger>
+                <TabsTrigger value="subcontractors">Subcontractors</TabsTrigger>
                 <TabsTrigger value="requirements">Requirements</TabsTrigger>
                 <TabsTrigger value="timeline">Timeline</TabsTrigger>
               </TabsList>
@@ -321,6 +501,142 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="subcontractors" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Project Subcontractors</CardTitle>
+                        <CardDescription>Manage subcontractors assigned to this project</CardDescription>
+                      </div>
+                      <Button onClick={openSubconDialog}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Assign Subcontractor
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {relatedProjectSubcontractors.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Supplier (Subcontractor)</TableHead>
+                            <TableHead>Work Type</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Priority</TableHead>
+                            <TableHead>Cost</TableHead>
+                            <TableHead>Due Date</TableHead>
+                            <TableHead>Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {relatedProjectSubcontractors.map((subcon: any) => (
+                            <TableRow key={subcon.id}>
+                              <TableCell className="font-medium">{subcon.supplierName}</TableCell>
+                              <TableCell>{subcon.workType}</TableCell>
+                              <TableCell>
+                                <Badge className={getStatusColor(subcon.status)}>
+                                  {subcon.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <span style={{ color: getPriorityColor(subcon.priority) }}>
+                                  {subcon.priority}
+                                </span>
+                              </TableCell>
+                              <TableCell>{formatCurrency(subcon.estimatedCost)}</TableCell>
+                              <TableCell>{formatDate(subcon.dueDate)}</TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openEditSubconDialog(subcon)}
+                                  >
+                                    <Edit className="w-3 h-3 mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteSubcon(subcon.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Factory className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Subcontractors</h3>
+                        <p className="text-gray-500 mb-4">No subcontractors have been assigned to this project yet.</p>
+                        <Button onClick={openSubconDialog}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Assign Subcontractor
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Subcontractor Work Orders */}
+                {relatedSubcontractorWorkOrders.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Subcontractor Work Orders</CardTitle>
+                      <CardDescription>Work orders created for subcontractors</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Work Order</TableHead>
+                            <TableHead>Supplier (Subcontractor)</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Progress</TableHead>
+                            <TableHead>Due Date</TableHead>
+                            <TableHead>Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {relatedSubcontractorWorkOrders.map((workOrder: any) => (
+                            <TableRow key={workOrder.id}>
+                              <TableCell className="font-medium">{workOrder.workOrderNumber}</TableCell>
+                              <TableCell>{workOrder.supplierName}</TableCell>
+                              <TableCell>{workOrder.workDescription}</TableCell>
+                              <TableCell>
+                                <Badge className={getStatusColor(workOrder.status)}>
+                                  {workOrder.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={workOrder.progress} className="w-16 h-2" />
+                                  <span className="text-sm">{workOrder.progress}%</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>{formatDate(workOrder.dueDate)}</TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="requirements" className="space-y-6">
@@ -501,6 +817,197 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </main>
+
+      {/* Subcontractor Assignment Dialog */}
+      <Dialog open={isSubconDialogOpen} onOpenChange={setIsSubconDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingSubcon ? "Edit Subcontractor Assignment" : "Assign Subcontractor to Project"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingSubcon ? "Update subcontractor assignment details" : "Assign a subcontractor to work on this project"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+             <div>
+               <Label htmlFor="supplier">Supplier (Subcontractor) *</Label>
+               <Select
+                 value={subconFormData.supplierId}
+                 onValueChange={(value) => setSubconFormData(prev => ({ ...prev, supplierId: value }))}
+               >
+                 <SelectTrigger>
+                   <SelectValue placeholder="Select supplier as subcontractor" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {suppliers.map((supplier) => (
+                     <SelectItem key={supplier.id} value={supplier.id}>
+                       {supplier.name} - {supplier.specialties.join(', ')}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+            
+            <div>
+              <Label htmlFor="workDescription">Work Description *</Label>
+              <Textarea
+                id="workDescription"
+                value={subconFormData.workDescription}
+                onChange={(e) => setSubconFormData(prev => ({ ...prev, workDescription: e.target.value }))}
+                placeholder="Describe the work to be performed"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="workType">Work Type</Label>
+                <Select 
+                  value={subconFormData.workType} 
+                  onValueChange={(value: any) => setSubconFormData(prev => ({ ...prev, workType: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fabrication">Fabrication</SelectItem>
+                    <SelectItem value="Assembly">Assembly</SelectItem>
+                    <SelectItem value="Welding">Welding</SelectItem>
+                    <SelectItem value="Machining">Machining</SelectItem>
+                    <SelectItem value="Coating">Coating</SelectItem>
+                    <SelectItem value="Testing">Testing</SelectItem>
+                    <SelectItem value="Installation">Installation</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select 
+                  value={subconFormData.priority} 
+                  onValueChange={(value: any) => setSubconFormData(prev => ({ ...prev, priority: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="estimatedCost">Estimated Cost</Label>
+                <Input
+                  id="estimatedCost"
+                  type="number"
+                  value={subconFormData.estimatedCost}
+                  onChange={(e) => setSubconFormData(prev => ({ ...prev, estimatedCost: e.target.value }))}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="estimatedDuration">Estimated Duration (days)</Label>
+                <Input
+                  id="estimatedDuration"
+                  type="number"
+                  value={subconFormData.estimatedDuration}
+                  onChange={(e) => setSubconFormData(prev => ({ ...prev, estimatedDuration: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={subconFormData.startDate}
+                  onChange={(e) => setSubconFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={subconFormData.dueDate}
+                  onChange={(e) => setSubconFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="specifications">Specifications</Label>
+              <Textarea
+                id="specifications"
+                value={subconFormData.specifications}
+                onChange={(e) => setSubconFormData(prev => ({ ...prev, specifications: e.target.value }))}
+                placeholder="Technical specifications and requirements"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="deliverables">Deliverables (comma-separated)</Label>
+              <Input
+                id="deliverables"
+                value={subconFormData.deliverables}
+                onChange={(e) => setSubconFormData(prev => ({ ...prev, deliverables: e.target.value }))}
+                placeholder="Drawing, Report, Sample, etc."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="qualityRequirements">Quality Requirements (comma-separated)</Label>
+              <Input
+                id="qualityRequirements"
+                value={subconFormData.qualityRequirements}
+                onChange={(e) => setSubconFormData(prev => ({ ...prev, qualityRequirements: e.target.value }))}
+                placeholder="ISO 9001, ASME, etc."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="safetyRequirements">Safety Requirements (comma-separated)</Label>
+              <Input
+                id="safetyRequirements"
+                value={subconFormData.safetyRequirements}
+                onChange={(e) => setSubconFormData(prev => ({ ...prev, safetyRequirements: e.target.value }))}
+                placeholder="OSHA, PPE, etc."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={subconFormData.notes}
+                onChange={(e) => setSubconFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Additional notes or special instructions"
+                rows={2}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setIsSubconDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={editingSubcon ? handleUpdateSubcon : handleCreateSubcon}>
+                {editingSubcon ? "Update" : "Assign"} Subcontractor
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

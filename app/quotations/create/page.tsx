@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Save, Plus, Trash2, Calculator, Send, FileText, Settings, Wrench, CheckCircle, AlertCircle } from 'lucide-react'
 import Link from "next/link"
 import { useDatabaseContext } from '@/components/database-provider'
+import UnitEconomicsCalculator from '@/components/unit-economics-calculator'
+import { dataIntegrationService } from '@/lib/services/data-integration'
 
 export default function CreateQuotationPage() {
   const { items, quotations, customers, createQuotation, isInitialized } = useDatabaseContext()
@@ -36,7 +38,13 @@ export default function CreateQuotationPage() {
     technicalSpecifications: "",
     deliveryTerms: "",
     paymentTerms: "Net 30",
-    warrantyTerms: "1 Year Standard Warranty"
+    warrantyTerms: "1 Year Standard Warranty",
+    // Cost breakdown fields
+    engineeringCost: 0,
+    materialCost: 0,
+    laborCost: 0,
+    overheadCost: 0,
+    profitMargin: 0
   })
 
   // Workflow status tracking
@@ -67,6 +75,24 @@ export default function CreateQuotationPage() {
     totalEquipmentCost: 0,
     boqItems: []
   })
+
+  // Unit Economics State
+  const [unitEconomics, setUnitEconomics] = useState({
+    showCostBreakdown: false,
+    selectedProduct: null as any,
+    lineItemId: null as number | null,
+    unitCost: 0,
+    materialCost: 0,
+    laborCost: 0,
+    overheadCost: 0,
+    otherCosts: 0,
+    proposedPrice: 0,
+    unitMargin: 0,
+    marginPercent: 0,
+    totalContribution: 0,
+    marginStatus: 'unknown' as 'healthy' | 'borderline' | 'below' | 'unknown'
+  })
+
 
   const [lineItems, setLineItems] = useState([
     {
@@ -185,7 +211,7 @@ export default function CreateQuotationPage() {
             partNumber: selectedItem.partNumber,
             description: selectedItem.name,
             unit: selectedItem.unit,
-            rate: selectedItem.unitCost.toString(),
+            rate: item.rate || selectedItem.unitCost.toString(), // Keep existing rate or use default
             category: selectedItem.category.toLowerCase(),
             specifications: selectedItem.specifications,
             isNewItem: false
@@ -198,8 +224,75 @@ export default function CreateQuotationPage() {
         }
         return item
       }))
+
+      // Show cost breakdown panel when product is selected
+      showCostBreakdown(selectedItem, lineItemId)
     }
   }
+
+  // Unit Economics Functions
+  const showCostBreakdown = (product: any, lineItemId: number) => {
+    // Get current line item rate
+    const lineItem = lineItems.find(item => item.id === lineItemId)
+    const currentRate = lineItem ? parseFloat(lineItem.rate) || 0 : product.unitCost * 1.2
+    
+    // Simulate cost build-up from BOM and routing
+    const materialCost = product.unitCost * 0.6 // 60% materials
+    const laborCost = product.unitCost * 0.25   // 25% labor
+    const overheadCost = product.unitCost * 0.1 // 10% overhead
+    const otherCosts = product.unitCost * 0.05  // 5% other costs
+    const unitCost = materialCost + laborCost + overheadCost + otherCosts
+
+    setUnitEconomics(prev => ({
+      ...prev,
+      showCostBreakdown: true,
+      selectedProduct: product,
+      unitCost,
+      materialCost,
+      laborCost,
+      overheadCost,
+      otherCosts,
+      proposedPrice: currentRate,
+      lineItemId
+    }))
+
+    calculateMargins(currentRate, lineItemId)
+  }
+
+  const calculateMargins = (proposedPrice: number, lineItemId?: number) => {
+    const quantity = lineItemId ? 
+      (lineItems.find(item => item.id === lineItemId)?.quantity || 1) : 
+      (unitEconomics.selectedProduct ? 1 : 1)
+    const unitMargin = proposedPrice - unitEconomics.unitCost
+    const marginPercent = unitEconomics.unitCost > 0 ? (unitMargin / proposedPrice) * 100 : 0
+    const totalContribution = unitMargin * parseFloat(quantity.toString())
+
+    // Determine margin status
+    let marginStatus: 'healthy' | 'borderline' | 'below' | 'unknown' = 'unknown'
+    if (marginPercent >= 20) marginStatus = 'healthy'
+    else if (marginPercent >= 10) marginStatus = 'borderline'
+    else if (marginPercent > 0) marginStatus = 'below'
+
+    setUnitEconomics(prev => ({
+      ...prev,
+      proposedPrice,
+      unitMargin,
+      marginPercent,
+      totalContribution,
+      marginStatus
+    }))
+  }
+
+  const updateProposedPrice = (price: number, lineItemId?: number) => {
+    // Update the line item rate first
+    if (lineItemId) {
+      updateLineItem(lineItemId, 'rate', price.toString())
+    }
+    
+    // Then calculate margins
+    calculateMargins(price, lineItemId)
+  }
+
 
   const calculateSubtotal = () => {
     return lineItems.reduce((total, item) => total + item.amount, 0)
@@ -294,11 +387,11 @@ export default function CreateQuotationPage() {
           drawingId: undefined
         })),
         subtotal: calculateSubtotal(),
-        engineeringCost: 0,
-        materialCost: calculateSubtotal() * 0.6,
-        laborCost: calculateSubtotal() * 0.3,
-        overheadCost: calculateSubtotal() * 0.1,
-        profitMargin: 0,
+        engineeringCost: formData.engineeringCost || 0,
+        materialCost: formData.materialCost || calculateSubtotal() * 0.6,
+        laborCost: formData.laborCost || calculateSubtotal() * 0.3,
+        overheadCost: formData.overheadCost || calculateSubtotal() * 0.1,
+        profitMargin: formData.profitMargin || 0,
         tax: calculateTax(),
         total: calculateTotal(),
         validUntil: formData.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -485,7 +578,7 @@ export default function CreateQuotationPage() {
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">ETO Workflow Progress</h3>
+              <h3 className="text-lg font-semibold">Workflow Progress</h3>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   {workflowStatus.quotationCreated ? (
@@ -543,16 +636,17 @@ export default function CreateQuotationPage() {
         </Card>
 
         <Tabs defaultValue="quotation" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="quotation">Quotation Details</TabsTrigger>
             <TabsTrigger value="engineering">Engineering</TabsTrigger>
             <TabsTrigger value="boq">Bill of Quantities</TabsTrigger>
+            <TabsTrigger value="unit-economics">Unit Economics</TabsTrigger>
             <TabsTrigger value="summary">Summary & Send</TabsTrigger>
           </TabsList>
 
           <TabsContent value="quotation">
-            <div className="grid grid-cols-4 gap-6">
-              {/* Main Form */}
+            <div className="grid grid-cols-5 gap-6">
+              {/* Main Form - Left Side */}
               <div className="col-span-3 space-y-6">
                 {/* Customer Information */}
                 <Card>
@@ -706,29 +800,28 @@ export default function CreateQuotationPage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table className="min-w-[1100px]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[200px]">Item Selection</TableHead>
-                            <TableHead className="w-[160px]">Part Number</TableHead>
-                            <TableHead className="min-w-[280px]">Description</TableHead>
-                            <TableHead className="w-[90px]">Quantity</TableHead>
-                            <TableHead className="w-[70px]">Unit</TableHead>
-                            <TableHead className="w-[90px]">Rate ($)</TableHead>
-                            <TableHead className="w-[100px]">Amount ($)</TableHead>
-                            <TableHead className="w-[140px]">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
+                    <Table className="w-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[15%]">Item Selection</TableHead>
+                          <TableHead className="w-[12%]">Part Number</TableHead>
+                          <TableHead className="w-[25%]">Description</TableHead>
+                          <TableHead className="w-[8%]">Quantity</TableHead>
+                          <TableHead className="w-[8%]">Unit</TableHead>
+                          <TableHead className="w-[12%]">Unit Price ($)</TableHead>
+                          <TableHead className="w-[12%]">Amount ($)</TableHead>
+                          <TableHead className="w-[8%]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                         <TableBody>
                           {lineItems.map((item) => (
                             <TableRow key={item.id}>
-                              <TableCell className="p-2 min-w-[200px]">
+                              <TableCell className="p-2">
                                 {!isInitialized || !items ? (
                                   <div className="text-sm text-gray-500">Loading items...</div>
                                 ) : (
                                   <Select value={item.itemId || ""} onValueChange={(value) => selectItemFromMaster(item.id, value)}>
-                                    <SelectTrigger className="w-full text-sm min-w-0">
+                                    <SelectTrigger className="w-full text-sm">
                                       <SelectValue placeholder="Select item..." />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -751,22 +844,22 @@ export default function CreateQuotationPage() {
                                   </Select>
                                 )}
                               </TableCell>
-                              <TableCell className="p-2 min-w-[160px]">
+                              <TableCell className="p-2">
                                 <Input
                                   placeholder="Part number"
                                   value={item.partNumber}
                                   onChange={(e) => updateLineItem(item.id, 'partNumber', e.target.value)}
                                   disabled={!!item.itemId}
-                                  className="w-full text-sm min-w-0"
+                                  className="w-full text-sm"
                                 />
                               </TableCell>
-                              <TableCell className="p-2 min-w-[280px]">
+                              <TableCell className="p-2">
                                 <Input
                                   placeholder="Item description"
                                   value={item.description}
                                   onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
                                   disabled={!!item.itemId}
-                                  className="w-full text-sm min-w-0"
+                                  className="w-full text-sm"
                                 />
                               </TableCell>
                               <TableCell className="p-2">
@@ -774,7 +867,7 @@ export default function CreateQuotationPage() {
                                   placeholder="8"
                                   value={item.quantity}
                                   onChange={(e) => updateLineItem(item.id, 'quantity', e.target.value)}
-                                  className="w-full text-sm min-w-0"
+                                  className="w-full text-sm"
                                 />
                               </TableCell>
                               <TableCell className="p-2">
@@ -783,17 +876,17 @@ export default function CreateQuotationPage() {
                                   value={item.unit}
                                   onChange={(e) => updateLineItem(item.id, 'unit', e.target.value)}
                                   disabled={!!item.itemId}
-                                  className="w-full text-sm min-w-0"
+                                  className="w-full text-sm"
                                 />
                               </TableCell>
                               <TableCell className="p-2">
                                 <Input
-                                  placeholder="2450"
+                                  placeholder="0.00"
                                   type="number"
+                                  step="0.01"
                                   value={item.rate}
                                   onChange={(e) => updateLineItem(item.id, 'rate', e.target.value)}
-                                  disabled={!!item.itemId}
-                                  className="w-full text-sm min-w-0"
+                                  className="w-full text-sm"
                                 />
                               </TableCell>
                               <TableCell className="p-2 font-medium text-right">
@@ -816,7 +909,6 @@ export default function CreateQuotationPage() {
                           ))}
                         </TableBody>
                       </Table>
-                    </div>
 
                     {/* Totals */}
                     <div className="mt-6 flex justify-end">
@@ -859,8 +951,8 @@ export default function CreateQuotationPage() {
                 </Card>
               </div>
 
-              {/* Sidebar */}
-              <div className="space-y-6">
+              {/* Profitability Panel - Right Side */}
+              <div className="col-span-2 space-y-6">
                 {/* Pricing Summary */}
                 <Card>
                   <CardHeader>
@@ -881,6 +973,151 @@ export default function CreateQuotationPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Unit Economics - Cost Breakdown Panel */}
+                {unitEconomics.showCostBreakdown && (
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-lg text-blue-900">Cost Breakdown</CardTitle>
+                          <CardDescription className="text-blue-700">
+                            Live Cost Analysis
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setUnitEconomics(prev => ({ ...prev, showCostBreakdown: false }))}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Line Item Selector */}
+                      <div>
+                        <Label htmlFor="lineItemSelector">Select Line Item</Label>
+                        <Select 
+                          value={unitEconomics.lineItemId?.toString() || ""} 
+                          onValueChange={(value) => {
+                            const lineItemId = parseInt(value)
+                            const lineItem = lineItems.find(item => item.id === lineItemId)
+                            if (lineItem && lineItem.itemId) {
+                              const product = items?.find(item => item.id === lineItem.itemId)
+                              if (product) {
+                                showCostBreakdown(product, lineItemId)
+                              }
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a line item to analyze" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {lineItems
+                              .filter(item => item.itemId && item.description)
+                              .map((item) => (
+                                <SelectItem key={item.id} value={item.id.toString()}>
+                                  {item.description} (Qty: {item.quantity})
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Selected Line Item Info */}
+                      {unitEconomics.selectedProduct && (
+                        <div className="bg-white rounded-lg p-3 border">
+                          <div className="text-sm font-medium text-gray-900">
+                            {unitEconomics.selectedProduct.name}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {unitEconomics.selectedProduct.partNumber} • Qty: {lineItems.find(item => item.id === unitEconomics.lineItemId)?.quantity || 1}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cost Components */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Materials:</span>
+                          <span className="font-medium">${unitEconomics.materialCost.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Labor:</span>
+                          <span className="font-medium">${unitEconomics.laborCost.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Overhead:</span>
+                          <span className="font-medium">${unitEconomics.overheadCost.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Other Costs:</span>
+                          <span className="font-medium">${unitEconomics.otherCosts.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                          <span>Unit Cost:</span>
+                          <span>${unitEconomics.unitCost.toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      {/* Price Input & Margin Display */}
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="proposedPrice">Proposed Unit Price ($)</Label>
+                          <Input
+                            id="proposedPrice"
+                            type="number"
+                            step="0.01"
+                            value={unitEconomics.proposedPrice}
+                            onChange={(e) => updateProposedPrice(parseFloat(e.target.value) || 0)}
+                            className="text-lg font-semibold"
+                          />
+                        </div>
+
+                        {/* Margin Indicators */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center p-3 bg-white rounded-lg border">
+                            <div className="text-sm text-gray-600">Unit Margin</div>
+                            <div className={`text-lg font-bold ${
+                              unitEconomics.marginStatus === 'healthy' ? 'text-green-600' :
+                              unitEconomics.marginStatus === 'borderline' ? 'text-yellow-600' :
+                              unitEconomics.marginStatus === 'below' ? 'text-red-600' : 'text-gray-600'
+                            }`}>
+                              ${unitEconomics.unitMargin.toFixed(2)}
+                            </div>
+                          </div>
+                          <div className="text-center p-3 bg-white rounded-lg border">
+                            <div className="text-sm text-gray-600">Margin %</div>
+                            <div className={`text-lg font-bold ${
+                              unitEconomics.marginStatus === 'healthy' ? 'text-green-600' :
+                              unitEconomics.marginStatus === 'borderline' ? 'text-yellow-600' :
+                              unitEconomics.marginStatus === 'below' ? 'text-red-600' : 'text-gray-600'
+                            }`}>
+                              {unitEconomics.marginPercent.toFixed(1)}%
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Traffic Light Indicator */}
+                        <div className="flex items-center justify-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${
+                            unitEconomics.marginStatus === 'healthy' ? 'bg-green-500' :
+                            unitEconomics.marginStatus === 'borderline' ? 'bg-yellow-500' :
+                            unitEconomics.marginStatus === 'below' ? 'bg-red-500' : 'bg-gray-400'
+                          }`}></div>
+                          <span className="text-sm font-medium">
+                            {unitEconomics.marginStatus === 'healthy' ? 'Healthy Margin' :
+                             unitEconomics.marginStatus === 'borderline' ? 'Borderline Margin' :
+                             unitEconomics.marginStatus === 'below' ? 'Below Threshold' : 'Unknown'}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
 
                 {/* Validation */}
                 <Card>
@@ -911,6 +1148,49 @@ export default function CreateQuotationPage() {
                   </CardContent>
                 </Card>
 
+                {/* Margin Threshold Alert */}
+                {unitEconomics.marginStatus === 'below' && (
+                  <Card className="border-red-200 bg-red-50">
+                    <CardHeader>
+                      <CardTitle className="text-lg text-red-900 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" />
+                        Margin Below Threshold
+                      </CardTitle>
+                      <CardDescription className="text-red-700">
+                        This quotation is below minimum margin requirements
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-sm text-red-800">
+                          <strong>Current Margin:</strong> {unitEconomics.marginPercent.toFixed(1)}% 
+                          (Minimum Required: 10%)
+                        </div>
+                        <div className="text-sm text-red-700">
+                          Consider adjusting the proposed price or requesting approval from management.
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => updateProposedPrice(unitEconomics.unitCost * 1.15)}
+                            className="border-red-300 text-red-700 hover:bg-red-100"
+                          >
+                            Adjust to 15% Margin
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="border-red-300 text-red-700 hover:bg-red-100"
+                          >
+                            Request Approval
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Quick Actions */}
                 <Card>
                   <CardHeader>
@@ -938,7 +1218,7 @@ export default function CreateQuotationPage() {
           </TabsContent>
 
           <TabsContent value="engineering">
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-5 gap-6">
               <div className="col-span-3 space-y-6">
                 {/* Engineering Assignment */}
                 <Card>
@@ -1039,7 +1319,7 @@ export default function CreateQuotationPage() {
                 </Card>
               </div>
 
-              <div className="space-y-6">
+              <div className="col-span-2 space-y-6">
                 {/* Engineering Status */}
                 <Card>
                   <CardHeader>
@@ -1077,7 +1357,7 @@ export default function CreateQuotationPage() {
           </TabsContent>
 
           <TabsContent value="boq">
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-5 gap-6">
               <div className="col-span-3 space-y-6">
                 {/* BOQ Generation */}
                 <Card>
@@ -1125,7 +1405,7 @@ export default function CreateQuotationPage() {
                 </Card>
               </div>
 
-              <div className="space-y-6">
+              <div className="col-span-2 space-y-6">
                 {/* BOQ Status */}
                 <Card>
                   <CardHeader>
@@ -1141,8 +1421,41 @@ export default function CreateQuotationPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="unit-economics">
+            <div className="space-y-6">
+              <UnitEconomicsCalculator 
+                quotationId="temp-quotation"
+                initialData={{
+                  id: 'temp-ue',
+                  quotationId: 'temp-quotation',
+                  baseMaterialCost: formData.materialCost || 0,
+                  copperWeight: formData.materialCost ? Math.round(formData.materialCost / 100) : 0, // Estimate: ~$100 per kg copper
+                  copperLMEPrice: 8500, // TODO: Fetch from LME API
+                  laborCost: formData.laborCost || 0,
+                  overheadCost: formData.overheadCost || 0,
+                  profitMargin: 15, // Default profit margin
+                  quantity: lineItems.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0) || 1,
+                  currency: 'USD',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                }}
+                onSave={(data) => {
+                  console.log('Unit economics data saved:', data)
+                  // Update form data with calculated values
+                  setFormData(prev => ({
+                    ...prev,
+                    materialCost: data.baseMaterialCost,
+                    laborCost: data.laborCost,
+                    overheadCost: data.overheadCost,
+                    profitMargin: (data.profitMargin / 100) * calculateTotal()
+                  }))
+                }}
+              />
+            </div>
+          </TabsContent>
+
           <TabsContent value="summary">
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-5 gap-6">
               <div className="col-span-3 space-y-6">
                 {/* Summary */}
                 <Card>
@@ -1191,7 +1504,7 @@ export default function CreateQuotationPage() {
                 </Card>
               </div>
 
-              <div className="space-y-6">
+              <div className="col-span-2 space-y-6">
                 {/* Workflow Progress */}
                 <Card>
                   <CardHeader>

@@ -24,6 +24,19 @@ import { useDatabaseContext } from "@/components/database-provider"
 import Link from "next/link"
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+// Import dashboard components
+import OpsManagerView from "@/components/dashboard/OpsManagerView"
+import FinanceView from "@/components/dashboard/FinanceView"
+import SalesManagerView from "@/components/dashboard/SalesManagerView"
+import MetricCard from "@/components/dashboard/MetricCard"
+import SectionCard from "@/components/dashboard/SectionCard"
+import EngineeringPieChart from "@/components/dashboard/EngineeringPieChart"
+import EngineeringBarChart from "@/components/dashboard/EngineeringBarChart"
+import DemandSupplyPieChart from "@/components/dashboard/DemandSupplyPieChart"
+import DemandSupplyBarChart from "@/components/dashboard/DemandSupplyBarChart"
+import ProductionPieChart from "@/components/dashboard/ProductionPieChart"
+import DemandForecastModal from "@/components/dashboard/modals/DemandForecastModal"
+
 
 // Module-specific Chart Data (defined outside component to prevent recreation)
 const moduleCharts = {
@@ -304,200 +317,7 @@ function Meter({
     )
 }
 
-function SectionCard({ title, icon, subtitle, children, footer }: {
-    title: string
-    icon?: React.ReactNode
-    subtitle?: React.ReactNode
-    children: React.ReactNode
-    footer?: React.ReactNode
-}) {
-    return (
-        <Card>
-            <CardHeader className="pb-3">
-                <CardTitle className="flex items-center space-x-2">
-                    {icon}
-                    <span>{title}</span>
-                </CardTitle>
-                {subtitle && <div className="text-sm text-gray-600">{subtitle}</div>}
-            </CardHeader>
-            <CardContent>
-                {children}
-                {footer && <div className="mt-4 pt-4 border-t border-gray-200">{footer}</div>}
-            </CardContent>
-        </Card>
-    )
-}
 
-function MetricCard({ icon, label, value, sub }: {
-    icon: React.ReactNode
-    label: string
-    value: string
-    sub?: string
-}) {
-    return (
-        <Card>
-            <CardContent className="p-6">
-                <div className="flex items-center">
-                    <div className="p-2 bg-gray-100 rounded-lg">{icon}</div>
-                    <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">{label}</p>
-                        <p className="text-2xl font-bold text-gray-900">{value}</p>
-                        {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
-
-// Chart Components
-function EngineeringPieChart({ data, title }: { data: any[], title: string }) {
-    return (
-        <div className="space-y-4">
-            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-            <div className="space-y-2">
-                {data.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-xs">
-                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                        <span className="text-gray-600">{item.status}:</span>
-                        <span className="font-medium">{item.count} ({item.percentage}%)</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function EngineeringBarChart({ data, title, yAxisLabel }: { data: any[], title: string, yAxisLabel: string }) {
-    return (
-        <div className="space-y-4">
-            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-            <div className="space-y-3">
-                {data.map((item, index) => (
-                    <div key={index} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">{item.category}</span>
-                            <span className="font-medium">{yAxisLabel === "Cost" ? `RM${item.cost.toLocaleString()}` : `${item.count} (${item.percentage}%)`}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                                className="h-2 rounded-full bg-blue-500"
-                                style={{ width: `${item.percentage}%` }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function DemandSupplyPieChart({ data, title }: { data: any[], title: string }) {
-    return (
-        <div className="space-y-4">
-            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-            <div className="space-y-2">
-                {data.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-xs">
-                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                        <span className="text-gray-600">{item.level}:</span>
-                        <span className="font-medium">{item.count} ({item.percentage}%)</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function DemandSupplyBarChart({ data, title, type }: { data: any[], title: string, type: "demand" | "turnover" }) {
-    return (
-        <div className="space-y-4">
-            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-            <div className="space-y-3">
-                {data.map((item, index) => (
-                    <div key={index} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">{item.category}</span>
-                            {type === "demand" ? (
-                                <span className="font-medium">
-                                    {item.demand}% / {item.supply}%
-                                    <span className={`ml-1 ${item.gap >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        ({item.gap >= 0 ? '+' : ''}{item.gap}%)
-                                    </span>
-                                </span>
-                            ) : (
-                                <span className="font-medium">
-                                    {item.turnover}x (Target: {item.target}x)
-                                </span>
-                            )}
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                                className={`h-2 rounded-full ${type === "demand" ?
-                                    (item.gap >= 0 ? 'bg-green-500' : 'bg-red-500') :
-                                    (item.turnover >= item.target ? 'bg-green-500' : 'bg-yellow-500')
-                                    }`}
-                                style={{ width: `${type === "demand" ? Math.max(item.demand, item.supply) : (item.turnover / 5) * 100}%` }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function ProductionPieChart({ data, title }: { data: any[], title: string }) {
-    return (
-        <div className="space-y-4">
-            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-            <div className="space-y-2">
-                {data.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-xs">
-                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                        <span className="text-gray-600">{item.status}:</span>
-                        <span className="font-medium">{item.count} ({item.percentage}%)</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function ProductionBarChart({ data, title, type }: { data: any[], title: string, type: "efficiency" | "quality" }) {
-    return (
-        <div className="space-y-4">
-            <h4 className="font-medium text-sm text-gray-900 text-center">{title}</h4>
-            <div className="space-y-3">
-                {data.map((item, index) => (
-                    <div key={index} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">{type === "efficiency" ? item.line : item.process}</span>
-                            {type === "efficiency" ? (
-                                <span className="font-medium">
-                                    {item.efficiency}% (Target: {item.target}%)
-                                </span>
-                            ) : (
-                                <span className="font-medium">
-                                    {item.firstPass}% | {item.rework}% | {item.scrap}%
-                                </span>
-                            )}
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                                className={`h-2 rounded-full ${type === "efficiency" ?
-                                    (item.efficiency >= item.target ? 'bg-green-500' : 'bg-yellow-500') :
-                                    (item.firstPass >= 95 ? 'bg-green-500' : item.firstPass >= 90 ? 'bg-yellow-500' : 'bg-red-500')
-                                    }`}
-                                style={{ width: `${type === "efficiency" ? item.efficiency : item.firstPass}%` }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
 
 /** ---------------------------
  *  Page
@@ -527,6 +347,9 @@ export default function DashboardPage() {
     // Chart filter states
     const [productionFilter, setProductionFilter] = useState<string>("all")
     const [costFilter, setCostFilter] = useState<string>("all")
+
+    // Stakeholder view state
+    const [stakeholderView, setStakeholderView] = useState<string>("senior-management")
 
     // Get unique projects for filtering
     const projects = useMemo(() => {
@@ -576,6 +399,8 @@ export default function DashboardPage() {
             { category: "Overhead", cost: overheadCost, percentage: 5 }
         ]
     }, [costFilter, quotations])
+
+
 
     // Initialize Chart.js charts
     useEffect(() => {
@@ -1679,930 +1504,960 @@ export default function DashboardPage() {
             <header className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="py-6">
-                        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="text-gray-600 mt-2">Manufacturing Resource Planning Overview</p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                                <p className="text-gray-600 mt-2">Manufacturing Resource Planning Overview</p>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <label className="text-sm font-medium text-gray-700">View:</label>
+                                    <Select value={stakeholderView} onValueChange={setStakeholderView}>
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="senior-management">Senior Management</SelectItem>
+                                            <SelectItem value="sales-manager">Sales Manager</SelectItem>
+                                            <SelectItem value="ops-manager">Operations Manager</SelectItem>
+                                            <SelectItem value="finance">Finance</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Conditional rendering based on stakeholder view */}
+                {stakeholderView === "sales-manager" ? (
+                    <SalesManagerView formatters={formatters} stats={stats} projects={projects} />
+                ) : stakeholderView === "ops-manager" ? (
+                    <OpsManagerView formatters={formatters} stats={stats} moduleCharts={moduleCharts} />
+                ) : stakeholderView === "finance" ? (
+                    <FinanceView formatters={formatters} stats={stats} />
+                ) : (
+                    <div className="space-y-8">
+                        {/* KPI Overview - Compact Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+                            <MetricCard icon={<Users className="w-5 h-5" />} label="Customers" value={formatters.Integer.format(stats.actives.customersActive)} sub={`${stats.actives.customersSuspended} suspended`} />
+                            <MetricCard icon={<Building2 className="w-5 h-5" />} label="Suppliers" value={formatters.Integer.format(stats.actives.suppliersActive)} sub={`${stats.actives.suppliersSuspended} suspended`} />
+                            <MetricCard icon={<FileText className="w-5 h-5" />} label="Quotations" value={formatters.Integer.format(stats.sales.quotes)} sub={formatters.Currency.format(stats.sales.quoteValue)} />
+                            <MetricCard icon={<ShoppingCart className="w-5 h-5" />} label="Sales Orders" value={formatters.Integer.format(stats.sales.soTotal)} sub={formatters.Currency.format(stats.sales.soValue)} />
+                            <MetricCard icon={<Factory className="w-5 h-5" />} label="Work Orders" value={formatters.Integer.format(stats.prod.wos)} sub={`${stats.prod.wosActive} active`} />
+                            <MetricCard icon={<Receipt className="w-5 h-5" />} label="Invoices" value={formatters.Integer.format(stats.fin.invoices)} sub={formatters.Currency.format(stats.fin.invoiceValue)} />
+                        </div>
 
-                {/* KPI Overview - Compact Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-                    <MetricCard icon={<Users className="w-5 h-5" />} label="Customers" value={formatters.Integer.format(stats.actives.customersActive)} sub={`${stats.actives.customersSuspended} suspended`} />
-                    <MetricCard icon={<Building2 className="w-5 h-5" />} label="Suppliers" value={formatters.Integer.format(stats.actives.suppliersActive)} sub={`${stats.actives.suppliersSuspended} suspended`} />
-                    <MetricCard icon={<FileText className="w-5 h-5" />} label="Quotations" value={formatters.Integer.format(stats.sales.quotes)} sub={formatters.Currency.format(stats.sales.quoteValue)} />
-                    <MetricCard icon={<ShoppingCart className="w-5 h-5" />} label="Sales Orders" value={formatters.Integer.format(stats.sales.soTotal)} sub={formatters.Currency.format(stats.sales.soValue)} />
-                    <MetricCard icon={<Factory className="w-5 h-5" />} label="Work Orders" value={formatters.Integer.format(stats.prod.wos)} sub={`${stats.prod.wosActive} active`} />
-                    <MetricCard icon={<Receipt className="w-5 h-5" />} label="Invoices" value={formatters.Integer.format(stats.fin.invoices)} sub={formatters.Currency.format(stats.fin.invoiceValue)} />
-                </div>
+                        {/* Main Dashboard Grid - 3 Columns */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
-                {/* Main Dashboard Grid - 3 Columns */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            {/* Left Column - Engineering & Quality */}
+                            <div className="space-y-6">
+                                {/* Engineering Status */}
+                                <SectionCard title="🏗️ Engineering Status" icon={<Wrench className="w-5 h-5" />}>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="text-center p-3 bg-blue-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-blue-600">{stats.eng.drawings}</div>
+                                            <div className="text-sm text-gray-600">Total Drawings</div>
+                                            <div className="text-xs text-gray-500">{stats.eng.drawingsReleased} Released</div>
+                                        </div>
+                                        <div className="text-center p-3 bg-green-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-green-600">{stats.eng.boms}</div>
+                                            <div className="text-sm text-gray-600">BOMs</div>
+                                            <div className="text-xs text-gray-500">{stats.eng.bomsApproved} Approved</div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <EngineeringPieChart data={moduleCharts.engineering.drawingStatus} title="Drawing Status" />
+                                    </div>
+                                </SectionCard>
 
-                    {/* Left Column - Engineering & Quality */}
-                    <div className="space-y-6">
-                        {/* Engineering Status */}
-                        <SectionCard title="🏗️ Engineering Status" icon={<Wrench className="w-5 h-5" />}>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">{stats.eng.drawings}</div>
-                                    <div className="text-sm text-gray-600">Total Drawings</div>
-                                    <div className="text-xs text-gray-500">{stats.eng.drawingsReleased} Released</div>
-                                </div>
-                                <div className="text-center p-3 bg-green-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{stats.eng.boms}</div>
-                                    <div className="text-sm text-gray-600">BOMs</div>
-                                    <div className="text-xs text-gray-500">{stats.eng.bomsApproved} Approved</div>
-                                </div>
+                                {/* Quality Metrics */}
+                                <SectionCard title="🔍 Quality Overview" icon={<CheckCircle className="w-5 h-5" />}>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                            <span className="text-sm">First Pass Yield</span>
+                                            <span className="font-medium text-green-600">94.2%</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                            <span className="text-sm">Rework Rate</span>
+                                            <span className="font-medium text-yellow-600">4.8%</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                            <span className="text-sm">Scrap Rate</span>
+                                            <span className="font-medium text-red-600">1.0%</span>
+                                        </div>
+                                    </div>
+                                </SectionCard>
                             </div>
-                            <div className="mt-4">
-                                <EngineeringPieChart data={moduleCharts.engineering.drawingStatus} title="Drawing Status" />
-                            </div>
-                        </SectionCard>
 
-                        {/* Quality Metrics */}
-                        <SectionCard title="🔍 Quality Overview" icon={<CheckCircle className="w-5 h-5" />}>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <span className="text-sm">First Pass Yield</span>
-                                    <span className="font-medium text-green-600">94.2%</span>
-                                </div>
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <span className="text-sm">Rework Rate</span>
-                                    <span className="font-medium text-yellow-600">4.8%</span>
-                                </div>
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <span className="text-sm">Scrap Rate</span>
-                                    <span className="font-medium text-red-600">1.0%</span>
-                                </div>
-                            </div>
-                        </SectionCard>
-                    </div>
+                            {/* Center Column - Production & Inventory */}
+                            <div className="space-y-6">
+                                {/* Production Status */}
+                                <SectionCard title="🏭 Production Status" icon={<Factory className="w-5 h-5" />}>
+                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                        <div className="text-center p-3 bg-orange-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-orange-600">{stats.prod.wosActive}</div>
+                                            <div className="text-sm text-gray-600">Active WOs</div>
+                                        </div>
+                                        <div className="text-center p-3 bg-green-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-green-600">{stats.prod.wosDone}</div>
+                                            <div className="text-sm text-gray-600">Completed</div>
+                                        </div>
+                                    </div>
+                                    <ProductionPieChart data={moduleCharts.production.workOrderStatus} title="Work Order Status" />
+                                </SectionCard>
 
-                    {/* Center Column - Production & Inventory */}
-                    <div className="space-y-6">
-                        {/* Production Status */}
-                        <SectionCard title="🏭 Production Status" icon={<Factory className="w-5 h-5" />}>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div className="text-center p-3 bg-orange-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-orange-600">{stats.prod.wosActive}</div>
-                                    <div className="text-sm text-gray-600">Active WOs</div>
-                                </div>
-                                <div className="text-center p-3 bg-green-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{stats.prod.wosDone}</div>
-                                    <div className="text-sm text-gray-600">Completed</div>
-                                </div>
+                                {/* Inventory Status */}
+                                <SectionCard title="📦 Inventory Status" icon={<Box className="w-5 h-5" />}>
+                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                        <div className="text-center p-3 bg-red-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-red-600">{stats.inv.low}</div>
+                                            <div className="text-sm text-gray-600">Low Stock</div>
+                                        </div>
+                                        <div className="text-center p-3 bg-amber-50 rounded-lg">
+                                            <div className="text-2xl font-bold text-amber-600">{stats.inv.out}</div>
+                                            <div className="text-sm text-gray-600">Out of Stock</div>
+                                        </div>
+                                    </div>
+                                    <DemandSupplyPieChart data={moduleCharts.demandSupply.stockLevels} title="Stock Levels" />
+                                </SectionCard>
                             </div>
-                            <ProductionPieChart data={moduleCharts.production.workOrderStatus} title="Work Order Status" />
-                        </SectionCard>
 
-                        {/* Inventory Status */}
-                        <SectionCard title="📦 Inventory Status" icon={<Box className="w-5 h-5" />}>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div className="text-center p-3 bg-red-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-red-600">{stats.inv.low}</div>
-                                    <div className="text-sm text-gray-600">Low Stock</div>
-                                </div>
-                                <div className="text-center p-3 bg-amber-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-amber-600">{stats.inv.out}</div>
-                                    <div className="text-sm text-gray-600">Out of Stock</div>
-                                </div>
-                            </div>
-                            <DemandSupplyPieChart data={moduleCharts.demandSupply.stockLevels} title="Stock Levels" />
-                        </SectionCard>
-                    </div>
+                            {/* Right Column - Financial & Supply Chain */}
+                            <div className="space-y-6">
+                                {/* Financial Overview */}
+                                <SectionCard title="💰 Financial Overview" icon={<DollarSign className="w-5 h-5" />}>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                                            <span className="text-sm">Revenue (30d)</span>
+                                            <span className="font-medium text-green-600">{formatters.Currency.format(stats.sales.soValue)}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                                            <span className="text-sm">Outstanding</span>
+                                            <span className="font-medium text-blue-600">{formatters.Currency.format(stats.fin.invoiceValue)}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-2 bg-amber-50 rounded">
+                                            <span className="text-sm">PO Value</span>
+                                            <span className="font-medium text-amber-600">{formatters.Currency.format(stats.fin.poValue)}</span>
+                                        </div>
+                                    </div>
+                                </SectionCard>
 
-                    {/* Right Column - Financial & Supply Chain */}
-                    <div className="space-y-6">
-                        {/* Financial Overview */}
-                        <SectionCard title="💰 Financial Overview" icon={<DollarSign className="w-5 h-5" />}>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between p-2 bg-green-50 rounded">
-                                    <span className="text-sm">Revenue (30d)</span>
-                                    <span className="font-medium text-green-600">{formatters.Currency.format(stats.sales.soValue)}</span>
-                                </div>
-                                <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                                    <span className="text-sm">Outstanding</span>
-                                    <span className="font-medium text-blue-600">{formatters.Currency.format(stats.fin.invoiceValue)}</span>
-                                </div>
-                                <div className="flex items-center justify-between p-2 bg-amber-50 rounded">
-                                    <span className="text-sm">PO Value</span>
-                                    <span className="font-medium text-amber-600">{formatters.Currency.format(stats.fin.poValue)}</span>
-                                </div>
-                            </div>
-                        </SectionCard>
-
-                        {/* Supply Chain */}
-                        <SectionCard title="🚚 Supply Chain" icon={<Package className="w-5 h-5" />}>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <span className="text-sm">Active POs</span>
-                                    <span className="font-medium">{stats.fin.posActive}</span>
-                                </div>
-                                <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <span className="text-sm">Suppliers</span>
-                                    <span className="font-medium">{stats.actives.suppliersActive}</span>
-                                </div>
-                            </div>
-                            <div className="mt-4">
-                                <DemandSupplyBarChart data={moduleCharts.demandSupply.demandVsSupply} title="Demand vs Supply" type="demand" />
-                            </div>
-                        </SectionCard>
-                    </div>
-                </div>
-
-                {/* Bottom Row - Detailed Charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
-                    {/* Production Efficiency */}
-                    <SectionCard
-                        title="📊 Production Efficiency"
-                        icon={<Activity className="w-5 h-5" />}
-                        footer={
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                    <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
-                                    <Select value={productionFilter} onValueChange={setProductionFilter}>
-                                        <SelectTrigger className="w-40 h-7 text-xs">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Projects</SelectItem>
-                                            {projects.map(project => (
-                                                <SelectItem key={project} value={project}>
-                                                    {project.length > 20 ? `${project.substring(0, 20)}...` : project}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                    {productionFilter === "all" ? "All Projects" : productionFilter}
-                                </div>
-                            </div>
-                        }
-                    >
-                        <div className="h-64 relative">
-                            <canvas id="productionEfficiencyChart"></canvas>
-                            <div id="productionEfficiencyLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
-                                Loading chart...
+                                {/* Supply Chain */}
+                                <SectionCard title="🚚 Supply Chain" icon={<Package className="w-5 h-5" />}>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                            <span className="text-sm">Active POs</span>
+                                            <span className="font-medium">{stats.fin.posActive}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                            <span className="text-sm">Suppliers</span>
+                                            <span className="font-medium">{stats.actives.suppliersActive}</span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <DemandSupplyBarChart data={moduleCharts.demandSupply.demandVsSupply} title="Demand vs Supply" type="demand" />
+                                    </div>
+                                </SectionCard>
                             </div>
                         </div>
-                    </SectionCard>
 
-                    {/* Cost Breakdown */}
-                    <SectionCard
-                        title="💵 Cost Breakdown"
-                        icon={<Calculator className="w-5 h-5" />}
-                        footer={
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                    <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
-                                    <Select value={costFilter} onValueChange={setCostFilter}>
-                                        <SelectTrigger className="w-40 h-7 text-xs">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Projects</SelectItem>
-                                            {projects.map(project => (
-                                                <SelectItem key={project} value={project}>
-                                                    {project.length > 20 ? `${project.substring(0, 20)}...` : project}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                        {/* Bottom Row - Detailed Charts */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                            {/* Production Efficiency */}
+                            <SectionCard
+                                title="📊 Production Efficiency"
+                                icon={<Activity className="w-5 h-5" />}
+                                footer={
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
+                                            <Select value={productionFilter} onValueChange={setProductionFilter}>
+                                                <SelectTrigger className="w-40 h-7 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Projects</SelectItem>
+                                                    {projects.map(project => (
+                                                        <SelectItem key={project} value={project}>
+                                                            {project.length > 20 ? `${project.substring(0, 20)}...` : project}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {productionFilter === "all" ? "All Projects" : productionFilter}
+                                        </div>
+                                    </div>
+                                }
+                            >
+                                <div className="h-64 relative">
+                                    <canvas id="productionEfficiencyChart"></canvas>
+                                    <div id="productionEfficiencyLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
+                                        Loading chart...
+                                    </div>
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                    {costFilter === "all" ? "All Projects" : costFilter}
+                            </SectionCard>
+
+                            {/* Cost Breakdown */}
+                            <SectionCard
+                                title="💵 Cost Breakdown"
+                                icon={<Calculator className="w-5 h-5" />}
+                                footer={
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
+                                            <Select value={costFilter} onValueChange={setCostFilter}>
+                                                <SelectTrigger className="w-40 h-7 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Projects</SelectItem>
+                                                    {projects.map(project => (
+                                                        <SelectItem key={project} value={project}>
+                                                            {project.length > 20 ? `${project.substring(0, 20)}...` : project}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {costFilter === "all" ? "All Projects" : costFilter}
+                                        </div>
+                                    </div>
+                                }
+                            >
+                                <EngineeringBarChart data={filteredCostData} title="Project Costs" yAxisLabel="Cost" />
+                            </SectionCard>
+                        </div>
+
+                        {/* AI Analytics Insights */}
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-blue-100 rounded-full">
+                                        <Brain className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900">AI Analytics Insights</h2>
+                                        <p className="text-sm text-gray-600">Intelligent recommendations powered by AI</p>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <Button variant="outline" size="sm" className="text-xs">
+                                        <RefreshCw className="w-3 h-3 mr-1" />
+                                        Last Analysis: {new Date().toLocaleTimeString()}
+                                    </Button>
+                                    <Button variant="outline" size="sm" className="text-xs">
+                                        <Settings className="w-3 h-3 mr-1" />
+                                        AI Settings
+                                    </Button>
                                 </div>
                             </div>
-                        }
-                    >
-                        <EngineeringBarChart data={filteredCostData} title="Project Costs" yAxisLabel="Cost" />
-                    </SectionCard>
-                </div>
 
-                {/* AI Analytics Insights */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-blue-100 rounded-full">
-                                <Brain className="w-6 h-6 text-blue-600" />
-                            </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900">AI Analytics Insights</h2>
-                                <p className="text-sm text-gray-600">Intelligent recommendations powered by AI</p>
+                                {/* Supply & Demand Planning Card */}
+                                <Card className="border-green-200 bg-white shadow-lg mb-6">
+                                    <CardHeader className="pb-3 bg-white border-b border-green-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
+                                                <BarChart3 className="w-5 h-5" />
+                                                <span>Supply & Demand Planning</span>
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                                AI-Based
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-green-600">
+                                            Align materials inventory and purchase orders with forecasted sales
+                                        </p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            {/* Forecasted Sales - Bar Chart */}
+                                            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="font-semibold text-green-800 text-sm">Forecasted Sales & Revenue (Q4 2024)</div>
+                                                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                        +19% YoY
+                                                    </Badge>
+                                                </div>
+                                                <div className="h-48 relative">
+                                                    <canvas id="forecastedSalesChart"></canvas>
+                                                    <div id="forecastedSalesLoading" className="absolute inset-0 flex items-center justify-center text-green-600 text-sm">
+                                                        Loading chart...
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Materials Inventory - Pie Chart */}
+                                            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="font-semibold text-yellow-800 text-sm">Current Materials Inventory</div>
+                                                    <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
+                                                        78% Stocked
+                                                    </Badge>
+                                                </div>
+                                                <div className="h-48 relative">
+                                                    <canvas id="materialsInventoryChart"></canvas>
+                                                    <div id="materialsInventoryLoading" className="absolute inset-0 flex items-center justify-center text-yellow-600 text-sm">
+                                                        Loading chart...
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Purchase Order Recommendations - Table */}
+                                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="font-semibold text-blue-800 text-sm">Purchase Order Recommendations</div>
+                                                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                        Action Needed
+                                                    </Badge>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <div className="text-xs font-medium text-blue-800 mb-2">Recommended Actions:</div>
+                                                    <div className="space-y-2">
+                                                        {/* Steel Plate Row */}
+                                                        <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                            <div className="flex-1">
+                                                                <div className="font-medium text-xs text-blue-800">Steel Plate</div>
+                                                                <div className="text-xs text-blue-600">Order 80 tons</div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-xs text-blue-600">3 weeks</div>
+                                                                <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Urgent</Badge>
+                                                            </div>
+                                                        </div>
+                                                        {/* Paint Row */}
+                                                        <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                            <div className="flex-1">
+                                                                <div className="font-medium text-xs text-blue-800">Paint</div>
+                                                                <div className="text-xs text-blue-600">Order 600 L</div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-xs text-blue-600">2 weeks</div>
+                                                                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">Medium</Badge>
+                                                            </div>
+                                                        </div>
+                                                        {/* Fasteners Row */}
+                                                        <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                            <div className="flex-1">
+                                                                <div className="font-medium text-xs text-blue-800">Fasteners</div>
+                                                                <div className="text-xs text-blue-600">No immediate action</div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-xs text-blue-600">-</div>
+                                                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">Good</Badge>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex space-x-2 mt-3">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-blue-300 text-blue-700"
+                                                        onClick={() => setOpenModal('supply-demand-planning')}
+                                                    >
+                                                        View Plan
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-green-300 text-green-700"
+                                                    >
+                                                        Create PO
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Predictive Analytics */}
+                                <Card className="border-blue-200 bg-white shadow-lg">
+                                    <CardHeader className="pb-3 bg-white border-b border-blue-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-blue-800 flex items-center space-x-2">
+                                                <TrendingUp className="w-5 h-5" />
+                                                <span>Predictive Analytics</span>
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                95% Accuracy
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-blue-600">AI-powered demand forecasting</p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="space-y-4">
+                                            {/* Demand Forecast */}
+                                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="font-semibold text-blue-800 text-sm">Q4 Demand Surge</div>
+                                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                                        +23%
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-blue-600 mb-2">
+                                                    <div className="flex items-center space-x-1 mb-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        <span>Expected: Oct-Dec 2024</span>
+                                                    </div>
+                                                    <div>• Product A: +45% increase predicted</div>
+                                                    <div>• Product B: +18% increase predicted</div>
+                                                    <div>• Seasonal trend analysis: 89% confidence</div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-blue-300 text-blue-700"
+                                                        onClick={() => setOpenModal('demand-forecast')}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-blue-300 text-blue-700">
+                                                        Adjust Planning
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Supply Chain Risk */}
+                                            <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="font-semibold text-orange-800 text-sm">Supply Chain Risk</div>
+                                                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                                                        MEDIUM
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-orange-600 mb-2">
+                                                    <div className="flex items-center space-x-1 mb-1">
+                                                        <AlertTriangle className="w-3 h-3" />
+                                                        <span>Risk Level: 67%</span>
+                                                    </div>
+                                                    <div>• Supplier X: 23% delivery delay risk</div>
+                                                    <div>• Component Y: 15% price increase risk</div>
+                                                    <div>• AI recommendation: Diversify suppliers</div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-orange-300 text-orange-700"
+                                                        onClick={() => setOpenModal('supply-chain-risk')}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
+                                                        Mitigate Risk
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Performance Optimization */}
+                                <Card className="border-green-200 bg-white shadow-lg">
+                                    <CardHeader className="pb-3 bg-white border-b border-green-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
+                                                <Zap className="w-5 h-5" />
+                                                <span>Performance Optimization</span>
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                                +12% Efficiency
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-green-600">AI-identified improvement opportunities</p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="space-y-4">
+                                            {/* Production Optimization */}
+                                            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="font-semibold text-green-800 text-sm">Production Line 2</div>
+                                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                                        OPTIMIZED
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-green-600 mb-2">
+                                                    <div className="flex items-center space-x-1 mb-1">
+                                                        <Target className="w-3 h-3" />
+                                                        <span>Potential: +18% throughput</span>
+                                                    </div>
+                                                    <div>• Reduce setup time by 25%</div>
+                                                    <div>• Optimize batch sizes: 150 → 200 units</div>
+                                                    <div>• AI confidence: 94%</div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-green-300 text-green-700"
+                                                        onClick={() => setOpenModal('production-optimization')}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-green-300 text-green-700">
+                                                        Simulate
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Inventory Optimization */}
+                                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="font-semibold text-blue-800 text-sm">Inventory Reduction</div>
+                                                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                                        RM216K Savings
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-blue-600 mb-2">
+                                                    <div className="flex items-center space-x-1 mb-1">
+                                                        <DollarSign className="w-3 h-3" />
+                                                        <span>Projected: RM321K annual savings</span>
+                                                    </div>
+                                                    <div>• Reduce safety stock by 15%</div>
+                                                    <div>• Implement JIT for 23 items</div>
+                                                    <div>• AI confidence: 91%</div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-blue-300 text-blue-700"
+                                                        onClick={() => setOpenModal('inventory-optimization')}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-blue-300 text-blue-700">
+                                                        Execute Plan
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Quality Intelligence */}
+                                <Card className="border-purple-200 bg-white shadow-lg">
+                                    <CardHeader className="pb-3 bg-white border-b border-purple-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-purple-800 flex items-center space-x-2">
+                                                <Shield className="w-5 h-5" />
+                                                <span>Quality Intelligence</span>
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                                                99.2% Quality
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-purple-600">AI-powered quality monitoring</p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="space-y-4">
+                                            {/* Defect Prediction */}
+                                            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="font-semibold text-purple-800 text-sm">Defect Prediction</div>
+                                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                                        ACCURATE
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-purple-600 mb-2">
+                                                    <div className="flex items-center space-x-1 mb-1">
+                                                        <Eye className="w-3 h-3" />
+                                                        <span>Next 24h: 0.3% defect rate</span>
+                                                    </div>
+                                                    <div>• Machine learning model: 97% accuracy</div>
+                                                    <div>• Real-time monitoring active</div>
+                                                    <div>• Auto-alerts configured</div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-purple-300 text-purple-700"
+                                                        onClick={() => setOpenModal('quality-intelligence')}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-purple-300 text-purple-700">
+                                                        Settings
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Process Improvement */}
+                                            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="font-semibold text-green-800 text-sm">Process Improvement</div>
+                                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                                        +8% Yield
+                                                    </Badge>
+                                                </div>
+                                                <div className="text-xs text-green-600 mb-2">
+                                                    <div className="flex items-center space-x-1 mb-1">
+                                                        <BarChart3 className="w-3 h-3" />
+                                                        <span>Current yield: 96.8%</span>
+                                                    </div>
+                                                    <div>• Temperature optimization: +2.1%</div>
+                                                    <div>• Pressure control: +1.8%</div>
+                                                    <div>• AI recommendation: Adjust parameter Z</div>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs h-6 px-2 border-green-300 text-green-700"
+                                                        onClick={() => setOpenModal('process-improvement')}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-green-300 text-green-700">
+                                                        Monitor Results
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
                         </div>
-                        <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" className="text-xs">
-                                <RefreshCw className="w-3 h-3 mr-1" />
-                                Last Analysis: {new Date().toLocaleTimeString()}
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-xs">
-                                <Settings className="w-3 h-3 mr-1" />
-                                AI Settings
-                            </Button>
-                        </div>
-                    </div>
 
-                    <div>
-                        {/* Supply & Demand Planning Card */}
-                        <Card className="border-green-200 bg-white shadow-lg mb-6">
-                            <CardHeader className="pb-3 bg-white border-b border-green-200">
+                        {/* Enhanced Critical Alerts */}
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
-                                        <BarChart3 className="w-5 h-5" />
-                                        <span>Supply & Demand Planning</span>
-                                    </CardTitle>
-                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                        AI-Based
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-green-600">
-                                    Align materials inventory and purchase orders with forecasted sales
-                                </p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Forecasted Sales - Bar Chart */}
-                                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="font-semibold text-green-800 text-sm">Forecasted Sales & Revenue (Q4 2024)</div>
-                                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                                +19% YoY
-                                            </Badge>
+                                    <div className="flex items-center space-x-3">
+                                        <div className="p-2 bg-red-100 rounded-full">
+                                            <AlertTriangle className="w-6 h-6 text-red-600" />
                                         </div>
-                                        <div className="h-48 relative">
-                                            <canvas id="forecastedSalesChart"></canvas>
-                                            <div id="forecastedSalesLoading" className="absolute inset-0 flex items-center justify-center text-green-600 text-sm">
-                                                Loading chart...
-                                            </div>
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900">Critical Alerts</h2>
+                                            <p className="text-sm text-gray-600">Immediate attention required</p>
                                         </div>
                                     </div>
-
-                                    {/* Materials Inventory - Pie Chart */}
-                                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="font-semibold text-yellow-800 text-sm">Current Materials Inventory</div>
-                                            <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
-                                                78% Stocked
-                                            </Badge>
-                                        </div>
-                                        <div className="h-48 relative">
-                                            <canvas id="materialsInventoryChart"></canvas>
-                                            <div id="materialsInventoryLoading" className="absolute inset-0 flex items-center justify-center text-yellow-600 text-sm">
-                                                Loading chart...
-                                            </div>
-                                        </div>
+                                    <div className="flex space-x-2">
+                                        <Button variant="outline" size="sm" className="text-xs">
+                                            <Clock className="w-3 h-3 mr-1" />
+                                            Last Updated: {new Date().toLocaleTimeString()}
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-xs">
+                                            <Settings className="w-3 h-3 mr-1" />
+                                            Alert Settings
+                                        </Button>
                                     </div>
-
-                                    {/* Purchase Order Recommendations - Table */}
-                                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="font-semibold text-blue-800 text-sm">Purchase Order Recommendations</div>
-                                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                                Action Needed
-                                            </Badge>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="text-xs font-medium text-blue-800 mb-2">Recommended Actions:</div>
-                                            <div className="space-y-2">
-                                                {/* Steel Plate Row */}
-                                                <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
-                                                    <div className="flex-1">
-                                                        <div className="font-medium text-xs text-blue-800">Steel Plate</div>
-                                                        <div className="text-xs text-blue-600">Order 80 tons</div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-xs text-blue-600">3 weeks</div>
-                                                        <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Urgent</Badge>
-                                                    </div>
-                                                </div>
-                                                {/* Paint Row */}
-                                                <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
-                                                    <div className="flex-1">
-                                                        <div className="font-medium text-xs text-blue-800">Paint</div>
-                                                        <div className="text-xs text-blue-600">Order 600 L</div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-xs text-blue-600">2 weeks</div>
-                                                        <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">Medium</Badge>
-                                                    </div>
-                                                </div>
-                                                {/* Fasteners Row */}
-                                                <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
-                                                    <div className="flex-1">
-                                                        <div className="font-medium text-xs text-blue-800">Fasteners</div>
-                                                        <div className="text-xs text-blue-600">No immediate action</div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-xs text-blue-600">-</div>
-                                                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">Good</Badge>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex space-x-2 mt-3">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-blue-300 text-blue-700"
-                                                onClick={() => setOpenModal('supply-demand-planning')}
-                                            >
-                                                View Plan
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-green-300 text-green-700"
-                                            >
-                                                Create PO
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Predictive Analytics */}
-                        <Card className="border-blue-200 bg-white shadow-lg">
-                            <CardHeader className="pb-3 bg-white border-b border-blue-200">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-blue-800 flex items-center space-x-2">
-                                        <TrendingUp className="w-5 h-5" />
-                                        <span>Predictive Analytics</span>
-                                    </CardTitle>
-                                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                        95% Accuracy
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-blue-600">AI-powered demand forecasting</p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="space-y-4">
-                                    {/* Demand Forecast */}
-                                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="font-semibold text-blue-800 text-sm">Q4 Demand Surge</div>
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                                +23%
-                                            </Badge>
-                                        </div>
-                                        <div className="text-xs text-blue-600 mb-2">
-                                            <div className="flex items-center space-x-1 mb-1">
-                                                <Calendar className="w-3 h-3" />
-                                                <span>Expected: Oct-Dec 2024</span>
-                                            </div>
-                                            <div>• Product A: +45% increase predicted</div>
-                                            <div>• Product B: +18% increase predicted</div>
-                                            <div>• Seasonal trend analysis: 89% confidence</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-blue-300 text-blue-700"
-                                                onClick={() => setOpenModal('demand-forecast')}
-                                            >
-                                                View Details
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-blue-300 text-blue-700">
-                                                Adjust Planning
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Supply Chain Risk */}
-                                    <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="font-semibold text-orange-800 text-sm">Supply Chain Risk</div>
-                                            <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
-                                                MEDIUM
-                                            </Badge>
-                                        </div>
-                                        <div className="text-xs text-orange-600 mb-2">
-                                            <div className="flex items-center space-x-1 mb-1">
-                                                <AlertTriangle className="w-3 h-3" />
-                                                <span>Risk Level: 67%</span>
-                                            </div>
-                                            <div>• Supplier X: 23% delivery delay risk</div>
-                                            <div>• Component Y: 15% price increase risk</div>
-                                            <div>• AI recommendation: Diversify suppliers</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-orange-300 text-orange-700"
-                                                onClick={() => setOpenModal('supply-chain-risk')}
-                                            >
-                                                View Details
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
-                                                Mitigate Risk
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Performance Optimization */}
-                        <Card className="border-green-200 bg-white shadow-lg">
-                            <CardHeader className="pb-3 bg-white border-b border-green-200">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
-                                        <Zap className="w-5 h-5" />
-                                        <span>Performance Optimization</span>
-                                    </CardTitle>
-                                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                        +12% Efficiency
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-green-600">AI-identified improvement opportunities</p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="space-y-4">
-                                    {/* Production Optimization */}
-                                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="font-semibold text-green-800 text-sm">Production Line 2</div>
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                                OPTIMIZED
-                                            </Badge>
-                                        </div>
-                                        <div className="text-xs text-green-600 mb-2">
-                                            <div className="flex items-center space-x-1 mb-1">
-                                                <Target className="w-3 h-3" />
-                                                <span>Potential: +18% throughput</span>
-                                            </div>
-                                            <div>• Reduce setup time by 25%</div>
-                                            <div>• Optimize batch sizes: 150 → 200 units</div>
-                                            <div>• AI confidence: 94%</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-green-300 text-green-700"
-                                                onClick={() => setOpenModal('production-optimization')}
-                                            >
-                                                View Details
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-green-300 text-green-700">
-                                                Simulate
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Inventory Optimization */}
-                                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="font-semibold text-blue-800 text-sm">Inventory Reduction</div>
-                                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                                RM216K Savings
-                                            </Badge>
-                                        </div>
-                                        <div className="text-xs text-blue-600 mb-2">
-                                            <div className="flex items-center space-x-1 mb-1">
-                                                <DollarSign className="w-3 h-3" />
-                                                <span>Projected: RM321K annual savings</span>
-                                            </div>
-                                            <div>• Reduce safety stock by 15%</div>
-                                            <div>• Implement JIT for 23 items</div>
-                                            <div>• AI confidence: 91%</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-blue-300 text-blue-700"
-                                                onClick={() => setOpenModal('inventory-optimization')}
-                                            >
-                                                View Details
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-blue-300 text-blue-700">
-                                                Execute Plan
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Quality Intelligence */}
-                        <Card className="border-purple-200 bg-white shadow-lg">
-                            <CardHeader className="pb-3 bg-white border-b border-purple-200">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-purple-800 flex items-center space-x-2">
-                                        <Shield className="w-5 h-5" />
-                                        <span>Quality Intelligence</span>
-                                    </CardTitle>
-                                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
-                                        99.2% Quality
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-purple-600">AI-powered quality monitoring</p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="space-y-4">
-                                    {/* Defect Prediction */}
-                                    <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="font-semibold text-purple-800 text-sm">Defect Prediction</div>
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                                ACCURATE
-                                            </Badge>
-                                        </div>
-                                        <div className="text-xs text-purple-600 mb-2">
-                                            <div className="flex items-center space-x-1 mb-1">
-                                                <Eye className="w-3 h-3" />
-                                                <span>Next 24h: 0.3% defect rate</span>
-                                            </div>
-                                            <div>• Machine learning model: 97% accuracy</div>
-                                            <div>• Real-time monitoring active</div>
-                                            <div>• Auto-alerts configured</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-purple-300 text-purple-700"
-                                                onClick={() => setOpenModal('quality-intelligence')}
-                                            >
-                                                View Details
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-purple-300 text-purple-700">
-                                                Settings
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Process Improvement */}
-                                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="font-semibold text-green-800 text-sm">Process Improvement</div>
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                                +8% Yield
-                                            </Badge>
-                                        </div>
-                                        <div className="text-xs text-green-600 mb-2">
-                                            <div className="flex items-center space-x-1 mb-1">
-                                                <BarChart3 className="w-3 h-3" />
-                                                <span>Current yield: 96.8%</span>
-                                            </div>
-                                            <div>• Temperature optimization: +2.1%</div>
-                                            <div>• Pressure control: +1.8%</div>
-                                            <div>• AI recommendation: Adjust parameter Z</div>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-xs h-6 px-2 border-green-300 text-green-700"
-                                                onClick={() => setOpenModal('process-improvement')}
-                                            >
-                                                View Details
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-green-300 text-green-700">
-                                                Monitor Results
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
-                {/* Enhanced Critical Alerts */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-red-100 rounded-full">
-                                    <AlertTriangle className="w-6 h-6 text-red-600" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Critical Alerts</h2>
-                                    <p className="text-sm text-gray-600">Immediate attention required</p>
                                 </div>
                             </div>
-                            <div className="flex space-x-2">
-                                <Button variant="outline" size="sm" className="text-xs">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    Last Updated: {new Date().toLocaleTimeString()}
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-xs">
-                                    <Settings className="w-3 h-3 mr-1" />
-                                    Alert Settings
-                                </Button>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                                {/* Material Shortages - Enhanced */}
+                                <Card className="border-red-200 bg-white shadow-lg">
+                                    <CardHeader className="pb-3 bg-white border-b border-red-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-red-800 flex items-center space-x-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>Material Shortages</span>
+                                            </CardTitle>
+                                            <Badge variant="destructive" className="text-xs">
+                                                {moduleCharts.materialShortages.criticalShortages.length} Critical
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-red-600">Items requiring immediate action</p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="space-y-3">
+                                            {moduleCharts.materialShortages.criticalShortages.map((shortage, index) => (
+                                                <div key={index} className="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div className="font-semibold text-red-800 text-sm">{shortage.item}</div>
+                                                        <Badge
+                                                            variant={shortage.daysUntilShortage <= 1 ? "destructive" : "secondary"}
+                                                            className="text-xs"
+                                                        >
+                                                            {shortage.daysUntilShortage <= 1 ? "URGENT" : `${shortage.daysUntilShortage}d`}
+                                                        </Badge>
+                                                    </div>
+
+                                                    {/* Stock Level Bar */}
+                                                    <div className="mb-2">
+                                                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                                            <span>Current: {shortage.currentStock}</span>
+                                                            <span>Required: {shortage.requiredStock}</span>
+                                                        </div>
+                                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                                            <div
+                                                                className="h-2 rounded-full bg-red-500 transition-all duration-300"
+                                                                style={{ width: `${(shortage.currentStock / shortage.requiredStock) * 100}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="text-xs text-red-600 mb-2">
+                                                        <div className="flex items-center space-x-1">
+                                                            <Clock className="w-3 h-3" />
+                                                            <span>{shortage.daysUntilShortage} days until shortage</span>
+                                                        </div>
+                                                        <div className="mt-1">
+                                                            <span className="font-medium">Impact:</span> {shortage.impact}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Action Buttons */}
+                                                    <div className="flex space-x-2">
+                                                        <Button size="sm" variant="destructive" className="text-xs h-6 px-2">
+                                                            Expedite
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" className="text-xs h-6 px-2">
+                                                            Substitute
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-4 pt-3 border-t border-red-200">
+                                            <Button variant="outline" size="sm" className="w-full text-red-700 border-red-300 hover:bg-red-50">
+                                                <TrendingUp className="w-3 h-3 mr-1" />
+                                                View All Shortages
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Capacity Issues - Enhanced */}
+                                <Card className="border-orange-200 bg-white shadow-lg">
+                                    <CardHeader className="pb-3 bg-white border-b border-orange-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-orange-800 flex items-center space-x-2">
+                                                <Activity className="w-5 h-5" />
+                                                <span>Capacity Issues</span>
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs bg-orange-200 text-orange-800">
+                                                {moduleCharts.exceptionManagement.capacityOverloads.filter(o => o.load > 90).length} Overloaded
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-orange-600">Production line bottlenecks</p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="space-y-3">
+                                            {moduleCharts.exceptionManagement.capacityOverloads.map((overload, index) => (
+                                                <div key={index} className="p-3 bg-white rounded-lg border border-orange-200 shadow-sm">
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div className="font-semibold text-orange-800 text-sm">{overload.resource}</div>
+                                                        <Badge
+                                                            variant={overload.load > 100 ? "destructive" : "secondary"}
+                                                            className="text-xs"
+                                                        >
+                                                            {overload.load > 100 ? "OVERLOADED" : "HIGH"}
+                                                        </Badge>
+                                                    </div>
+
+                                                    {/* Capacity Meter */}
+                                                    <div className="mb-3">
+                                                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                                            <span>Load: {overload.load}%</span>
+                                                            <span>Status: {overload.status}</span>
+                                                        </div>
+                                                        <div className="w-full bg-gray-200 rounded-full h-3">
+                                                            <div
+                                                                className={`h-3 rounded-full transition-all duration-300 ${overload.load > 100 ? 'bg-red-500' :
+                                                                    overload.load > 90 ? 'bg-orange-500' : 'bg-green-500'
+                                                                    }`}
+                                                                style={{ width: `${Math.min(overload.load, 100)}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Recommendations */}
+                                                    <div className="text-xs text-orange-600 mb-2">
+                                                        <div className="font-medium mb-1">Recommendations:</div>
+                                                        {overload.load > 100 && (
+                                                            <div className="text-red-600">• Add overtime or additional shifts</div>
+                                                        )}
+                                                        {overload.load > 90 && overload.load <= 100 && (
+                                                            <div>• Monitor closely, consider reallocation</div>
+                                                        )}
+                                                        {overload.load <= 90 && (
+                                                            <div>• Normal operation</div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Action Buttons */}
+                                                    <div className="flex space-x-2">
+                                                        <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
+                                                            Reallocate
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
+                                                            Schedule
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-4 pt-3 border-t border-orange-200">
+                                            <Button variant="outline" size="sm" className="w-full text-orange-700 border-orange-300 hover:bg-orange-50">
+                                                <BarChart3 className="w-3 h-3 mr-1" />
+                                                Capacity Planning
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Quality Issues - Enhanced */}
+                                <Card className="border-yellow-200 bg-white shadow-lg">
+                                    <CardHeader className="pb-3 bg-white border-b border-yellow-200">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-lg text-yellow-800 flex items-center space-x-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>Quality Issues</span>
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs bg-yellow-200 text-yellow-800">
+                                                2 Active Issues
+                                            </Badge>
+                                        </div>
+                                        <p className="text-sm text-yellow-600">Quality metrics requiring attention</p>
+                                    </CardHeader>
+                                    <CardContent className="bg-white">
+                                        <div className="space-y-3">
+                                            {/* Rework Rate Issue */}
+                                            <div className="p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="font-semibold text-yellow-800 text-sm">High Rework Rate</div>
+                                                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                                                        CRITICAL
+                                                    </Badge>
+                                                </div>
+
+                                                <div className="mb-3">
+                                                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                                        <span>Line 3: 8.2%</span>
+                                                        <span>Target: &lt;5%</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                                        <div
+                                                            className="h-3 rounded-full bg-red-500 transition-all duration-300"
+                                                            style={{ width: `${(8.2 / 10) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-xs text-yellow-600 mb-2">
+                                                    <div className="font-medium mb-1">Root Causes:</div>
+                                                    <div>• Operator training needed</div>
+                                                    <div>• Process parameters out of spec</div>
+                                                </div>
+
+                                                <div className="flex space-x-2">
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
+                                                        Investigate
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
+                                                        Retrain
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Scrap Rate Issue */}
+                                            <div className="p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="font-semibold text-yellow-800 text-sm">Scrap Rate Increase</div>
+                                                    <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
+                                                        WARNING
+                                                    </Badge>
+                                                </div>
+
+                                                <div className="mb-3">
+                                                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                                        <span>Current: +2.1%</span>
+                                                        <span>Target: &lt;1%</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                                        <div
+                                                            className="h-3 rounded-full bg-yellow-500 transition-all duration-300"
+                                                            style={{ width: `${(2.1 / 5) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-xs text-yellow-600 mb-2">
+                                                    <div className="font-medium mb-1">Trend:</div>
+                                                    <div>• 3-week upward trend</div>
+                                                    <div>• Affecting 2 product lines</div>
+                                                </div>
+
+                                                <div className="flex space-x-2">
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
+                                                        Analyze
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
+                                                        Optimize
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 pt-3 border-t border-yellow-200">
+                                            <Button variant="outline" size="sm" className="w-full text-yellow-700 border-yellow-300 hover:bg-yellow-50">
+                                                <CheckCircle className="w-3 h-3 mr-1" />
+                                                Quality Dashboard
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ Quick Actions</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <Link href="/quotations/create">
+                                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                                        <CardContent className="p-4 text-center">
+                                            <FileText className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                                            <div className="text-sm font-medium">New Quotation</div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                                <Link href="/production/create">
+                                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                                        <CardContent className="p-4 text-center">
+                                            <Factory className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                                            <div className="text-sm font-medium">New Work Order</div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                                <Link href="/procurement/create">
+                                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                                        <CardContent className="p-4 text-center">
+                                            <TrendingUp className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+                                            <div className="text-sm font-medium">New PO</div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                                <Link href="/engineering/create">
+                                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                                        <CardContent className="p-4 text-center">
+                                            <Wrench className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                                            <div className="text-sm font-medium">New Drawing</div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
                             </div>
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                        {/* Material Shortages - Enhanced */}
-                        <Card className="border-red-200 bg-white shadow-lg">
-                            <CardHeader className="pb-3 bg-white border-b border-red-200">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-red-800 flex items-center space-x-2">
-                                        <AlertTriangle className="w-5 h-5" />
-                                        <span>Material Shortages</span>
-                                    </CardTitle>
-                                    <Badge variant="destructive" className="text-xs">
-                                        {moduleCharts.materialShortages.criticalShortages.length} Critical
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-red-600">Items requiring immediate action</p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="space-y-3">
-                                    {moduleCharts.materialShortages.criticalShortages.map((shortage, index) => (
-                                        <div key={index} className="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div className="font-semibold text-red-800 text-sm">{shortage.item}</div>
-                                                <Badge
-                                                    variant={shortage.daysUntilShortage <= 1 ? "destructive" : "secondary"}
-                                                    className="text-xs"
-                                                >
-                                                    {shortage.daysUntilShortage <= 1 ? "URGENT" : `${shortage.daysUntilShortage}d`}
-                                                </Badge>
-                                            </div>
-
-                                            {/* Stock Level Bar */}
-                                            <div className="mb-2">
-                                                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                    <span>Current: {shortage.currentStock}</span>
-                                                    <span>Required: {shortage.requiredStock}</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                                    <div
-                                                        className="h-2 rounded-full bg-red-500 transition-all duration-300"
-                                                        style={{ width: `${(shortage.currentStock / shortage.requiredStock) * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="text-xs text-red-600 mb-2">
-                                                <div className="flex items-center space-x-1">
-                                                    <Clock className="w-3 h-3" />
-                                                    <span>{shortage.daysUntilShortage} days until shortage</span>
-                                                </div>
-                                                <div className="mt-1">
-                                                    <span className="font-medium">Impact:</span> {shortage.impact}
-                                                </div>
-                                            </div>
-
-                                            {/* Action Buttons */}
-                                            <div className="flex space-x-2">
-                                                <Button size="sm" variant="destructive" className="text-xs h-6 px-2">
-                                                    Expedite
-                                                </Button>
-                                                <Button size="sm" variant="outline" className="text-xs h-6 px-2">
-                                                    Substitute
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-4 pt-3 border-t border-red-200">
-                                    <Button variant="outline" size="sm" className="w-full text-red-700 border-red-300 hover:bg-red-50">
-                                        <TrendingUp className="w-3 h-3 mr-1" />
-                                        View All Shortages
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Capacity Issues - Enhanced */}
-                        <Card className="border-orange-200 bg-white shadow-lg">
-                            <CardHeader className="pb-3 bg-white border-b border-orange-200">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-orange-800 flex items-center space-x-2">
-                                        <Activity className="w-5 h-5" />
-                                        <span>Capacity Issues</span>
-                                    </CardTitle>
-                                    <Badge variant="secondary" className="text-xs bg-orange-200 text-orange-800">
-                                        {moduleCharts.exceptionManagement.capacityOverloads.filter(o => o.load > 90).length} Overloaded
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-orange-600">Production line bottlenecks</p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="space-y-3">
-                                    {moduleCharts.exceptionManagement.capacityOverloads.map((overload, index) => (
-                                        <div key={index} className="p-3 bg-white rounded-lg border border-orange-200 shadow-sm">
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div className="font-semibold text-orange-800 text-sm">{overload.resource}</div>
-                                                <Badge
-                                                    variant={overload.load > 100 ? "destructive" : "secondary"}
-                                                    className="text-xs"
-                                                >
-                                                    {overload.load > 100 ? "OVERLOADED" : "HIGH"}
-                                                </Badge>
-                                            </div>
-
-                                            {/* Capacity Meter */}
-                                            <div className="mb-3">
-                                                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                    <span>Load: {overload.load}%</span>
-                                                    <span>Status: {overload.status}</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-3">
-                                                    <div
-                                                        className={`h-3 rounded-full transition-all duration-300 ${overload.load > 100 ? 'bg-red-500' :
-                                                            overload.load > 90 ? 'bg-orange-500' : 'bg-green-500'
-                                                            }`}
-                                                        style={{ width: `${Math.min(overload.load, 100)}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Recommendations */}
-                                            <div className="text-xs text-orange-600 mb-2">
-                                                <div className="font-medium mb-1">Recommendations:</div>
-                                                {overload.load > 100 && (
-                                                    <div className="text-red-600">• Add overtime or additional shifts</div>
-                                                )}
-                                                {overload.load > 90 && overload.load <= 100 && (
-                                                    <div>• Monitor closely, consider reallocation</div>
-                                                )}
-                                                {overload.load <= 90 && (
-                                                    <div>• Normal operation</div>
-                                                )}
-                                            </div>
-
-                                            {/* Action Buttons */}
-                                            <div className="flex space-x-2">
-                                                <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
-                                                    Reallocate
-                                                </Button>
-                                                <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
-                                                    Schedule
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-4 pt-3 border-t border-orange-200">
-                                    <Button variant="outline" size="sm" className="w-full text-orange-700 border-orange-300 hover:bg-orange-50">
-                                        <BarChart3 className="w-3 h-3 mr-1" />
-                                        Capacity Planning
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Quality Issues - Enhanced */}
-                        <Card className="border-yellow-200 bg-white shadow-lg">
-                            <CardHeader className="pb-3 bg-white border-b border-yellow-200">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg text-yellow-800 flex items-center space-x-2">
-                                        <AlertTriangle className="w-5 h-5" />
-                                        <span>Quality Issues</span>
-                                    </CardTitle>
-                                    <Badge variant="secondary" className="text-xs bg-yellow-200 text-yellow-800">
-                                        2 Active Issues
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-yellow-600">Quality metrics requiring attention</p>
-                            </CardHeader>
-                            <CardContent className="bg-white">
-                                <div className="space-y-3">
-                                    {/* Rework Rate Issue */}
-                                    <div className="p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="font-semibold text-yellow-800 text-sm">High Rework Rate</div>
-                                            <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-                                                CRITICAL
-                                            </Badge>
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                <span>Line 3: 8.2%</span>
-                                                <span>Target: &lt;5%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-3">
-                                                <div
-                                                    className="h-3 rounded-full bg-red-500 transition-all duration-300"
-                                                    style={{ width: `${(8.2 / 10) * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="text-xs text-yellow-600 mb-2">
-                                            <div className="font-medium mb-1">Root Causes:</div>
-                                            <div>• Operator training needed</div>
-                                            <div>• Process parameters out of spec</div>
-                                        </div>
-
-                                        <div className="flex space-x-2">
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                Investigate
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                Retrain
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Scrap Rate Issue */}
-                                    <div className="p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="font-semibold text-yellow-800 text-sm">Scrap Rate Increase</div>
-                                            <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
-                                                WARNING
-                                            </Badge>
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                <span>Current: +2.1%</span>
-                                                <span>Target: &lt;1%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-3">
-                                                <div
-                                                    className="h-3 rounded-full bg-yellow-500 transition-all duration-300"
-                                                    style={{ width: `${(2.1 / 5) * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="text-xs text-yellow-600 mb-2">
-                                            <div className="font-medium mb-1">Trend:</div>
-                                            <div>• 3-week upward trend</div>
-                                            <div>• Affecting 2 product lines</div>
-                                        </div>
-
-                                        <div className="flex space-x-2">
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                Analyze
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                Optimize
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 pt-3 border-t border-yellow-200">
-                                    <Button variant="outline" size="sm" className="w-full text-yellow-700 border-yellow-300 hover:bg-yellow-50">
-                                        <CheckCircle className="w-3 h-3 mr-1" />
-                                        Quality Dashboard
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ Quick Actions</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Link href="/quotations/create">
-                            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                                <CardContent className="p-4 text-center">
-                                    <FileText className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                                    <div className="text-sm font-medium">New Quotation</div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                        <Link href="/production/create">
-                            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                                <CardContent className="p-4 text-center">
-                                    <Factory className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                                    <div className="text-sm font-medium">New Work Order</div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                        <Link href="/procurement/create">
-                            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                                <CardContent className="p-4 text-center">
-                                    <TrendingUp className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                                    <div className="text-sm font-medium">New PO</div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                        <Link href="/engineering/create">
-                            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                                <CardContent className="p-4 text-center">
-                                    <Wrench className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                                    <div className="text-sm font-medium">New Drawing</div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    </div>
-                </div>
+                )}
             </main>
 
             {/* AI Insights Modals */}

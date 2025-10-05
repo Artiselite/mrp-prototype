@@ -9,12 +9,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ShoppingCart, Plus, Trash2, ArrowLeft, Save, Send } from "lucide-react"
+import { ShoppingCart, Plus, Trash2, ArrowLeft, Save, Send, Calculator } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { suppliers, billsOfMaterials } from "@/lib/data"
-import type { PurchaseOrderItem } from "@/lib/types"
+import type { PurchaseOrderItem, Item } from "@/lib/types"
 import { use } from "react"
+import UnitEconomicsCalculator from "@/components/unit-economics-calculator"
+import ItemSelector from "@/components/item-selector"
 
 export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -69,10 +71,30 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
 
   const [items, setItems] = useState<PurchaseOrderItem[]>(existingOrder.items)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showUnitEconomics, setShowUnitEconomics] = useState(false)
 
-  const addItem = () => {
+  const addItemFromMaster = (item: Item, quantity: number) => {
     const newItem: PurchaseOrderItem = {
-      id: (items.length + 1).toString(),
+      id: item.id,
+      description: item.name,
+      partNumber: item.partNumber,
+      quantity: quantity,
+      unit: item.unit,
+      unitPrice: item.unitCost,
+      totalPrice: item.unitCost * quantity,
+      steelGrade: item.specifications.includes('Grade') ? 
+        item.specifications.match(/Grade\s+([A-Z0-9]+)/)?.[1] || '' : '',
+      urgency: "Medium",
+      requestedDate: "",
+      specifications: item.specifications,
+      notes: item.notes || "",
+    }
+    setItems([...items, newItem])
+  }
+
+  const addManualItem = () => {
+    const newItem: PurchaseOrderItem = {
+      id: `manual_${Date.now()}`,
       description: "",
       partNumber: "",
       quantity: 1,
@@ -89,9 +111,7 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
   }
 
   const removeItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(items.filter((item) => item.id !== id))
-    }
+    setItems(items.filter((item) => item.id !== id))
   }
 
   const updateItem = (id: string, field: keyof PurchaseOrderItem, value: string | number) => {
@@ -213,6 +233,13 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
               </div>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowUnitEconomics(!showUnitEconomics)}
+              >
+                <Calculator className="w-4 h-4 mr-2" />
+                {showUnitEconomics ? 'Hide' : 'Show'} Unit Economics
+              </Button>
               <Button variant="outline" onClick={() => handleSubmit()}>
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
@@ -228,8 +255,22 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Unit Economics Calculator Section */}
+        {showUnitEconomics && (
+          <div className="mb-8">
+            <UnitEconomicsCalculator 
+              quotationId={existingOrder.id}
+              onSave={(data) => {
+                console.log('Unit economics saved:', data)
+                // In a real app, this would save to the database
+              }}
+            />
+          </div>
+        )}
+
+        {/* Purchase Order Information */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Information */}
@@ -369,197 +410,6 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
                 </div>
               </CardContent>
             </Card>
-
-            {/* Line Items Table */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Line Items</CardTitle>
-                  <Button onClick={addItem} size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Item
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">#</TableHead>
-                        <TableHead className="min-w-[200px]">Description *</TableHead>
-                        <TableHead className="min-w-[120px]">Part Number *</TableHead>
-                        <TableHead className="w-[80px]">Qty *</TableHead>
-                        <TableHead className="w-[80px]">Unit</TableHead>
-                        <TableHead className="w-[100px]">Unit Price *</TableHead>
-                        <TableHead className="w-[100px]">Total</TableHead>
-                        <TableHead className="w-[100px]">Steel Grade</TableHead>
-                        <TableHead className="w-[80px]">Urgency</TableHead>
-                        <TableHead className="w-[50px]">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {items.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">{index + 1}</TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <Input
-                                value={item.description}
-                                onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                                placeholder="Item description"
-                                className={`${errors[`item_${index}_description`] ? "border-red-500" : ""} text-sm`}
-                              />
-                              {errors[`item_${index}_description`] && (
-                                <p className="text-xs text-red-500">{errors[`item_${index}_description`]}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <Input
-                                value={item.partNumber}
-                                onChange={(e) => updateItem(item.id, "partNumber", e.target.value)}
-                                placeholder="Part number"
-                                className={`${errors[`item_${index}_partNumber`] ? "border-red-500" : ""} text-sm`}
-                              />
-                              {errors[`item_${index}_partNumber`] && (
-                                <p className="text-xs text-red-500">{errors[`item_${index}_partNumber`]}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <Input
-                                type="number"
-                                value={item.quantity}
-                                onChange={(e) => updateItem(item.id, "quantity", Number.parseInt(e.target.value) || 0)}
-                                min="1"
-                                className={`${errors[`item_${index}_quantity`] ? "border-red-500" : ""} text-sm`}
-                              />
-                              {errors[`item_${index}_quantity`] && (
-                                <p className="text-xs text-red-500">{errors[`item_${index}_quantity`]}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Select value={item.unit} onValueChange={(value) => updateItem(item.id, "unit", value)}>
-                              <SelectTrigger className="text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pieces">Pieces</SelectItem>
-                                <SelectItem value="feet">Feet</SelectItem>
-                                <SelectItem value="pounds">Pounds</SelectItem>
-                                <SelectItem value="tons">Tons</SelectItem>
-                                <SelectItem value="sheets">Sheets</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <Input
-                                type="number"
-                                step="0.01"
-                                value={item.unitPrice}
-                                onChange={(e) =>
-                                  updateItem(item.id, "unitPrice", Number.parseFloat(e.target.value) || 0)
-                                }
-                                min="0"
-                                className={`${errors[`item_${index}_unitPrice`] ? "border-red-500" : ""} text-sm`}
-                              />
-                              {errors[`item_${index}_unitPrice`] && (
-                                <p className="text-xs text-red-500">{errors[`item_${index}_unitPrice`]}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium text-sm">${item.totalPrice.toFixed(2)}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={item.steelGrade || ""}
-                              onChange={(e) => updateItem(item.id, "steelGrade", e.target.value)}
-                              placeholder="e.g., A36"
-                              className="text-sm"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={item.urgency}
-                              onValueChange={(value) => updateItem(item.id, "urgency", value)}
-                            >
-                              <SelectTrigger className="text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Low">Low</SelectItem>
-                                <SelectItem value="Medium">Medium</SelectItem>
-                                <SelectItem value="High">High</SelectItem>
-                                <SelectItem value="Critical">Critical</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            {items.length > 1 && (
-                              <Button variant="ghost" size="sm" onClick={() => removeItem(item.id)}>
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Additional Item Details */}
-                <div className="mt-6 space-y-4">
-                  <h4 className="font-medium">Additional Item Details</h4>
-                  {items.map((item, index) => (
-                    <div key={`details-${item.id}`} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Item {index + 1}:</span>
-                        <span className="text-sm text-gray-600">{item.description || "No description"}</span>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm">Specifications</Label>
-                          <Textarea
-                            value={item.specifications || ""}
-                            onChange={(e) => updateItem(item.id, "specifications", e.target.value)}
-                            rows={2}
-                            placeholder="Technical specifications or requirements"
-                            className="text-sm"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-sm">Item Notes</Label>
-                          <Textarea
-                            value={item.notes || ""}
-                            onChange={(e) => updateItem(item.id, "notes", e.target.value)}
-                            rows={2}
-                            placeholder="Additional notes for this item"
-                            className="text-sm"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label className="text-sm">Requested Date</Label>
-                        <Input
-                          type="date"
-                          value={item.requestedDate || ""}
-                          onChange={(e) => updateItem(item.id, "requestedDate", e.target.value)}
-                          className="text-sm max-w-xs"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Summary Sidebar */}
@@ -625,20 +475,20 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${calculateSubtotal().toFixed(2)}</span>
+                  <span>MYR{calculateSubtotal().toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax (8.5%):</span>
-                  <span>${calculateTax(calculateSubtotal()).toFixed(2)}</span>
+                  <span>MYR{calculateTax(calculateSubtotal()).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping:</span>
-                  <span>$500.00</span>
+                  <span>MYR500.00</span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>${calculateTotal().toFixed(2)}</span>
+                    <span>MYR{calculateTotal().toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -649,6 +499,162 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
             </Card>
           </div>
         </div>
+
+        {/* Item Master Selection - Full Width */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Add Items from Item Master</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ItemSelector 
+              onItemSelect={addItemFromMaster}
+              selectedItems={items.map(item => item.id)}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Line Items Table - Full Width */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Purchase Order Line Items</CardTitle>
+              <Button onClick={addManualItem} size="sm" variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Manual Item
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">#</TableHead>
+                    <TableHead className="min-w-[200px]">Description *</TableHead>
+                    <TableHead className="min-w-[120px]">Part Number *</TableHead>
+                    <TableHead className="w-[80px]">Qty *</TableHead>
+                    <TableHead className="w-[80px]">Unit</TableHead>
+                    <TableHead className="w-[100px]">Unit Price *</TableHead>
+                    <TableHead className="w-[100px]">Total</TableHead>
+                    <TableHead className="w-[100px]">Steel Grade</TableHead>
+                    <TableHead className="w-[80px]">Urgency</TableHead>
+                    <TableHead className="w-[50px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item, index) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Input
+                            value={item.description}
+                            onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                            placeholder="Item description"
+                            className={`${errors[`item_${index}_description`] ? "border-red-500" : ""} text-sm`}
+                          />
+                          {errors[`item_${index}_description`] && (
+                            <p className="text-xs text-red-500">{errors[`item_${index}_description`]}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Input
+                            value={item.partNumber}
+                            onChange={(e) => updateItem(item.id, "partNumber", e.target.value)}
+                            placeholder="Part number"
+                            className={`${errors[`item_${index}_partNumber`] ? "border-red-500" : ""} text-sm`}
+                          />
+                          {errors[`item_${index}_partNumber`] && (
+                            <p className="text-xs text-red-500">{errors[`item_${index}_partNumber`]}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(item.id, "quantity", Number.parseInt(e.target.value) || 0)}
+                            min="1"
+                            className={`${errors[`item_${index}_quantity`] ? "border-red-500" : ""} text-sm`}
+                          />
+                          {errors[`item_${index}_quantity`] && (
+                            <p className="text-xs text-red-500">{errors[`item_${index}_quantity`]}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select value={item.unit} onValueChange={(value) => updateItem(item.id, "unit", value)}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pieces">Pieces</SelectItem>
+                            <SelectItem value="feet">Feet</SelectItem>
+                            <SelectItem value="pounds">Pounds</SelectItem>
+                            <SelectItem value="tons">Tons</SelectItem>
+                            <SelectItem value="sheets">Sheets</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={item.unitPrice}
+                            onChange={(e) =>
+                              updateItem(item.id, "unitPrice", Number.parseFloat(e.target.value) || 0)
+                            }
+                            min="0"
+                            className={`${errors[`item_${index}_unitPrice`] ? "border-red-500" : ""} text-sm`}
+                          />
+                          {errors[`item_${index}_unitPrice`] && (
+                            <p className="text-xs text-red-500">{errors[`item_${index}_unitPrice`]}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium text-sm">MYR{item.totalPrice.toFixed(2)}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={item.steelGrade || ""}
+                          onChange={(e) => updateItem(item.id, "steelGrade", e.target.value)}
+                          placeholder="e.g., A36"
+                          className="text-sm"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={item.urgency}
+                          onValueChange={(value) => updateItem(item.id, "urgency", value)}
+                        >
+                          <SelectTrigger className="text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Low">Low</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="High">High</SelectItem>
+                            <SelectItem value="Critical">Critical</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" onClick={() => removeItem(item.id)}>
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
   )

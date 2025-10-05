@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ShoppingCart, Plus, Search, Calendar, DollarSign, Truck, AlertTriangle, Eye, Edit, Download, User, Factory, FileText } from "lucide-react"
+import { ShoppingCart, Plus, Search, Calendar, DollarSign, Truck, AlertTriangle, Eye, Edit, Download, User, Factory, FileText, Wrench, Users } from "lucide-react"
 import Link from "next/link"
 import { statusColors, formatCurrency } from "@/lib/data"
 import { useSearchParams } from "next/navigation"
@@ -23,6 +23,7 @@ function ProcurementContent() {
     projectSubcontractors = [],
     subcontractorWorkOrders = []
   } = useDatabaseContext()
+
 
   const filteredOrders = purchaseOrders.filter((order) => {
     const matchesSearch =
@@ -190,7 +191,7 @@ function ProcurementContent() {
                   {subcontractorWorkOrders.slice(0, 5).map((workOrder: any) => (
                     <TableRow key={workOrder.id}>
                       <TableCell className="font-medium">{workOrder.workOrderNumber}</TableCell>
-                      <TableCell>{workOrder.subcontractorName}</TableCell>
+                      <TableCell>{workOrder.supplierName || "Unknown Supplier"}</TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium">Project {workOrder.projectId}</p>
@@ -199,7 +200,7 @@ function ProcurementContent() {
                       </TableCell>
                       <TableCell>{workOrder.workType}</TableCell>
                       <TableCell>
-                        <Badge className={statusColors.purchaseOrder[workOrder.status as keyof typeof statusColors.purchaseOrder] || "bg-gray-100 text-gray-800"}>
+                        <Badge className="bg-gray-100 text-gray-800">
                           {workOrder.status}
                         </Badge>
                       </TableCell>
@@ -217,12 +218,21 @@ function ProcurementContent() {
                       <TableCell>{workOrder.dueDate}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" title="View Details">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" title="Edit Work Order">
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          <Link href={`/production/subcontractor-work-orders/${workOrder.id}`}>
+                            <Button variant="ghost" size="sm" title="View Details">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/production/subcontractor-work-orders/${workOrder.id}/edit`}>
+                            <Button variant="ghost" size="sm" title="Edit Work Order">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/procurement/create?workOrderId=${workOrder.id}`}>
+                            <Button variant="ghost" size="sm" title="Create Purchase Order">
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </Link>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -277,7 +287,7 @@ function ProcurementContent() {
                     <TableCell>{order.requestedDeliveryDate}</TableCell>
                     <TableCell className="font-medium">{formatCurrency(order.total)}</TableCell>
                     <TableCell>
-                      <Badge className={statusColors.purchaseOrder[order.status]}>
+                      <Badge className="bg-gray-100 text-gray-800">
                         {order.status}
                       </Badge>
                     </TableCell>
@@ -304,6 +314,108 @@ function ProcurementContent() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Subcontractor Work Orders Integration */}
+        {subcontractorWorkOrders.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Related Subcontractor Work Orders
+              </CardTitle>
+              <CardDescription>
+                Work orders that may require purchase orders for materials or services
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Work Order</TableHead>
+                      <TableHead>Subcontractor</TableHead>
+                      <TableHead>Work Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Estimated Cost</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {subcontractorWorkOrders.slice(0, 5).map((workOrder) => (
+                      <TableRow key={workOrder.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Wrench className="w-4 h-4 text-blue-500" />
+                            <div>
+                              <p className="font-medium">{workOrder.workOrderNumber}</p>
+                              <p className="text-sm text-gray-600 truncate max-w-[200px]">
+                                {workOrder.workDescription}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Factory className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{workOrder.supplierName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{workOrder.workType}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-gray-100 text-gray-800">
+                            {workOrder.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getPriorityIcon(workOrder.priority)}
+                            <span className="text-sm">{workOrder.priority}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{formatCurrency(workOrder.estimatedCost)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm">{workOrder.dueDate}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Link href={`/production/subcontractor-work-orders/${workOrder.id}`}>
+                              <Button variant="ghost" size="sm" title="View Details">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                            <Link href={`/procurement/create?workOrderId=${workOrder.id}`}>
+                              <Button variant="ghost" size="sm" title="Create Purchase Order">
+                                <Plus className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {subcontractorWorkOrders.length > 5 && (
+                <div className="mt-4 text-center">
+                  <Link href="/production/subcontractor-work-orders">
+                    <Button variant="outline">
+                      View All Subcontractor Work Orders ({subcontractorWorkOrders.length})
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {filteredOrders.length === 0 && (
           <Card>

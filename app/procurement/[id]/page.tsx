@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,11 +20,14 @@ import {
   MapPin,
   FileText,
   Package,
+  Calculator,
 } from "lucide-react"
 import Link from "next/link"
 import { purchaseOrders, suppliers, formatCurrency } from "@/lib/data"
 import { notFound } from "next/navigation"
 import { use } from "react"
+import UnitEconomicsCalculator from "@/components/unit-economics-calculator"
+import SubcontractorIntegration from "@/components/subcontractor-integration"
 
 interface PurchaseOrderDetailPageProps {
   params: Promise<{
@@ -40,6 +44,7 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
   }
 
   const supplier = order ? suppliers.find((s) => s.id === order.supplierId) : null
+  const [showUnitEconomics, setShowUnitEconomics] = useState(false)
 
 
 
@@ -113,6 +118,13 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
             </div>
             <div className="flex items-center gap-3">
               <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowUnitEconomics(!showUnitEconomics)}
+              >
+                <Calculator className="w-4 h-4 mr-2" />
+                {showUnitEconomics ? 'Hide' : 'Show'} Unit Economics
+              </Button>
               <Link href={`/procurement/${order.id}/edit`}>
                 <Button>
                   <Edit className="w-4 h-4 mr-2" />
@@ -125,6 +137,19 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Unit Economics Calculator Section */}
+        {showUnitEconomics && (
+          <div className="mb-8">
+            <UnitEconomicsCalculator 
+              quotationId={order.id}
+              onSave={(data) => {
+                console.log('Unit economics saved:', data)
+                // In a real app, this would save to the database
+              }}
+            />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -442,6 +467,14 @@ export default function PurchaseOrderDetailPage({ params }: PurchaseOrderDetailP
               </Card>
             )}
           </div>
+        </div>
+
+        {/* Subcontractor Integration */}
+        <div className="mt-8">
+          <SubcontractorIntegration 
+            purchaseOrderId={order.id}
+            showCreateActions={true}
+          />
         </div>
       </main>
     </div>

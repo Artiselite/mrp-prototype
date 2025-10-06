@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -28,6 +29,7 @@ import {
 import { useDatabaseContext } from "@/components/database-provider"
 
 export default function QualityPage() {
+  const router = useRouter()
   const {
     qualityInspections = [],
     qualityTests = [],
@@ -681,10 +683,7 @@ export default function QualityPage() {
           <Button
             variant="outline"
             className="flex items-center gap-2"
-            onClick={() => {
-              const event = new CustomEvent('switchTab', { detail: 'work-orders' })
-              window.dispatchEvent(event)
-            }}
+            onClick={() => router.push('/production/work-orders')}
           >
             <Factory className="w-4 h-4" />
             View Work Orders
@@ -692,10 +691,7 @@ export default function QualityPage() {
           <Button
             variant="outline"
             className="flex items-center gap-2"
-            onClick={() => {
-              const event = new CustomEvent('switchTab', { detail: 'shopfloor' })
-              window.dispatchEvent(event)
-            }}
+            onClick={() => router.push('/production/shopfloor')}
           >
             <Users className="w-4 h-4" />
             View Shopfloor
@@ -703,10 +699,7 @@ export default function QualityPage() {
           <Button
             variant="outline"
             className="flex items-center gap-2"
-            onClick={() => {
-              const event = new CustomEvent('switchTab', { detail: 'workstations' })
-              window.dispatchEvent(event)
-            }}
+            onClick={() => router.push('/production/workstations')}
           >
             <Wrench className="w-4 h-4" />
             View Workstations

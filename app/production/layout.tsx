@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Factory, Users, BarChart3, Target, Wrench, FileText, Shield, Settings, Copy } from "lucide-react"
 import Link from "next/link"
@@ -12,6 +12,7 @@ export default function ProductionLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showCreateJourney, setShowCreateJourney] = useState(false)
 
@@ -47,11 +48,43 @@ export default function ProductionLayout({
     }
   }, [pathname])
 
-  useEffect(() => {
-    const handleTabSwitch = (event: CustomEvent) => {
-      setActiveTab(event.detail)
+  // Handle tab switching with URL navigation
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    switch (value) {
+      case 'dashboard':
+        router.push('/production/dashboard')
+        break
+      case 'journey':
+        router.push('/production/journeys')
+        break
+      case 'shopfloor':
+        router.push('/production/shopfloor')
+        break
+      case 'workstations':
+        router.push('/production/workstations')
+        break
+      case 'work-orders':
+        router.push('/production/work-orders')
+        break
+      case 'subcontractor-work-orders':
+        router.push('/production/subcontractor-work-orders')
+        break
+      case 'process-steps':
+        router.push('/production/process-steps')
+        break
+      case 'templates':
+        router.push('/production/process-step-templates')
+        break
+      case 'quality':
+        router.push('/production/quality')
+        break
+      default:
+        router.push('/production/dashboard')
     }
+  }
 
+  useEffect(() => {
     const handleCreateJourney = () => {
       setShowCreateJourney(true)
     }
@@ -60,12 +93,10 @@ export default function ProductionLayout({
       setShowCreateJourney(false)
     }
 
-    window.addEventListener('switchTab', handleTabSwitch as EventListener)
     window.addEventListener('createJourney', handleCreateJourney as EventListener)
     window.addEventListener('closeCreateJourney', handleCloseCreateJourney as EventListener)
     
     return () => {
-      window.removeEventListener('switchTab', handleTabSwitch as EventListener)
       window.removeEventListener('createJourney', handleCreateJourney as EventListener)
       window.removeEventListener('closeCreateJourney', handleCloseCreateJourney as EventListener)
     }
@@ -89,7 +120,7 @@ export default function ProductionLayout({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-1">
             <TabsTrigger value="dashboard" className="flex items-center justify-center gap-2 text-xs md:text-sm">
               <BarChart3 className="w-4 h-4" />

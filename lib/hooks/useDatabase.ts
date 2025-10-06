@@ -26,6 +26,19 @@ import type {
   ProcessStep,
   ProjectSubcontractor,
   SubcontractorWorkOrder,
+  WarehouseOperation,
+  PutawayTask,
+  PickTask,
+  PackTask,
+  Shipment,
+  CycleCount,
+  StagingArea,
+  DispatchPlan,
+  Return,
+  InventoryValuation,
+  StockAgeing,
+  WarehouseAnalytics,
+  WarehouseAlert,
 } from "../types"
 
 // Database hook for easy state management
@@ -57,6 +70,21 @@ export function useDatabase() {
   const [processSteps, setProcessSteps] = useState<ProcessStep[]>([])
   const [projectSubcontractors, setProjectSubcontractors] = useState<ProjectSubcontractor[]>([])
   const [subcontractorWorkOrders, setSubcontractorWorkOrders] = useState<SubcontractorWorkOrder[]>([])
+  
+  // Warehouse Management state
+  const [warehouseOperations, setWarehouseOperations] = useState<WarehouseOperation[]>([])
+  const [putawayTasks, setPutawayTasks] = useState<PutawayTask[]>([])
+  const [pickTasks, setPickTasks] = useState<PickTask[]>([])
+  const [packTasks, setPackTasks] = useState<PackTask[]>([])
+  const [shipments, setShipments] = useState<Shipment[]>([])
+  const [cycleCounts, setCycleCounts] = useState<CycleCount[]>([])
+  const [stagingAreas, setStagingAreas] = useState<StagingArea[]>([])
+  const [dispatchPlans, setDispatchPlans] = useState<DispatchPlan[]>([])
+  const [returns, setReturns] = useState<Return[]>([])
+  const [inventoryValuations, setInventoryValuations] = useState<InventoryValuation[]>([])
+  const [stockAgeing, setStockAgeing] = useState<StockAgeing[]>([])
+  const [warehouseAnalytics, setWarehouseAnalytics] = useState<WarehouseAnalytics[]>([])
+  const [warehouseAlerts, setWarehouseAlerts] = useState<WarehouseAlert[]>([])
 
   // Initialize database
   useEffect(() => {
@@ -101,6 +129,21 @@ export function useDatabase() {
       setProcessSteps(db.getProcessSteps())
       setProjectSubcontractors(db.getProjectSubcontractors())
       setSubcontractorWorkOrders(db.getSubcontractorWorkOrders())
+      
+      // Initialize warehouse management data
+      setWarehouseOperations(db.getWarehouseOperations())
+      setPutawayTasks(db.getPutawayTasks())
+      setPickTasks(db.getPickTasks())
+      setPackTasks(db.getPackTasks())
+      setShipments(db.getShipments())
+      setCycleCounts(db.getCycleCounts())
+      setStagingAreas(db.getStagingAreas())
+      setDispatchPlans(db.getDispatchPlans())
+      setReturns(db.getReturns())
+      setInventoryValuations(db.getInventoryValuations())
+      setStockAgeing(db.getStockAgeing())
+      setWarehouseAnalytics(db.getWarehouseAnalytics())
+      setWarehouseAlerts(db.getWarehouseAlerts())
     }
   }, [isInitialized])
 
@@ -605,6 +648,153 @@ export function useDatabase() {
     return success
   }, [refreshSubcontractorWorkOrders])
 
+  // Warehouse Management functions
+  const refreshWarehouseOperations = useCallback(() => {
+    setWarehouseOperations(db.getWarehouseOperations())
+  }, [])
+
+  const createWarehouseOperation = useCallback((operation: Omit<WarehouseOperation, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createWarehouseOperation(operation)
+    refreshWarehouseOperations()
+    return result
+  }, [refreshWarehouseOperations])
+
+  const updateWarehouseOperation = useCallback((id: string, updates: Partial<WarehouseOperation>) => {
+    const result = db.updateWarehouseOperation(id, updates)
+    if (result) {
+      refreshWarehouseOperations()
+    }
+    return result
+  }, [refreshWarehouseOperations])
+
+  const refreshPutawayTasks = useCallback(() => {
+    setPutawayTasks(db.getPutawayTasks())
+  }, [])
+
+  const createPutawayTask = useCallback((task: Omit<PutawayTask, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createPutawayTask(task)
+    refreshPutawayTasks()
+    return result
+  }, [refreshPutawayTasks])
+
+  const refreshPickTasks = useCallback(() => {
+    setPickTasks(db.getPickTasks())
+  }, [])
+
+  const createPickTask = useCallback((task: Omit<PickTask, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createPickTask(task)
+    refreshPickTasks()
+    return result
+  }, [refreshPickTasks])
+
+  const refreshPackTasks = useCallback(() => {
+    setPackTasks(db.getPackTasks())
+  }, [])
+
+  const createPackTask = useCallback((task: Omit<PackTask, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createPackTask(task)
+    refreshPackTasks()
+    return result
+  }, [refreshPackTasks])
+
+  const refreshShipments = useCallback(() => {
+    setShipments(db.getShipments())
+  }, [])
+
+  const createShipment = useCallback((shipment: Omit<Shipment, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createShipment(shipment)
+    refreshShipments()
+    return result
+  }, [refreshShipments])
+
+  const updateShipment = useCallback((id: string, updates: Partial<Shipment>) => {
+    const result = db.updateShipment(id, updates)
+    if (result) {
+      refreshShipments()
+    }
+    return result
+  }, [refreshShipments])
+
+  const refreshCycleCounts = useCallback(() => {
+    setCycleCounts(db.getCycleCounts())
+  }, [])
+
+  const createCycleCount = useCallback((count: Omit<CycleCount, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createCycleCount(count)
+    refreshCycleCounts()
+    return result
+  }, [refreshCycleCounts])
+
+  const refreshStagingAreas = useCallback(() => {
+    setStagingAreas(db.getStagingAreas())
+  }, [])
+
+  const createStagingArea = useCallback((area: Omit<StagingArea, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createStagingArea(area)
+    refreshStagingAreas()
+    return result
+  }, [refreshStagingAreas])
+
+  const refreshDispatchPlans = useCallback(() => {
+    setDispatchPlans(db.getDispatchPlans())
+  }, [])
+
+  const createDispatchPlan = useCallback((plan: Omit<DispatchPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createDispatchPlan(plan)
+    refreshDispatchPlans()
+    return result
+  }, [refreshDispatchPlans])
+
+  const refreshReturns = useCallback(() => {
+    setReturns(db.getReturns())
+  }, [])
+
+  const createReturn = useCallback((returnItem: Omit<Return, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createReturn(returnItem)
+    refreshReturns()
+    return result
+  }, [refreshReturns])
+
+  const refreshInventoryValuations = useCallback(() => {
+    setInventoryValuations(db.getInventoryValuations())
+  }, [])
+
+  const createInventoryValuation = useCallback((valuation: Omit<InventoryValuation, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createInventoryValuation(valuation)
+    refreshInventoryValuations()
+    return result
+  }, [refreshInventoryValuations])
+
+  const refreshStockAgeing = useCallback(() => {
+    setStockAgeing(db.getStockAgeing())
+  }, [])
+
+  const createStockAgeing = useCallback((ageing: Omit<StockAgeing, 'id'>) => {
+    const result = db.createStockAgeing(ageing)
+    refreshStockAgeing()
+    return result
+  }, [refreshStockAgeing])
+
+  const refreshWarehouseAnalytics = useCallback(() => {
+    setWarehouseAnalytics(db.getWarehouseAnalytics())
+  }, [])
+
+  const createWarehouseAnalytics = useCallback((analytics: Omit<WarehouseAnalytics, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createWarehouseAnalytics(analytics)
+    refreshWarehouseAnalytics()
+    return result
+  }, [refreshWarehouseAnalytics])
+
+  const refreshWarehouseAlerts = useCallback(() => {
+    setWarehouseAlerts(db.getWarehouseAlerts())
+  }, [])
+
+  const createWarehouseAlert = useCallback((alert: Omit<WarehouseAlert, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = db.createWarehouseAlert(alert)
+    refreshWarehouseAlerts()
+    return result
+  }, [refreshWarehouseAlerts])
+
   return {
     // Database status
     isInitialized,
@@ -751,5 +941,74 @@ export function useDatabase() {
     createSubcontractorWorkOrder,
     updateSubcontractorWorkOrder,
     deleteSubcontractorWorkOrder,
+    
+    // Warehouse Management functions
+    warehouseOperations,
+    putawayTasks,
+    pickTasks,
+    packTasks,
+    shipments,
+    cycleCounts,
+    stagingAreas,
+    dispatchPlans,
+    returns,
+    inventoryValuations,
+    stockAgeing,
+    warehouseAnalytics,
+    warehouseAlerts,
+    
+    // Warehouse Operations
+    refreshWarehouseOperations,
+    createWarehouseOperation,
+    updateWarehouseOperation,
+    
+    // Putaway Tasks
+    refreshPutawayTasks,
+    createPutawayTask,
+    
+    // Pick Tasks
+    refreshPickTasks,
+    createPickTask,
+    
+    // Pack Tasks
+    refreshPackTasks,
+    createPackTask,
+    
+    // Shipments
+    refreshShipments,
+    createShipment,
+    updateShipment,
+    
+    // Cycle Counts
+    refreshCycleCounts,
+    createCycleCount,
+    
+    // Staging Areas
+    refreshStagingAreas,
+    createStagingArea,
+    
+    // Dispatch Plans
+    refreshDispatchPlans,
+    createDispatchPlan,
+    
+    // Returns
+    refreshReturns,
+    createReturn,
+    
+    // Inventory Valuations
+    refreshInventoryValuations,
+    createInventoryValuation,
+    
+    // Stock Ageing
+    refreshStockAgeing,
+    createStockAgeing,
+    
+    // Warehouse Analytics
+    refreshWarehouseAnalytics,
+    createWarehouseAnalytics,
+    
+    // Warehouse Alerts
+    refreshWarehouseAlerts,
+    createWarehouseAlert,
   }
 }

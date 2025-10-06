@@ -993,6 +993,447 @@ export interface SubcontractorWorkOrder {
   updatedAt: string
 }
 
+// Advanced Warehouse Management Types
+export interface WarehouseOperation {
+  id: string
+  operationType: "Putaway" | "Pick" | "Pack" | "Ship" | "Cycle Count" | "Transfer" | "Adjustment"
+  status: "Pending" | "In Progress" | "Completed" | "Cancelled" | "On Hold"
+  priority: "Low" | "Medium" | "High" | "Critical"
+  workOrderNumber: string
+  assignedTo: string
+  assignedAt: string
+  startedAt?: string
+  completedAt?: string
+  location: string
+  destination?: string
+  items: WarehouseOperationItem[]
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WarehouseOperationItem {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unit: string
+  fromLocation?: string
+  toLocation?: string
+  pickedQuantity?: number
+  packedQuantity?: number
+  shippedQuantity?: number
+  status: "Pending" | "In Progress" | "Completed" | "Partial" | "Failed"
+  notes?: string
+}
+
+export interface PutawayTask {
+  id: string
+  operationId: string
+  itemId: string
+  partNumber: string
+  quantity: number
+  receivedLocation: string
+  suggestedLocation: string
+  actualLocation?: string
+  status: "Pending" | "In Progress" | "Completed" | "Failed"
+  putawayBy?: string
+  putawayAt?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PickTask {
+  id: string
+  operationId: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unit: string
+  location: string
+  binLocation: string
+  pickedQuantity: number
+  status: "Pending" | "In Progress" | "Completed" | "Partial" | "Failed"
+  pickedBy?: string
+  pickedAt?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PackTask {
+  id: string
+  operationId: string
+  orderId: string
+  orderNumber: string
+  customerName: string
+  items: PackItem[]
+  packagingType: string
+  packagingMaterials: string[]
+  weight: number
+  dimensions: {
+    length: number
+    width: number
+    height: number
+  }
+  status: "Pending" | "In Progress" | "Completed" | "Failed"
+  packedBy?: string
+  packedAt?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PackItem {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unit: string
+  packedQuantity: number
+  status: "Pending" | "Packed" | "Missing"
+}
+
+export interface Shipment {
+  id: string
+  shipmentNumber: string
+  orderId: string
+  orderNumber: string
+  customerId: string
+  customerName: string
+  carrier: string
+  trackingNumber: string
+  shippingMethod: string
+  status: "Pending" | "Picked Up" | "In Transit" | "Delivered" | "Exception"
+  scheduledDate: string
+  actualPickupDate?: string
+  actualDeliveryDate?: string
+  shippingAddress: Address
+  billingAddress: Address
+  items: ShipmentItem[]
+  weight: number
+  dimensions: {
+    length: number
+    width: number
+    height: number
+  }
+  shippingCost: number
+  insuranceValue: number
+  specialInstructions?: string
+  proofOfDelivery?: ProofOfDelivery
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ShipmentItem {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  totalPrice: number
+  packedQuantity: number
+  shippedQuantity: number
+}
+
+export interface Address {
+  street: string
+  city: string
+  state: string
+  zipCode: string
+  country: string
+  contactPerson?: string
+  phone?: string
+  email?: string
+}
+
+export interface ProofOfDelivery {
+  id: string
+  shipmentId: string
+  deliveryDate: string
+  deliveredBy: string
+  receivedBy: string
+  signature: string
+  geolocation: {
+    latitude: number
+    longitude: number
+    accuracy: number
+    address: string
+  }
+  photos: string[]
+  notes?: string
+  condition: "Good" | "Damaged" | "Partial" | "Missing"
+  damageDescription?: string
+  createdAt: string
+}
+
+export interface CycleCount {
+  id: string
+  countNumber: string
+  location: string
+  countType: "Full" | "Partial" | "ABC" | "Random"
+  status: "Scheduled" | "In Progress" | "Completed" | "Cancelled"
+  scheduledDate: string
+  startedDate?: string
+  completedDate?: string
+  countedBy: string
+  items: CycleCountItem[]
+  varianceThreshold: number
+  totalVariance: number
+  varianceValue: number
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CycleCountItem {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  expectedQuantity: number
+  countedQuantity: number
+  variance: number
+  varianceValue: number
+  status: "Pending" | "Counted" | "Variance" | "Approved"
+  countedBy?: string
+  countedAt?: string
+  notes?: string
+}
+
+export interface StagingArea {
+  id: string
+  name: string
+  location: string
+  capacity: number
+  currentUtilization: number
+  status: "Active" | "Maintenance" | "Full" | "Closed"
+  stagingItems: StagingItem[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StagingItem {
+  id: string
+  orderId: string
+  orderNumber: string
+  customerName: string
+  items: StagingItemDetail[]
+  stagingDate: string
+  expectedShipDate: string
+  status: "Staged" | "Ready to Ship" | "Shipped" | "Cancelled"
+  stagedBy: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StagingItemDetail {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unit: string
+  stagedQuantity: number
+  status: "Pending" | "Staged" | "Ready"
+}
+
+export interface DispatchPlan {
+  id: string
+  planNumber: string
+  date: string
+  status: "Draft" | "Approved" | "In Progress" | "Completed" | "Cancelled"
+  routes: DispatchRoute[]
+  totalShipments: number
+  totalWeight: number
+  totalVolume: number
+  estimatedCost: number
+  actualCost?: number
+  createdBy: string
+  approvedBy?: string
+  approvedAt?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DispatchRoute {
+  id: string
+  routeNumber: string
+  driver: string
+  vehicle: string
+  startLocation: string
+  endLocation: string
+  plannedStartTime: string
+  plannedEndTime: string
+  actualStartTime?: string
+  actualEndTime?: string
+  shipments: string[] // shipment IDs
+  totalDistance: number
+  totalWeight: number
+  totalVolume: number
+  status: "Planned" | "In Progress" | "Completed" | "Delayed" | "Cancelled"
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Return {
+  id: string
+  returnNumber: string
+  orderId: string
+  orderNumber: string
+  customerId: string
+  customerName: string
+  returnType: "Defective" | "Wrong Item" | "Overstock" | "Customer Request" | "Quality Issue"
+  status: "Requested" | "Approved" | "Received" | "Processed" | "Rejected" | "Completed"
+  reason: string
+  requestedDate: string
+  receivedDate?: string
+  processedDate?: string
+  items: ReturnItem[]
+  totalValue: number
+  refundAmount: number
+  restockingFee: number
+  returnAddress: Address
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ReturnItem {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  totalPrice: number
+  condition: "Good" | "Damaged" | "Defective" | "Used"
+  disposition: "Restock" | "Repair" | "Scrap" | "Return to Supplier"
+  notes?: string
+}
+
+export interface InventoryValuation {
+  id: string
+  valuationDate: string
+  method: "FIFO" | "LIFO" | "Weighted Average" | "Specific Identification"
+  totalValue: number
+  itemCount: number
+  locationCount: number
+  items: InventoryValuationItem[]
+  adjustments: ValuationAdjustment[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface InventoryValuationItem {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  quantity: number
+  unitCost: number
+  totalValue: number
+  valuationMethod: string
+  lastUpdated: string
+}
+
+export interface ValuationAdjustment {
+  id: string
+  itemId: string
+  adjustmentType: "Write Up" | "Write Down" | "Obsolete" | "Damaged"
+  quantity: number
+  unitCost: number
+  adjustmentValue: number
+  reason: string
+  approvedBy: string
+  approvedAt: string
+  notes?: string
+}
+
+export interface StockAgeing {
+  id: string
+  itemId: string
+  partNumber: string
+  description: string
+  currentStock: number
+  unitCost: number
+  totalValue: number
+  ageRanges: {
+    "0-30": number
+    "31-60": number
+    "61-90": number
+    "91-180": number
+    "181-365": number
+    "365+": number
+  }
+  oldestStock: string
+  newestStock: string
+  averageAge: number
+  turnoverRate: number
+  status: "Fresh" | "Aging" | "Stale" | "Obsolete"
+  recommendations: string[]
+  lastUpdated: string
+}
+
+export interface WarehouseAnalytics {
+  id: string
+  period: string
+  startDate: string
+  endDate: string
+  metrics: {
+    totalOperations: number
+    putawayOperations: number
+    pickOperations: number
+    packOperations: number
+    shipOperations: number
+    cycleCounts: number
+    averagePickTime: number
+    averagePackTime: number
+    averageShipTime: number
+    accuracyRate: number
+    onTimeDelivery: number
+    inventoryTurnover: number
+    spaceUtilization: number
+  }
+  trends: {
+    operationsTrend: number
+    accuracyTrend: number
+    efficiencyTrend: number
+    costTrend: number
+  }
+  alerts: WarehouseAlert[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WarehouseAlert {
+  id: string
+  type: "Low Stock" | "Overstock" | "Aging Stock" | "Cycle Count Due" | "Putaway Pending" | "Pick Pending" | "Shipment Delayed"
+  severity: "Low" | "Medium" | "High" | "Critical"
+  message: string
+  itemId?: string
+  location?: string
+  value?: number
+  threshold?: number
+  status: "Active" | "Acknowledged" | "Resolved"
+  acknowledgedBy?: string
+  acknowledgedAt?: string
+  resolvedBy?: string
+  resolvedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
 // CAD Parser types
 export interface CADMaterial {
   name: string

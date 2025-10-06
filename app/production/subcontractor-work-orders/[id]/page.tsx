@@ -28,7 +28,6 @@ import {
   AlertCircle,
   Target,
   Shield,
-  Tool,
   Settings,
   Download,
   Send,
@@ -101,13 +100,13 @@ export default function SubcontractorWorkOrderDetailPage({ params }: Subcontract
   const getWorkTypeIcon = (workType: string) => {
     switch (workType) {
       case "Fabrication":
-        return <Tool className="w-4 h-4 text-blue-500" />
+        return <Wrench className="w-4 h-4 text-blue-500" />
       case "Assembly":
         return <Settings className="w-4 h-4 text-green-500" />
       case "Welding":
         return <Wrench className="w-4 h-4 text-orange-500" />
       case "Machining":
-        return <Tool className="w-4 h-4 text-purple-500" />
+        return <Settings className="w-4 h-4 text-purple-500" />
       case "Coating":
         return <Shield className="w-4 h-4 text-cyan-500" />
       case "Testing":
@@ -513,7 +512,7 @@ export default function SubcontractorWorkOrderDetailPage({ params }: Subcontract
                 <CardContent className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Project Name</p>
-                    <p className="font-medium">{project.name}</p>
+                    <p className="font-medium">{project.title}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Project ID</p>
@@ -521,7 +520,7 @@ export default function SubcontractorWorkOrderDetailPage({ params }: Subcontract
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Customer</p>
-                    <p className="font-medium">{project.customer}</p>
+                    <p className="font-medium">{project.customerName}</p>
                   </div>
                   <Link href={`/projects/${project.id}`}>
                     <Button variant="outline" className="w-full">

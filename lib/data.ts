@@ -32,6 +32,19 @@ import type {
   OEETrend,
   ProjectSubcontractor,
   SubcontractorWorkOrder,
+  WarehouseOperation,
+  PutawayTask,
+  PickTask,
+  PackTask,
+  Shipment,
+  CycleCount,
+  StagingArea,
+  DispatchPlan,
+  Return,
+  InventoryValuation,
+  StockAgeing,
+  WarehouseAnalytics,
+  WarehouseAlert,
 } from "./types"
 
 /* =========================
@@ -4068,5 +4081,500 @@ export const subcontractorWorkOrders: SubcontractorWorkOrder[] = [
     notes: "Waiting for material delivery",
     createdAt: "2024-02-10T00:00:00Z",
     updatedAt: "2024-02-15T00:00:00Z"
+  }
+]
+
+// Sample Warehouse Management Data
+export const warehouseOperations: WarehouseOperation[] = [
+  {
+    id: "1",
+    operationType: "Putaway",
+    status: "Completed",
+    priority: "High",
+    workOrderNumber: "WO-2024-001",
+    assignedTo: "John Smith",
+    assignedAt: "2024-01-15T08:00:00Z",
+    startedAt: "2024-01-15T08:30:00Z",
+    completedAt: "2024-01-15T10:00:00Z",
+    location: "WH-A-01",
+    destination: "Rack-3-Bin-15",
+    items: [
+      {
+        id: "1",
+        itemId: "1",
+        partNumber: "STL-001",
+        description: "Steel Plate 1/4\" x 48\" x 96\"",
+        quantity: 50,
+        unit: "EA",
+        fromLocation: "Receiving Dock",
+        toLocation: "Rack-3-Bin-15",
+        status: "Completed"
+      }
+    ],
+    notes: "Standard putaway operation completed successfully",
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-01-15T10:00:00Z"
+  },
+  {
+    id: "2",
+    operationType: "Pick",
+    status: "In Progress",
+    priority: "Critical",
+    workOrderNumber: "WO-2024-002",
+    assignedTo: "Jane Doe",
+    assignedAt: "2024-01-15T09:00:00Z",
+    startedAt: "2024-01-15T09:15:00Z",
+    location: "WH-A-01",
+    items: [
+      {
+        id: "2",
+        itemId: "2",
+        partNumber: "ALM-002",
+        description: "Aluminum Bar 6061-T6",
+        quantity: 25,
+        unit: "FT",
+        pickedQuantity: 15,
+        status: "In Progress"
+      }
+    ],
+    notes: "Urgent pick for production order",
+    createdAt: "2024-01-15T09:00:00Z",
+    updatedAt: "2024-01-15T09:15:00Z"
+  }
+]
+
+export const putawayTasks: PutawayTask[] = [
+  {
+    id: "1",
+    operationId: "1",
+    itemId: "1",
+    partNumber: "STL-001",
+    quantity: 50,
+    receivedLocation: "Receiving Dock",
+    suggestedLocation: "Rack-3-Bin-15",
+    actualLocation: "Rack-3-Bin-15",
+    status: "Completed",
+    putawayBy: "John Smith",
+    putawayAt: "2024-01-15T10:00:00Z",
+    notes: "Placed in suggested location",
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-01-15T10:00:00Z"
+  },
+  {
+    id: "2",
+    operationId: "2",
+    itemId: "3",
+    partNumber: "BOLT-003",
+    quantity: 200,
+    receivedLocation: "Receiving Dock",
+    suggestedLocation: "Bin-7-Section-A",
+    status: "Pending",
+    createdAt: "2024-01-15T11:00:00Z",
+    updatedAt: "2024-01-15T11:00:00Z"
+  }
+]
+
+export const pickTasks: PickTask[] = [
+  {
+    id: "1",
+    operationId: "2",
+    itemId: "2",
+    partNumber: "ALM-002",
+    description: "Aluminum Bar 6061-T6",
+    quantity: 25,
+    unit: "FT",
+    location: "WH-B-01",
+    binLocation: "Rack-1-Bin-5",
+    pickedQuantity: 15,
+    status: "In Progress",
+    pickedBy: "Jane Doe",
+    pickedAt: "2024-01-15T09:15:00Z",
+    notes: "Partial pick completed",
+    createdAt: "2024-01-15T09:00:00Z",
+    updatedAt: "2024-01-15T09:15:00Z"
+  }
+]
+
+export const packTasks: PackTask[] = [
+  {
+    id: "1",
+    operationId: "3",
+    orderId: "SO-2024-001",
+    orderNumber: "SO-2024-001",
+    customerName: "Acme Corporation",
+    items: [
+      {
+        id: "1",
+        itemId: "1",
+        partNumber: "STL-001",
+        description: "Steel Plate 1/4\" x 48\" x 96\"",
+        quantity: 10,
+        unit: "EA",
+        packedQuantity: 10,
+        status: "Packed"
+      }
+    ],
+    packagingType: "Wooden Crate",
+    packagingMaterials: ["Wooden Crate", "Bubble Wrap", "Strapping"],
+    weight: 250.5,
+    dimensions: {
+      length: 48,
+      width: 24,
+      height: 12
+    },
+    status: "Completed",
+    packedBy: "Mike Johnson",
+    packedAt: "2024-01-15T14:30:00Z",
+    notes: "Securely packed for shipping",
+    createdAt: "2024-01-15T14:00:00Z",
+    updatedAt: "2024-01-15T14:30:00Z"
+  }
+]
+
+export const shipments: Shipment[] = [
+  {
+    id: "1",
+    shipmentNumber: "SH-2024-001",
+    orderId: "SO-2024-001",
+    orderNumber: "SO-2024-001",
+    customerId: "1",
+    customerName: "Acme Corporation",
+    carrier: "FedEx",
+    trackingNumber: "1234567890",
+    shippingMethod: "Ground",
+    status: "Delivered",
+    scheduledDate: "2024-01-16T00:00:00Z",
+    actualPickupDate: "2024-01-15T16:00:00Z",
+    actualDeliveryDate: "2024-01-16T14:30:00Z",
+    shippingAddress: {
+      street: "123 Business Ave",
+      city: "New York",
+      state: "NY",
+      zipCode: "10001",
+      country: "USA",
+      contactPerson: "John Smith",
+      phone: "555-0123",
+      email: "john@acme.com"
+    },
+    billingAddress: {
+      street: "123 Business Ave",
+      city: "New York",
+      state: "NY",
+      zipCode: "10001",
+      country: "USA"
+    },
+    items: [
+      {
+        id: "1",
+        itemId: "1",
+        partNumber: "STL-001",
+        description: "Steel Plate 1/4\" x 48\" x 96\"",
+        quantity: 10,
+        unit: "EA",
+        unitPrice: 125.50,
+        totalPrice: 1255.00,
+        packedQuantity: 10,
+        shippedQuantity: 10
+      }
+    ],
+    weight: 250.5,
+    dimensions: {
+      length: 48,
+      width: 24,
+      height: 12
+    },
+    shippingCost: 45.00,
+    insuranceValue: 1255.00,
+    specialInstructions: "Handle with care - fragile",
+    proofOfDelivery: {
+      id: "1",
+      shipmentId: "1",
+      deliveryDate: "2024-01-16T14:30:00Z",
+      deliveredBy: "FedEx Driver",
+      receivedBy: "John Smith",
+      signature: "John Smith",
+      geolocation: {
+        latitude: 40.7128,
+        longitude: -74.0060,
+        accuracy: 5,
+        address: "123 Business Ave, New York, NY 10001"
+      },
+      photos: ["delivery_photo_1.jpg", "delivery_photo_2.jpg"],
+      notes: "Delivered in good condition",
+      condition: "Good",
+      createdAt: "2024-01-16T14:30:00Z"
+    },
+    createdAt: "2024-01-15T14:00:00Z",
+    updatedAt: "2024-01-16T14:30:00Z"
+  }
+]
+
+export const cycleCounts: CycleCount[] = [
+  {
+    id: "1",
+    countNumber: "CC-2024-001",
+    location: "WH-A-01",
+    countType: "ABC",
+    status: "Completed",
+    scheduledDate: "2024-01-15T00:00:00Z",
+    startedDate: "2024-01-15T08:00:00Z",
+    completedDate: "2024-01-15T16:00:00Z",
+    countedBy: "Sarah Wilson",
+    items: [
+      {
+        id: "1",
+        itemId: "1",
+        partNumber: "STL-001",
+        description: "Steel Plate 1/4\" x 48\" x 96\"",
+        expectedQuantity: 45,
+        countedQuantity: 45,
+        variance: 0,
+        varianceValue: 0,
+        status: "Approved",
+        countedBy: "Sarah Wilson",
+        countedAt: "2024-01-15T10:00:00Z"
+      }
+    ],
+    varianceThreshold: 5,
+    totalVariance: 0,
+    varianceValue: 0,
+    notes: "All items counted accurately",
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-01-15T16:00:00Z"
+  }
+]
+
+export const stagingAreas: StagingArea[] = [
+  {
+    id: "1",
+    name: "Staging Area A",
+    location: "WH-A-01",
+    capacity: 100,
+    currentUtilization: 75,
+    status: "Active",
+    stagingItems: [
+      {
+        id: "1",
+        orderId: "SO-2024-002",
+        orderNumber: "SO-2024-002",
+        customerName: "Global Inc",
+        items: [
+          {
+            id: "1",
+            itemId: "2",
+            partNumber: "ALM-002",
+            description: "Aluminum Bar 6061-T6",
+            quantity: 50,
+            unit: "FT",
+            stagedQuantity: 50,
+            status: "Staged"
+          }
+        ],
+        stagingDate: "2024-01-15T10:00:00Z",
+        expectedShipDate: "2024-01-16T00:00:00Z",
+        status: "Ready to Ship",
+        stagedBy: "Mike Johnson",
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-15T10:00:00Z"
+      }
+    ],
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-15T10:00:00Z"
+  }
+]
+
+export const dispatchPlans: DispatchPlan[] = [
+  {
+    id: "1",
+    planNumber: "DP-2024-001",
+    date: "2024-01-16",
+    status: "In Progress",
+    routes: [
+      {
+        id: "1",
+        routeNumber: "R-001",
+        driver: "Tom Wilson",
+        vehicle: "Truck-001",
+        startLocation: "Warehouse A",
+        endLocation: "Downtown District",
+        plannedStartTime: "2024-01-16T08:00:00Z",
+        plannedEndTime: "2024-01-16T17:00:00Z",
+        actualStartTime: "2024-01-16T08:15:00Z",
+        shipments: ["1"],
+        totalDistance: 25.5,
+        totalWeight: 250.5,
+        totalVolume: 12.5,
+        status: "In Progress",
+        createdAt: "2024-01-15T00:00:00Z",
+        updatedAt: "2024-01-16T08:15:00Z"
+      }
+    ],
+    totalShipments: 1,
+    totalWeight: 250.5,
+    totalVolume: 12.5,
+    estimatedCost: 150.00,
+    actualCost: 145.00,
+    createdBy: "Logistics Manager",
+    notes: "Standard delivery route",
+    createdAt: "2024-01-15T00:00:00Z",
+    updatedAt: "2024-01-16T08:15:00Z"
+  }
+]
+
+export const returns: Return[] = [
+  {
+    id: "1",
+    returnNumber: "RT-2024-001",
+    orderId: "SO-2024-003",
+    orderNumber: "SO-2024-003",
+    customerId: "2",
+    customerName: "Tech Solutions",
+    returnType: "Defective",
+    status: "Processed",
+    reason: "Item arrived damaged during shipping",
+    requestedDate: "2024-01-14T00:00:00Z",
+    receivedDate: "2024-01-15T10:00:00Z",
+    processedDate: "2024-01-15T14:00:00Z",
+    items: [
+      {
+        id: "1",
+        itemId: "3",
+        partNumber: "BOLT-003",
+        description: "Grade 8 Hex Bolt 1/2\"-13",
+        quantity: 10,
+        unit: "EA",
+        unitPrice: 2.25,
+        totalPrice: 22.50,
+        condition: "Damaged",
+        disposition: "Scrap",
+        notes: "Bent during shipping"
+      }
+    ],
+    totalValue: 22.50,
+    refundAmount: 22.50,
+    restockingFee: 0,
+    returnAddress: {
+      street: "456 Return St",
+      city: "New York",
+      state: "NY",
+      zipCode: "10001",
+      country: "USA"
+    },
+    notes: "Customer service handled return",
+    createdAt: "2024-01-14T00:00:00Z",
+    updatedAt: "2024-01-15T14:00:00Z"
+  }
+]
+
+export const inventoryValuations: InventoryValuation[] = [
+  {
+    id: "1",
+    valuationDate: "2024-01-15",
+    method: "FIFO",
+    totalValue: 125000.00,
+    itemCount: 150,
+    locationCount: 5,
+    items: [
+      {
+        id: "1",
+        itemId: "1",
+        partNumber: "STL-001",
+        description: "Steel Plate 1/4\" x 48\" x 96\"",
+        quantity: 45,
+        unitCost: 125.50,
+        totalValue: 5647.50,
+        valuationMethod: "FIFO",
+        lastUpdated: "2024-01-15T00:00:00Z"
+      }
+    ],
+    adjustments: [],
+    createdAt: "2024-01-15T00:00:00Z",
+    updatedAt: "2024-01-15T00:00:00Z"
+  }
+]
+
+export const stockAgeing: StockAgeing[] = [
+  {
+    id: "1",
+    itemId: "1",
+    partNumber: "STL-001",
+    description: "Steel Plate 1/4\" x 48\" x 96\"",
+    currentStock: 45,
+    unitCost: 125.50,
+    totalValue: 5647.50,
+    ageRanges: {
+      "0-30": 20,
+      "31-60": 15,
+      "61-90": 10,
+      "91-180": 0,
+      "181-365": 0,
+      "365+": 0
+    },
+    oldestStock: "2024-01-01",
+    newestStock: "2024-01-15",
+    averageAge: 25,
+    turnoverRate: 12.5,
+    status: "Fresh",
+    recommendations: ["Continue current ordering pattern", "Monitor for seasonal demand"],
+    lastUpdated: "2024-01-15T00:00:00Z"
+  }
+]
+
+export const warehouseAnalytics: WarehouseAnalytics[] = [
+  {
+    id: "1",
+    period: "January 2024",
+    startDate: "2024-01-01",
+    endDate: "2024-01-31",
+    metrics: {
+      totalOperations: 150,
+      putawayOperations: 45,
+      pickOperations: 60,
+      packOperations: 30,
+      shipOperations: 15,
+      cycleCounts: 5,
+      averagePickTime: 12.5,
+      averagePackTime: 8.3,
+      averageShipTime: 4.2,
+      accuracyRate: 98.5,
+      onTimeDelivery: 95.2,
+      inventoryTurnover: 4.2,
+      spaceUtilization: 78.5
+    },
+    trends: {
+      operationsTrend: 5.2,
+      accuracyTrend: 1.8,
+      efficiencyTrend: 3.1,
+      costTrend: -2.3
+    },
+    alerts: [],
+    createdAt: "2024-01-31T00:00:00Z",
+    updatedAt: "2024-01-31T00:00:00Z"
+  }
+]
+
+export const warehouseAlerts: WarehouseAlert[] = [
+  {
+    id: "1",
+    type: "Low Stock",
+    severity: "High",
+    message: "Steel Plate STL-001 is below minimum stock level",
+    itemId: "1",
+    location: "WH-A-01",
+    value: 45,
+    threshold: 50,
+    status: "Active",
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-01-15T08:00:00Z"
+  },
+  {
+    id: "2",
+    type: "Cycle Count Due",
+    severity: "Medium",
+    message: "Cycle count scheduled for Warehouse B",
+    location: "WH-B-01",
+    status: "Active",
+    createdAt: "2024-01-15T09:00:00Z",
+    updatedAt: "2024-01-15T09:00:00Z"
   }
 ]

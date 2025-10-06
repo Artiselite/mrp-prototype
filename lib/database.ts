@@ -22,6 +22,19 @@ import type {
   ProcessStep,
   ProjectSubcontractor,
   SubcontractorWorkOrder,
+  WarehouseOperation,
+  PutawayTask,
+  PickTask,
+  PackTask,
+  Shipment,
+  CycleCount,
+  StagingArea,
+  DispatchPlan,
+  Return,
+  InventoryValuation,
+  StockAgeing,
+  WarehouseAnalytics,
+  WarehouseAlert,
 } from "./types"
 
 // Database configuration
@@ -54,6 +67,19 @@ const DB_KEYS = {
   PROCESS_STEPS: `${DB_PREFIX}process_steps`,
   PROJECT_SUBCONTRACTORS: `${DB_PREFIX}project_subcontractors`,
   SUBCONTRACTOR_WORK_ORDERS: `${DB_PREFIX}subcontractor_work_orders`,
+  WAREHOUSE_OPERATIONS: `${DB_PREFIX}warehouse_operations`,
+  PUTAWAY_TASKS: `${DB_PREFIX}putaway_tasks`,
+  PICK_TASKS: `${DB_PREFIX}pick_tasks`,
+  PACK_TASKS: `${DB_PREFIX}pack_tasks`,
+  SHIPMENTS: `${DB_PREFIX}shipments`,
+  CYCLE_COUNTS: `${DB_PREFIX}cycle_counts`,
+  STAGING_AREAS: `${DB_PREFIX}staging_areas`,
+  DISPATCH_PLANS: `${DB_PREFIX}dispatch_plans`,
+  RETURNS: `${DB_PREFIX}returns`,
+  INVENTORY_VALUATIONS: `${DB_PREFIX}inventory_valuations`,
+  STOCK_AGEING: `${DB_PREFIX}stock_ageing`,
+  WAREHOUSE_ANALYTICS: `${DB_PREFIX}warehouse_analytics`,
+  WAREHOUSE_ALERTS: `${DB_PREFIX}warehouse_alerts`,
 } as const
 
 // Database class
@@ -105,7 +131,9 @@ class LocalDatabase {
         engineeringProjects, engineeringChanges, billsOfMaterials, billsOfQuantities, 
         productionWorkOrders, workstations, operators, shopfloorActivities, 
         qualityInspections, qualityTests, qualityMetrics, invoices, purchaseOrders, items, locations,
-        projectSubcontractors, subcontractorWorkOrders } = await import("./data")
+        projectSubcontractors, subcontractorWorkOrders, warehouseOperations, putawayTasks, 
+        pickTasks, packTasks, shipments, cycleCounts, stagingAreas, dispatchPlans, 
+        returns, inventoryValuations, stockAgeing, warehouseAnalytics, warehouseAlerts } = await import("./data")
 
       console.log("Seeding database with:", { customers: customers.length, suppliers: suppliers.length, quotations: quotations.length })
 
@@ -174,6 +202,21 @@ class LocalDatabase {
 
       // Seed subcontractor work orders
       this.setSubcontractorWorkOrders(subcontractorWorkOrders)
+
+      // Seed warehouse management data
+      this.setWarehouseOperations(warehouseOperations)
+      this.setPutawayTasks(putawayTasks)
+      this.setPickTasks(pickTasks)
+      this.setPackTasks(packTasks)
+      this.setShipments(shipments)
+      this.setCycleCounts(cycleCounts)
+      this.setStagingAreas(stagingAreas)
+      this.setDispatchPlans(dispatchPlans)
+      this.setReturns(returns)
+      this.setInventoryValuations(inventoryValuations)
+      this.setStockAgeing(stockAgeing)
+      this.setWarehouseAnalytics(warehouseAnalytics)
+      this.setWarehouseAlerts(warehouseAlerts)
 
       console.log("Database seeding completed successfully")
     } catch (error) {
@@ -1491,6 +1534,260 @@ class LocalDatabase {
 
     this.setSubcontractorWorkOrders(filtered)
     return true
+  }
+
+  // Warehouse Operations Management
+  getWarehouseOperations(): WarehouseOperation[] {
+    return this.getItem<WarehouseOperation>(DB_KEYS.WAREHOUSE_OPERATIONS)
+  }
+
+  setWarehouseOperations(operations: WarehouseOperation[]): void {
+    this.setItem(DB_KEYS.WAREHOUSE_OPERATIONS, operations)
+  }
+
+  createWarehouseOperation(operation: Omit<WarehouseOperation, 'id' | 'createdAt' | 'updatedAt'>): WarehouseOperation {
+    const operations = this.getWarehouseOperations()
+    const newOperation = {
+      ...operation,
+      id: this.generateId(),
+    }
+    const updatedOperation = this.updateTimestamps(newOperation, true)
+    operations.push(updatedOperation)
+    this.setWarehouseOperations(operations)
+    return updatedOperation
+  }
+
+  updateWarehouseOperation(id: string, updates: Partial<WarehouseOperation>): WarehouseOperation | null {
+    const operations = this.getWarehouseOperations()
+    const index = operations.findIndex(op => op.id === id)
+    if (index === -1) return null
+    operations[index] = this.updateTimestamps({ ...operations[index], ...updates })
+    this.setWarehouseOperations(operations)
+    return operations[index]
+  }
+
+  // Putaway Tasks Management
+  getPutawayTasks(): PutawayTask[] {
+    return this.getItem<PutawayTask>(DB_KEYS.PUTAWAY_TASKS)
+  }
+
+  setPutawayTasks(tasks: PutawayTask[]): void {
+    this.setItem(DB_KEYS.PUTAWAY_TASKS, tasks)
+  }
+
+  createPutawayTask(task: Omit<PutawayTask, 'id' | 'createdAt' | 'updatedAt'>): PutawayTask {
+    const tasks = this.getPutawayTasks()
+    const newTask = { ...task, id: this.generateId() }
+    const updatedTask = this.updateTimestamps(newTask, true)
+    tasks.push(updatedTask)
+    this.setPutawayTasks(tasks)
+    return updatedTask
+  }
+
+  // Pick Tasks Management
+  getPickTasks(): PickTask[] {
+    return this.getItem<PickTask>(DB_KEYS.PICK_TASKS)
+  }
+
+  setPickTasks(tasks: PickTask[]): void {
+    this.setItem(DB_KEYS.PICK_TASKS, tasks)
+  }
+
+  createPickTask(task: Omit<PickTask, 'id' | 'createdAt' | 'updatedAt'>): PickTask {
+    const tasks = this.getPickTasks()
+    const newTask = { ...task, id: this.generateId() }
+    const updatedTask = this.updateTimestamps(newTask, true)
+    tasks.push(updatedTask)
+    this.setPickTasks(tasks)
+    return updatedTask
+  }
+
+  // Pack Tasks Management
+  getPackTasks(): PackTask[] {
+    return this.getItem<PackTask>(DB_KEYS.PACK_TASKS)
+  }
+
+  setPackTasks(tasks: PackTask[]): void {
+    this.setItem(DB_KEYS.PACK_TASKS, tasks)
+  }
+
+  createPackTask(task: Omit<PackTask, 'id' | 'createdAt' | 'updatedAt'>): PackTask {
+    const tasks = this.getPackTasks()
+    const newTask = { ...task, id: this.generateId() }
+    const updatedTask = this.updateTimestamps(newTask, true)
+    tasks.push(updatedTask)
+    this.setPackTasks(tasks)
+    return updatedTask
+  }
+
+  // Shipments Management
+  getShipments(): Shipment[] {
+    return this.getItem<Shipment>(DB_KEYS.SHIPMENTS)
+  }
+
+  setShipments(shipments: Shipment[]): void {
+    this.setItem(DB_KEYS.SHIPMENTS, shipments)
+  }
+
+  createShipment(shipment: Omit<Shipment, 'id' | 'createdAt' | 'updatedAt'>): Shipment {
+    const shipments = this.getShipments()
+    const newShipment = { ...shipment, id: this.generateId() }
+    const updatedShipment = this.updateTimestamps(newShipment, true)
+    shipments.push(updatedShipment)
+    this.setShipments(shipments)
+    return updatedShipment
+  }
+
+  updateShipment(id: string, updates: Partial<Shipment>): Shipment | null {
+    const shipments = this.getShipments()
+    const index = shipments.findIndex(s => s.id === id)
+    if (index === -1) return null
+    shipments[index] = this.updateTimestamps({ ...shipments[index], ...updates })
+    this.setShipments(shipments)
+    return shipments[index]
+  }
+
+  // Cycle Counts Management
+  getCycleCounts(): CycleCount[] {
+    return this.getItem<CycleCount>(DB_KEYS.CYCLE_COUNTS)
+  }
+
+  setCycleCounts(counts: CycleCount[]): void {
+    this.setItem(DB_KEYS.CYCLE_COUNTS, counts)
+  }
+
+  createCycleCount(count: Omit<CycleCount, 'id' | 'createdAt' | 'updatedAt'>): CycleCount {
+    const counts = this.getCycleCounts()
+    const newCount = { ...count, id: this.generateId() }
+    const updatedCount = this.updateTimestamps(newCount, true)
+    counts.push(updatedCount)
+    this.setCycleCounts(counts)
+    return updatedCount
+  }
+
+  // Staging Areas Management
+  getStagingAreas(): StagingArea[] {
+    return this.getItem<StagingArea>(DB_KEYS.STAGING_AREAS)
+  }
+
+  setStagingAreas(areas: StagingArea[]): void {
+    this.setItem(DB_KEYS.STAGING_AREAS, areas)
+  }
+
+  createStagingArea(area: Omit<StagingArea, 'id' | 'createdAt' | 'updatedAt'>): StagingArea {
+    const areas = this.getStagingAreas()
+    const newArea = { ...area, id: this.generateId() }
+    const updatedArea = this.updateTimestamps(newArea, true)
+    areas.push(updatedArea)
+    this.setStagingAreas(areas)
+    return updatedArea
+  }
+
+  // Dispatch Plans Management
+  getDispatchPlans(): DispatchPlan[] {
+    return this.getItem<DispatchPlan>(DB_KEYS.DISPATCH_PLANS)
+  }
+
+  setDispatchPlans(plans: DispatchPlan[]): void {
+    this.setItem(DB_KEYS.DISPATCH_PLANS, plans)
+  }
+
+  createDispatchPlan(plan: Omit<DispatchPlan, 'id' | 'createdAt' | 'updatedAt'>): DispatchPlan {
+    const plans = this.getDispatchPlans()
+    const newPlan = { ...plan, id: this.generateId() }
+    const updatedPlan = this.updateTimestamps(newPlan, true)
+    plans.push(updatedPlan)
+    this.setDispatchPlans(plans)
+    return updatedPlan
+  }
+
+  // Returns Management
+  getReturns(): Return[] {
+    return this.getItem<Return>(DB_KEYS.RETURNS)
+  }
+
+  setReturns(returns: Return[]): void {
+    this.setItem(DB_KEYS.RETURNS, returns)
+  }
+
+  createReturn(returnItem: Omit<Return, 'id' | 'createdAt' | 'updatedAt'>): Return {
+    const returns = this.getReturns()
+    const newReturn = { ...returnItem, id: this.generateId() }
+    const updatedReturn = this.updateTimestamps(newReturn, true)
+    returns.push(updatedReturn)
+    this.setReturns(returns)
+    return updatedReturn
+  }
+
+  // Inventory Valuations Management
+  getInventoryValuations(): InventoryValuation[] {
+    return this.getItem<InventoryValuation>(DB_KEYS.INVENTORY_VALUATIONS)
+  }
+
+  setInventoryValuations(valuations: InventoryValuation[]): void {
+    this.setItem(DB_KEYS.INVENTORY_VALUATIONS, valuations)
+  }
+
+  createInventoryValuation(valuation: Omit<InventoryValuation, 'id' | 'createdAt' | 'updatedAt'>): InventoryValuation {
+    const valuations = this.getInventoryValuations()
+    const newValuation = { ...valuation, id: this.generateId() }
+    const updatedValuation = this.updateTimestamps(newValuation, true)
+    valuations.push(updatedValuation)
+    this.setInventoryValuations(valuations)
+    return updatedValuation
+  }
+
+  // Stock Ageing Management
+  getStockAgeing(): StockAgeing[] {
+    return this.getItem<StockAgeing>(DB_KEYS.STOCK_AGEING)
+  }
+
+  setStockAgeing(ageing: StockAgeing[]): void {
+    this.setItem(DB_KEYS.STOCK_AGEING, ageing)
+  }
+
+  createStockAgeing(ageing: Omit<StockAgeing, 'id'>): StockAgeing {
+    const ageingData = this.getStockAgeing()
+    const newAgeing = { ...ageing, id: this.generateId() }
+    ageingData.push(newAgeing)
+    this.setStockAgeing(ageingData)
+    return newAgeing
+  }
+
+  // Warehouse Analytics Management
+  getWarehouseAnalytics(): WarehouseAnalytics[] {
+    return this.getItem<WarehouseAnalytics>(DB_KEYS.WAREHOUSE_ANALYTICS)
+  }
+
+  setWarehouseAnalytics(analytics: WarehouseAnalytics[]): void {
+    this.setItem(DB_KEYS.WAREHOUSE_ANALYTICS, analytics)
+  }
+
+  createWarehouseAnalytics(analytics: Omit<WarehouseAnalytics, 'id' | 'createdAt' | 'updatedAt'>): WarehouseAnalytics {
+    const analyticsData = this.getWarehouseAnalytics()
+    const newAnalytics = { ...analytics, id: this.generateId() }
+    const updatedAnalytics = this.updateTimestamps(newAnalytics, true)
+    analyticsData.push(updatedAnalytics)
+    this.setWarehouseAnalytics(analyticsData)
+    return updatedAnalytics
+  }
+
+  // Warehouse Alerts Management
+  getWarehouseAlerts(): WarehouseAlert[] {
+    return this.getItem<WarehouseAlert>(DB_KEYS.WAREHOUSE_ALERTS)
+  }
+
+  setWarehouseAlerts(alerts: WarehouseAlert[]): void {
+    this.setItem(DB_KEYS.WAREHOUSE_ALERTS, alerts)
+  }
+
+  createWarehouseAlert(alert: Omit<WarehouseAlert, 'id' | 'createdAt' | 'updatedAt'>): WarehouseAlert {
+    const alerts = this.getWarehouseAlerts()
+    const newAlert = { ...alert, id: this.generateId() }
+    const updatedAlert = this.updateTimestamps(newAlert, true)
+    alerts.push(updatedAlert)
+    this.setWarehouseAlerts(alerts)
+    return updatedAlert
   }
 }
 

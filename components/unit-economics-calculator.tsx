@@ -272,7 +272,7 @@ export default function UnitEconomicsCalculator({
                   ) : (
                     <TrendingDown className="w-4 h-4" />
                   )}
-                  ${Math.abs(copperLME.change24h || 0)}
+                  RM{Math.abs(copperLME.change24h || 0)}
                 </div>
                 <div className="text-sm text-gray-500">
                   {copperLME.changePercent24h && copperLME.changePercent24h > 0 ? '+' : ''}

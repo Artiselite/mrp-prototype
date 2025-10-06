@@ -818,8 +818,8 @@ export default function QuotationDetailPage() {
                             </div>
                           </TableCell>
                           <TableCell>{item.quantity}</TableCell>
-                          <TableCell>${item.unitPrice.toLocaleString()}</TableCell>
-                          <TableCell className="font-medium">${item.totalPrice.toLocaleString()}</TableCell>
+                          <TableCell>RM{item.unitPrice.toLocaleString()}</TableCell>
+                          <TableCell className="font-medium">RM{item.totalPrice.toLocaleString()}</TableCell>
                           <TableCell>{item.deliveryDate}</TableCell>
                         </TableRow>
                       ))
@@ -839,19 +839,19 @@ export default function QuotationDetailPage() {
                     <div className="w-64 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal:</span>
-                        <span>${quotation.subtotal.toLocaleString()}</span>
+                        <span>RM{quotation.subtotal.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Engineering Cost:</span>
-                        <span>${quotation.engineeringCost.toLocaleString()}</span>
+                        <span>RM{quotation.engineeringCost.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Tax:</span>
-                        <span>${quotation.tax.toLocaleString()}</span>
+                        <span>RM{quotation.tax.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-lg font-bold border-t pt-2">
                         <span>Total:</span>
-                        <span>${quotation.total.toLocaleString()}</span>
+                        <span>RM{quotation.total.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -954,7 +954,7 @@ export default function QuotationDetailPage() {
               overheadCost: integratedData.unitEconomics.overheadCost,
               profitMargin: integratedData.unitEconomics.profitMargin,
               quantity: integratedData.unitEconomics.quantity,
-              currency: 'USD',
+              currency: 'MYR',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             } : {
@@ -968,7 +968,7 @@ export default function QuotationDetailPage() {
               profitMargin: quotation?.items && quotation.items.length > 0 ?
                 ((quotation.profitMargin || 0) / quotation.items.reduce((sum, item) => sum + item.quantity, 0)) * 100 : 15,
               quantity: quotation?.items?.reduce((sum, item) => sum + item.quantity, 0) || 1,
-              currency: 'USD',
+              currency: 'MYR',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             }}
@@ -1006,7 +1006,7 @@ export default function QuotationDetailPage() {
               <CardContent className="space-y-4">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">${quotation.total.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-blue-600">RM{quotation.total.toLocaleString()}</div>
                     <div className="text-sm text-blue-700">Total Quotation Value</div>
                   </div>
                 </div>
@@ -1014,31 +1014,31 @@ export default function QuotationDetailPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-medium">${quotation.subtotal.toLocaleString()}</span>
+                    <span className="font-medium">RM{quotation.subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Engineering:</span>
-                    <span className="font-medium">${quotation.engineeringCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{quotation.engineeringCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Materials:</span>
-                    <span className="font-medium">${quotation.materialCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{quotation.materialCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Labor:</span>
-                    <span className="font-medium">${quotation.laborCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{quotation.laborCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Overhead:</span>
-                    <span className="font-medium">${quotation.overheadCost.toLocaleString()}</span>
+                    <span className="font-medium">RM{quotation.overheadCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm border-t pt-2">
                     <span className="text-gray-600">Profit:</span>
-                    <span className="font-medium text-green-600">${quotation.profitMargin.toLocaleString()}</span>
+                    <span className="font-medium text-green-600">RM{quotation.profitMargin.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tax:</span>
-                    <span className="font-medium">${quotation.tax.toLocaleString()}</span>
+                    <span className="font-medium">RM{quotation.tax.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -1077,7 +1077,7 @@ export default function QuotationDetailPage() {
                         <div className="bg-blue-50 rounded-lg p-4">
                           <div className="text-center">
                             <div className="text-2xl font-bold text-blue-600">
-                              ${unitEcon.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                              RM{unitEcon.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </div>
                             <div className="text-sm text-blue-700">Unit Price</div>
                           </div>
@@ -1086,7 +1086,7 @@ export default function QuotationDetailPage() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="text-center p-3 bg-gray-50 rounded-lg">
                             <div className="text-lg font-semibold text-gray-700">
-                              ${unitEcon.unitCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                              RM{unitEcon.unitCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </div>
                             <div className="text-xs text-gray-500">Unit Cost</div>
                           </div>
@@ -1103,7 +1103,7 @@ export default function QuotationDetailPage() {
                             <span className="text-sm font-medium text-gray-600">Unit Margin:</span>
                             <div className="text-right">
                               <div className={`text-lg font-bold ${unitEcon.marginColor}`}>
-                                ${unitEcon.unitMargin.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                RM{unitEcon.unitMargin.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                               </div>
                               <div className={`text-sm ${unitEcon.marginColor}`}>
                                 {unitEcon.unitMarginPercent.toFixed(1)}%
@@ -1218,7 +1218,7 @@ export default function QuotationDetailPage() {
                                 <p><strong>Quotation Details:</strong></p>
                                 <ul className="list-disc list-inside ml-4 space-y-1">
                                   <li>Quotation Number: {quotation.quotationNumber}</li>
-                                  <li>Total Value: ${quotation.total.toLocaleString()}</li>
+                                  <li>Total Value: RM{quotation.total.toLocaleString()}</li>
                                   <li>Valid Until: {new Date(quotation.validUntil).toLocaleDateString()}</li>
                                   <li>Revision: {quotation.revision || 'Rev 1.0'}</li>
                                 </ul>
@@ -1427,7 +1427,7 @@ export default function QuotationDetailPage() {
                             </div>
                             <div>
                               <Label className="text-xs font-medium text-green-600">TOTAL VALUE</Label>
-                              <p className="text-lg font-bold text-green-900">${quotation.total.toLocaleString()}</p>
+                              <p className="text-lg font-bold text-green-900">RM{quotation.total.toLocaleString()}</p>
                             </div>
                             <div>
                               <Label className="text-xs font-medium text-green-600">ITEMS</Label>

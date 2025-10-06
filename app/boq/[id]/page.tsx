@@ -44,12 +44,15 @@ interface BOQDetailsPageProps {
 
 export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
   const router = useRouter()
-  const { useBillsOfQuantities, useEngineeringProjects, useEngineeringDrawings, useBillsOfMaterials, useQuotations } = useDatabaseContext()
-  const { boqs, updateBoq } = useBillsOfQuantities()
-  const { projects } = useEngineeringProjects()
-  const { drawings } = useEngineeringDrawings()
-  const { boms } = useBillsOfMaterials()
-  const { quotations } = useQuotations()
+  const { 
+    billsOfQuantities, 
+    updateBillOfQuantities,
+    engineeringProjects,
+    engineeringDrawings,
+    billsOfMaterials,
+    quotations,
+    isInitialized
+  } = useDatabaseContext()
 
   const [boq, setBOQ] = useState<BillOfQuantities | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -74,15 +77,16 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
   // Load BOQ data
   useEffect(() => {
     const loadBOQ = async () => {
+      if (!isInitialized) return
       const resolvedParams = await params
-      const foundBOQ = boqs.find(b => b.id === resolvedParams.id)
+      const foundBOQ = billsOfQuantities.find(b => b.id === resolvedParams.id)
       if (foundBOQ) {
         setBOQ(foundBOQ)
         setEditForm(foundBOQ)
       }
     }
     loadBOQ()
-  }, [boqs, params])
+  }, [billsOfQuantities, params, isInitialized])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -136,7 +140,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
         updatedAt: new Date().toISOString(),
       }
 
-      await updateBoq(updatedBOQ)
+      await updateBillOfQuantities(updatedBOQ.id, updatedBOQ)
       setBOQ(updatedBOQ)
       setIsEditing(false)
     } catch (error) {
@@ -153,7 +157,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
       updatedAt: new Date().toISOString(),
     }
 
-    await updateBoq(updatedBOQ)
+    await updateBillOfQuantities(updatedBOQ.id, updatedBOQ)
     setBOQ(updatedBOQ)
   }
 
@@ -175,7 +179,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
       updatedAt: new Date().toISOString(),
     }
 
-    await updateBoq(updatedBOQ)
+    await updateBillOfQuantities(updatedBOQ.id, updatedBOQ)
     setBOQ(updatedBOQ)
   }
 
@@ -222,7 +226,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
       updatedAt: new Date().toISOString(),
     }
 
-    updateBoq(updatedBOQ)
+    updateBillOfQuantities(updatedBOQ.id, updatedBOQ)
     setBOQ(updatedBOQ)
     
     // Reset form
@@ -291,7 +295,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
       updatedAt: new Date().toISOString(),
     }
 
-    updateBoq(updatedBOQ)
+    updateBillOfQuantities(updatedBOQ.id, updatedBOQ)
     setBOQ(updatedBOQ)
   }
 
@@ -310,7 +314,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
       updatedAt: new Date().toISOString(),
     }
 
-    await updateBoq(updatedBOQ)
+    await updateBillOfQuantities(updatedBOQ.id, updatedBOQ)
     setBOQ(updatedBOQ)
   }
 
@@ -326,9 +330,9 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
   }
 
   // Get linked project, drawing, BOM, and quotation
-  const linkedProject = projects.find(p => p.id === boq.engineeringProjectId)
-  const linkedDrawing = drawings.find(d => d.id === boq.engineeringDrawingId)
-  const linkedBOM = boms.find(b => b.id === boq.bomId)
+  const linkedProject = engineeringProjects.find(p => p.id === boq.engineeringProjectId)
+  const linkedDrawing = engineeringDrawings.find(d => d.id === boq.engineeringDrawingId)
+  const linkedBOM = billsOfMaterials.find(b => b.id === boq.bomId)
   const linkedQuotation = quotations.find(q => q.quotationNumber === boq.contractReference)
 
   return (
@@ -697,7 +701,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                           <TableCell>
                             <div>
                               <p className="font-medium">{item.itemNumber}</p>
-                              <Badge className={getCategoryColor(item.category)} size="sm">
+                              <Badge className={getCategoryColor(item.category)}>
                                 {item.category}
                               </Badge>
                             </div>
@@ -733,7 +737,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                                 </SelectContent>
                               </Select>
                               {item.designComplexity && (
-                                <Badge variant="outline" size="sm">
+                                <Badge variant="outline">
                                   {item.designComplexity}
                                 </Badge>
                               )}
@@ -911,7 +915,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                       <Label className="text-xs text-gray-500">Engineering Project</Label>
                       <Link href={`/engineering/${linkedProject.id}`}>
                         <p className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
-                          {linkedProject.projectName}
+                          {linkedProject.projectNumber}
                         </p>
                       </Link>
                     </div>
@@ -940,7 +944,7 @@ export default function BOQDetailsPage({ params }: BOQDetailsPageProps) {
                       <Label className="text-xs text-gray-500">Generated BOMs</Label>
                       <div className="space-y-1">
                         {boq.generatedBOMs.map((bomId, index) => {
-                          const bom = boms.find(b => b.id === bomId)
+                          const bom = billsOfMaterials.find(b => b.id === bomId)
                           return (
                             <Link key={index} href={`/bom/${bomId}`}>
                               <p className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">

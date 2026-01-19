@@ -46,8 +46,18 @@ export default function ProductionDashboard() {
     productionWorkOrders: workOrders = [],
     qualityInspections = [],
     qualityTests = [],
-    shopfloorActivities = []
+    shopfloorActivities = [],
+    processSteps = [],
+    getProcessStepsByWorkOrder
   } = useDatabaseContext()
+  
+  // Helper function to get process steps by work order
+  const getStepsByWorkOrder = (workOrderId: string) => {
+    if (getProcessStepsByWorkOrder) {
+      return getProcessStepsByWorkOrder(workOrderId)
+    }
+    return processSteps.filter(ps => ps.workOrderId === workOrderId)
+  }
 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
@@ -76,6 +86,54 @@ export default function ProductionDashboard() {
     Math.round(workstations.reduce((acc, ws) => acc + ws.utilization, 0) / workstations.length) : 0
   const qualityPassRate = totalInspections > 0 ? 
     Math.round((passedInspections / totalInspections) * 100) : 0
+
+  // Calculate stage-based metrics for bus duct work orders
+  const busDuctWorkOrders = workOrders.filter(wo => 
+    wo.productName?.toLowerCase().includes("bus duct") || wo.id === "WO6"
+  )
+  
+  const calculateStageMetrics = (workOrderId: string) => {
+    const steps = getStepsByWorkOrder(workOrderId)
+    const conductorSteps = steps.filter(s => s.stage === "Conductor Processing")
+    const shellSteps = steps.filter(s => s.stage === "Shell Processing")
+    const assemblySteps = steps.filter(s => s.stage === "Product Assembly")
+    
+    const conductorCompleted = conductorSteps.filter(s => s.status === "Completed").length
+    const shellCompleted = shellSteps.filter(s => s.status === "Completed").length
+    const assemblyCompleted = assemblySteps.filter(s => s.status === "Completed").length
+    
+    const conductorProgress = conductorSteps.length > 0 ? (conductorCompleted / conductorSteps.length) * 100 : 0
+    const shellProgress = shellSteps.length > 0 ? (shellCompleted / shellSteps.length) * 100 : 0
+    const assemblyProgress = assemblySteps.length > 0 ? (assemblyCompleted / assemblySteps.length) * 100 : 0
+    
+    const conductorComplete = conductorSteps.length > 0 && conductorSteps.every(s => s.status === "Completed")
+    const shellComplete = shellSteps.length > 0 && shellSteps.every(s => s.status === "Completed")
+    const readyForAssembly = conductorComplete && shellComplete
+    
+    // Calculate parallel processing efficiency (time difference between tracks)
+    const conductorTotalTime = conductorSteps.reduce((acc, s) => acc + (s.actualDuration || s.estimatedDuration), 0)
+    const shellTotalTime = shellSteps.reduce((acc, s) => acc + (s.actualDuration || s.estimatedDuration), 0)
+    const parallelEfficiency = conductorTotalTime > 0 && shellTotalTime > 0 
+      ? Math.abs(conductorTotalTime - shellTotalTime) / Math.max(conductorTotalTime, shellTotalTime) * 100
+      : 0
+    
+    return {
+      conductorProgress,
+      shellProgress,
+      assemblyProgress,
+      conductorComplete,
+      shellComplete,
+      readyForAssembly,
+      parallelEfficiency,
+      conductorSteps: conductorSteps.length,
+      shellSteps: shellSteps.length,
+      assemblySteps: assemblySteps.length
+    }
+  }
+  
+  const busDuctMetrics = busDuctWorkOrders.length > 0 
+    ? calculateStageMetrics(busDuctWorkOrders[0].id)
+    : null
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -177,6 +235,99 @@ export default function ProductionDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Stage-Based Metrics for Bus Duct Work Orders */}
+            {busDuctMetrics && busDuctWorkOrders.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Bus Duct Manufacturing - Stage Progress
+                  </CardTitle>
+                  <CardDescription>
+                    Track parallel processing stages for bus duct work orders
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Stage Progress Bars */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Conductor Processing</span>
+                          <Badge className="bg-orange-100 text-orange-800">Track A</Badge>
+                        </div>
+                        <Progress value={busDuctMetrics.conductorProgress} className="h-3" />
+                        <div className="text-xs text-gray-500">
+                          {Math.round(busDuctMetrics.conductorProgress)}% complete • {busDuctMetrics.conductorSteps} steps
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Shell Processing</span>
+                          <Badge className="bg-yellow-100 text-yellow-800">Track B</Badge>
+                        </div>
+                        <Progress value={busDuctMetrics.shellProgress} className="h-3" />
+                        <div className="text-xs text-gray-500">
+                          {Math.round(busDuctMetrics.shellProgress)}% complete • {busDuctMetrics.shellSteps} steps
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Product Assembly</span>
+                          <Badge className="bg-blue-100 text-blue-800">Track C</Badge>
+                        </div>
+                        <Progress value={busDuctMetrics.assemblyProgress} className="h-3" />
+                        <div className="text-xs text-gray-500">
+                          {Math.round(busDuctMetrics.assemblyProgress)}% complete • {busDuctMetrics.assemblySteps} steps
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Convergence Status */}
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {busDuctMetrics.readyForAssembly ? (
+                            <>
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <span className="font-medium text-green-700">Ready for Assembly</span>
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-5 h-5 text-yellow-600" />
+                              <span className="font-medium text-yellow-700">Waiting for Parallel Tracks</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Parallel Efficiency: {Math.round(100 - busDuctMetrics.parallelEfficiency)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Bus Duct Work Orders List */}
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium mb-3">Active Bus Duct Work Orders</h4>
+                      <div className="space-y-2">
+                        {busDuctWorkOrders.map((wo: any) => (
+                          <div key={wo.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div>
+                              <div className="font-medium text-sm">{wo.productName}</div>
+                              <div className="text-xs text-gray-500">{wo.workOrderNumber}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={getStatusColor(wo.status)}>{wo.status}</Badge>
+                              <span className="text-sm font-medium">{wo.progress}%</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Production Status Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

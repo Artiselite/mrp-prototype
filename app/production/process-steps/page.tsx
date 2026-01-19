@@ -29,6 +29,9 @@ import {
 } from "lucide-react"
 import { useDatabaseContext } from "@/components/database-provider"
 import { ProcessStep } from "@/lib/types"
+import { ParallelWorkflowView } from "@/components/production/ParallelWorkflowView"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getProcessStepTemplates, ProcessStepTemplate } from "@/lib/templates"
 
 export default function ProcessStepsPage() {
   const { 
@@ -47,9 +50,10 @@ export default function ProcessStepsPage() {
   const [editingStep, setEditingStep] = useState<ProcessStep | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [showTemplateSelector, setShowTemplateSelector] = useState(false)
-  const [availableTemplates, setAvailableTemplates] = useState<any[]>([])
+  const [availableTemplates, setAvailableTemplates] = useState<ProcessStepTemplate[]>([])
   const [workOrderSteps, setWorkOrderSteps] = useState<ProcessStep[]>([])
   const [selectedSteps, setSelectedSteps] = useState<Set<string>>(new Set())
+  const [viewMode, setViewMode] = useState<"sequential" | "parallel">("sequential")
 
   const [newStep, setNewStep] = useState({
     stepName: "",
@@ -65,6 +69,11 @@ export default function ProcessStepsPage() {
     if (selectedWorkOrder) {
       const steps = getProcessStepsByWorkOrder(selectedWorkOrder)
       setWorkOrderSteps(steps)
+      // Auto-detect if this is a parallel workflow (has stage information)
+      const hasStages = steps.some(s => s.stage)
+      if (hasStages) {
+        setViewMode("parallel")
+      }
     } else {
       setWorkOrderSteps([])
     }
@@ -74,31 +83,9 @@ export default function ProcessStepsPage() {
 
   // Load available templates
   useEffect(() => {
-    // In a real app, this would fetch from API
-    const mockTemplates = [
-      {
-        id: "T001",
-        name: "Standard Steel Fabrication",
-        description: "Basic steel cutting, welding, and finishing process",
-        category: "Steel Fabrication",
-        stepCount: 4
-      },
-      {
-        id: "T002",
-        name: "Rush Order Process",
-        description: "Expedited process for urgent orders",
-        category: "Rush Orders",
-        stepCount: 3
-      },
-      {
-        id: "T003",
-        name: "Quality Focus Process",
-        description: "Enhanced quality checks and inspections",
-        category: "Quality Focus",
-        stepCount: 5
-      }
-    ]
-    setAvailableTemplates(mockTemplates)
+    // Load templates from shared templates file
+    const templates = getProcessStepTemplates()
+    setAvailableTemplates(templates)
   }, [])
 
   const handleAddStep = () => {
@@ -277,52 +264,68 @@ export default function ProcessStepsPage() {
       return
     }
 
-    // In a real app, this would fetch template steps from API
-    const templateSteps = [
-      {
-        workOrderId: selectedWorkOrder,
-        operationIndex: workOrderSteps.length,
-        stepName: "Setup",
-        status: "Pending" as const,
-        estimatedDuration: 120,
-        actualDuration: 0,
-        qualityCheckRequired: false
-      },
-      {
-        workOrderId: selectedWorkOrder,
-        operationIndex: workOrderSteps.length + 1,
-        stepName: "Cutting Operations",
-        status: "Pending" as const,
-        estimatedDuration: 480,
-        actualDuration: 0,
-        qualityCheckRequired: true,
-        qualityStatus: "Pending" as const
-      },
-      {
-        workOrderId: selectedWorkOrder,
-        operationIndex: workOrderSteps.length + 2,
-        stepName: "Welding Operations",
-        status: "Pending" as const,
-        estimatedDuration: 360,
-        actualDuration: 0,
-        qualityCheckRequired: true,
-        qualityStatus: "Pending" as const
-      },
-      {
-        workOrderId: selectedWorkOrder,
-        operationIndex: workOrderSteps.length + 3,
-        stepName: "Quality Check",
-        status: "Pending" as const,
-        estimatedDuration: 60,
-        actualDuration: 0,
-        qualityCheckRequired: true,
-        qualityStatus: "Pending" as const
-      }
-    ]
+    // Find the selected template
+    const template = availableTemplates.find(t => t.id === templateId)
+    if (!template) {
+      alert("Template not found")
+      return
+    }
 
-    // Create each step in the database
-    templateSteps.forEach(step => {
-      createProcessStep(step)
+    // Create steps from template, adapting them to the selected work order
+    const baseOperationIndex = workOrderSteps.length
+    const templateSteps = template.steps.map((step, index) => {
+      // Generate new unique IDs for the steps
+      const newStepId = `${templateId}-${selectedWorkOrder}-${Date.now()}-${index}`
+      
+      // Create step with all template fields, but update workOrderId and operationIndex
+      const newStep: Partial<ProcessStep> = {
+        workOrderId: selectedWorkOrder,
+        operationIndex: baseOperationIndex + index,
+        stepName: step.stepName,
+        status: "Pending" as const,
+        estimatedDuration: step.estimatedDuration,
+        actualDuration: 0,
+        operatorId: step.operatorId || undefined,
+        workstationId: step.workstationId || undefined,
+        qualityCheckRequired: step.qualityCheckRequired,
+        qualityStatus: step.qualityCheckRequired ? "Pending" as const : undefined,
+        notes: step.notes || undefined,
+        // Include parallel workflow fields if present
+        stage: step.stage,
+        parallelTrack: step.parallelTrack,
+        stageOrder: step.stageOrder,
+        // Note: dependsOn will need to be updated after all steps are created
+        // We'll handle this in a second pass
+      }
+      
+      return { step: newStep, originalDependsOn: step.dependsOn || [], originalId: step.id }
+    })
+
+    // First pass: Create all steps and collect their new IDs
+    const stepIdMap = new Map<string, string>() // Maps original template step IDs to new step IDs
+    
+    templateSteps.forEach(({ step, originalId }) => {
+      const createdStep = createProcessStep(step as ProcessStep)
+      stepIdMap.set(originalId, createdStep.id)
+    })
+
+    // Second pass: Update dependsOn references to use new step IDs
+    templateSteps.forEach(({ step, originalDependsOn }, index) => {
+      if (originalDependsOn.length > 0) {
+        const newDependsOn = originalDependsOn
+          .map(originalId => stepIdMap.get(originalId))
+          .filter(Boolean) as string[]
+        
+        if (newDependsOn.length > 0) {
+          const stepId = stepIdMap.get(template.steps[index].id)
+          if (stepId) {
+            const existingStep = getProcessStepsByWorkOrder(selectedWorkOrder).find(s => s.id === stepId)
+            if (existingStep) {
+              updateProcessStep(stepId, { dependsOn: newDependsOn })
+            }
+          }
+        }
+      }
     })
 
     // Refresh the work order steps to show the newly added template steps
@@ -423,7 +426,7 @@ export default function ProcessStepsPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Steps:</span>
-                      <span className="font-medium">{template.stepCount}</span>
+                      <span className="font-medium">{template.steps.length}</span>
                     </div>
                     <Button 
                       onClick={() => handleApplyTemplate(template.id)}
@@ -580,7 +583,25 @@ export default function ProcessStepsPage() {
                     <p className="text-sm">Click "Add Process Step" or "Apply Template" to get started</p>
                   </div>
                 ) : (
-              <Table>
+                  <>
+                    {/* View Mode Toggle - Only show if steps have stage information */}
+                    {workOrderSteps.some(s => s.stage) && (
+                      <div className="mb-6">
+                        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "sequential" | "parallel")}>
+                          <TabsList>
+                            <TabsTrigger value="sequential">Sequential View</TabsTrigger>
+                            <TabsTrigger value="parallel">Parallel View</TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                      </div>
+                    )}
+                    
+                    {/* Parallel Workflow View */}
+                    {viewMode === "parallel" && workOrderSteps.some(s => s.stage) ? (
+                      <ParallelWorkflowView steps={workOrderSteps} />
+                    ) : (
+                      /* Sequential Table View */
+                      <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
@@ -695,6 +716,8 @@ export default function ProcessStepsPage() {
                   ))}
                 </TableBody>
               </Table>
+                    )}
+                  </>
             )}
           </CardContent>
         </Card>

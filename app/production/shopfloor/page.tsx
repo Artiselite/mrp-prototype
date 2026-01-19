@@ -24,6 +24,15 @@ import { QRCodeGenerator } from "@/components/qr-code-generator"
 import { OEECalculator, formatOEEValue, formatDuration, formatThroughput, getOEEStatusColor, getAlertSeverityColor } from "@/lib/oee-utils"
 import { productionLines, oeeMetrics, oeeAlerts, oeeTrends, processTimers, qrCodes } from "@/lib/data"
 import type { ProcessStep, ProcessTimer, QRCode } from "@/lib/types"
+import { ParallelWorkflowView } from "@/components/production/ParallelWorkflowView"
+import { StageProgressBar } from "@/components/production/StageProgressBar"
+import { ConvergenceIndicator } from "@/components/production/ConvergenceIndicator"
+import { ConductorDataCapture } from "@/components/production/ConductorDataCapture"
+import { ShellDataCapture } from "@/components/production/ShellDataCapture"
+import { AssemblyDataCapture } from "@/components/production/AssemblyDataCapture"
+import { StageDataSummary } from "@/components/production/StageDataSummary"
+import { WIPStatusIndicator } from "@/components/production/WIPStatusIndicator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ShopfloorPage() {
   const { 
@@ -40,6 +49,9 @@ export default function ShopfloorPage() {
   const [activeProcessSteps, setActiveProcessSteps] = useState<ProcessStep[]>([])
   const [activeTimers, setActiveTimers] = useState<ProcessTimer[]>([])
   const [activeQRCodes, setActiveQRCodes] = useState<QRCode[]>([])
+  const [viewMode, setViewMode] = useState<"sequential" | "parallel">("sequential")
+  const [stageFilter, setStageFilter] = useState<string>("all")
+  const [dataCaptureStepId, setDataCaptureStepId] = useState<string | null>(null)
 
   // Load process steps for selected work order
   useEffect(() => {
@@ -53,6 +65,14 @@ export default function ShopfloorPage() {
       // Generate QR codes for all process steps
       const allQRCodes = workOrderSteps.flatMap(step => generateQRCodesForStep(step))
       setActiveQRCodes(allQRCodes)
+      
+      // Auto-detect if this is a parallel workflow (has stage information)
+      const hasStages = workOrderSteps.some(s => s.stage)
+      if (hasStages) {
+        setViewMode("parallel")
+      } else {
+        setViewMode("sequential")
+      }
     }
   }, [selectedWorkOrder, getProcessStepsByWorkOrder])
 
@@ -243,7 +263,38 @@ export default function ShopfloorPage() {
   }
 
   const handleProcessComplete = (processStepId: string) => {
-    handleProcessStop(processStepId)
+    // Open data capture modal based on stage
+    const processStep = activeProcessSteps.find(ps => ps.id === processStepId)
+    if (processStep?.stage) {
+      setDataCaptureStepId(processStepId)
+    } else {
+      // If no stage, just complete normally
+      handleProcessStop(processStepId)
+    }
+  }
+
+  const handleSaveStageData = (processStepId: string, stageData: ProcessStep["stageData"]) => {
+    updateProcessStep(processStepId, { stageData })
+    
+    // Update local state
+    setActiveProcessSteps(prev => 
+      prev.map(ps => ps.id === processStepId 
+        ? { ...ps, stageData }
+        : ps
+      )
+    )
+
+    // Complete the step if not already completed
+    const processStep = activeProcessSteps.find(ps => ps.id === processStepId)
+    if (processStep && processStep.status !== "Completed") {
+      handleProcessStop(processStepId)
+    }
+
+    setDataCaptureStepId(null)
+  }
+
+  const handleCancelDataCapture = () => {
+    setDataCaptureStepId(null)
   }
 
   const refreshQRCodes = () => {
@@ -369,15 +420,109 @@ export default function ShopfloorPage() {
           {/* Process Steps and QR Codes */}
           {selectedWorkOrder && (
             <div className="space-y-6">
+              {/* Stage Progress Overview - Only show for parallel workflows */}
+              {activeProcessSteps.some(s => s.stage) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Stage Progress Overview</CardTitle>
+                    <CardDescription>
+                      Track progress across all manufacturing stages
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(() => {
+                      const conductorSteps = activeProcessSteps.filter(s => s.stage === "Conductor Processing")
+                      const shellSteps = activeProcessSteps.filter(s => s.stage === "Shell Processing")
+                      const assemblySteps = activeProcessSteps.filter(s => s.stage === "Product Assembly")
+                      
+                      const conductorCompleted = conductorSteps.filter(s => s.status === "Completed").length
+                      const shellCompleted = shellSteps.filter(s => s.status === "Completed").length
+                      const assemblyCompleted = assemblySteps.filter(s => s.status === "Completed").length
+                      
+                      const conductorInProgress = conductorSteps.filter(s => s.status === "In Progress").length
+                      const shellInProgress = shellSteps.filter(s => s.status === "In Progress").length
+                      const assemblyInProgress = assemblySteps.filter(s => s.status === "In Progress").length
+                      
+                      const conductorComplete = conductorSteps.length > 0 && conductorSteps.every(s => s.status === "Completed")
+                      const shellComplete = shellSteps.length > 0 && shellSteps.every(s => s.status === "Completed")
+                      
+                      return (
+                        <>
+                          <StageProgressBar
+                            stageName="Conductor Processing"
+                            completed={conductorCompleted}
+                            total={conductorSteps.length}
+                            inProgress={conductorInProgress}
+                            status={conductorComplete ? "completed" : conductorInProgress > 0 ? "in-progress" : "pending"}
+                          />
+                          <StageProgressBar
+                            stageName="Shell Processing"
+                            completed={shellCompleted}
+                            total={shellSteps.length}
+                            inProgress={shellInProgress}
+                            status={shellComplete ? "completed" : shellInProgress > 0 ? "in-progress" : "pending"}
+                          />
+                          <ConvergenceIndicator
+                            conductorComplete={conductorComplete}
+                            shellComplete={shellComplete}
+                            conductorProgress={conductorSteps.length > 0 ? (conductorCompleted / conductorSteps.length) * 100 : 0}
+                            shellProgress={shellSteps.length > 0 ? (shellCompleted / shellSteps.length) * 100 : 0}
+                          />
+                          <StageProgressBar
+                            stageName="Product Assembly"
+                            completed={assemblyCompleted}
+                            total={assemblySteps.length}
+                            inProgress={assemblyInProgress}
+                            status={assemblySteps.length > 0 && assemblySteps.every(s => s.status === "Completed") ? "completed" : (conductorComplete && shellComplete) ? "in-progress" : "blocked"}
+                          />
+                        </>
+                      )
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+              
               <Card>
                 <CardHeader>
-                  <CardTitle>Process Steps - {selectedWorkOrder.productName}</CardTitle>
-                  <CardDescription>
-                    Execute each manufacturing step with real-time timers and QR code controls
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Process Steps - {selectedWorkOrder.productName}</CardTitle>
+                      <CardDescription>
+                        Execute each manufacturing step with real-time timers and QR code controls
+                      </CardDescription>
+                    </div>
+                    {activeProcessSteps.some(s => s.stage) && (
+                      <div className="flex items-center gap-4">
+                        <Select value={stageFilter} onValueChange={setStageFilter}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Filter by stage" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Stages</SelectItem>
+                            <SelectItem value="Conductor Processing">Conductor Processing</SelectItem>
+                            <SelectItem value="Shell Processing">Shell Processing</SelectItem>
+                            <SelectItem value="Product Assembly">Product Assembly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "sequential" | "parallel")}>
+                          <TabsList>
+                            <TabsTrigger value="sequential">Sequential</TabsTrigger>
+                            <TabsTrigger value="parallel">Parallel</TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                  {activeProcessSteps.map((step, index) => {
+                  {/* Parallel Workflow View */}
+                  {viewMode === "parallel" && activeProcessSteps.some(s => s.stage) ? (
+                    <ParallelWorkflowView steps={activeProcessSteps.filter(s => stageFilter === "all" || s.stage === stageFilter)} />
+                  ) : (
+                    /* Sequential View */
+                    activeProcessSteps
+                      .filter(s => stageFilter === "all" || !s.stage || s.stage === stageFilter)
+                      .map((step, index) => {
                     const stepQRCodes = activeQRCodes.filter(qr => qr.processStepId === step.id)
                     
                     return (
@@ -404,6 +549,35 @@ export default function ShopfloorPage() {
                             onComplete={handleProcessComplete}
                           />
                         </div>
+
+                        {/* Stage Data Summary */}
+                        {step.stageData && (
+                          <StageDataSummary
+                            processStep={step}
+                            workstations={workstations}
+                            operators={operators}
+                          />
+                        )}
+
+                        {/* WIP Status Indicator */}
+                        {step.stage && (
+                          <WIPStatusIndicator
+                            processStep={step}
+                            workstations={workstations}
+                          />
+                        )}
+
+                        {/* Capture Data Button */}
+                        {step.stage && (step.status === "In Progress" || step.status === "Completed") && (
+                          <div className="flex justify-end">
+                            <Button
+                              onClick={() => setDataCaptureStepId(step.id)}
+                              variant="outline"
+                            >
+                              {step.stageData ? "Update Data" : "Capture Data"}
+                            </Button>
+                          </div>
+                        )}
 
                         {/* QR Codes for this step */}
                         <div className="space-y-4">
@@ -444,12 +618,13 @@ export default function ShopfloorPage() {
                         </div>
 
                         {/* Separator between steps */}
-                        {index < activeProcessSteps.length - 1 && (
+                        {index < activeProcessSteps.filter(s => stageFilter === "all" || !s.stage || s.stage === stageFilter).length - 1 && (
                           <div className="border-t border-gray-200 my-6"></div>
                         )}
                       </div>
                     )
-                  })}
+                  })
+                  )}
                 </CardContent>
               </Card>
 
@@ -598,6 +773,52 @@ export default function ShopfloorPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Data Capture Modals */}
+      {dataCaptureStepId && (() => {
+        const step = activeProcessSteps.find(s => s.id === dataCaptureStepId)
+        if (!step) return null
+
+        if (step.stage === "Conductor Processing") {
+          return (
+            <ConductorDataCapture
+              open={true}
+              onOpenChange={(open) => !open && handleCancelDataCapture()}
+              processStep={step}
+              onSave={(data) => handleSaveStageData(step.id, data)}
+              workstations={workstations}
+            />
+          )
+        }
+
+        if (step.stage === "Shell Processing") {
+          return (
+            <ShellDataCapture
+              open={true}
+              onOpenChange={(open) => !open && handleCancelDataCapture()}
+              processStep={step}
+              onSave={(data) => handleSaveStageData(step.id, data)}
+              workstations={workstations}
+              operators={operators}
+            />
+          )
+        }
+
+        if (step.stage === "Product Assembly") {
+          return (
+            <AssemblyDataCapture
+              open={true}
+              onOpenChange={(open) => !open && handleCancelDataCapture()}
+              processStep={step}
+              onSave={(data) => handleSaveStageData(step.id, data)}
+              workstations={workstations}
+              operators={operators}
+            />
+          )
+        }
+
+        return null
+      })()}
     </div>
   )
 }

@@ -537,6 +537,84 @@ export interface ProcessStep {
   notes?: string
   createdAt: string
   updatedAt: string
+  // Optional fields for parallel workflow support
+  stage?: string // Stage identifier (e.g., "Conductor Processing", "Shell Processing", "Product Assembly")
+  parallelTrack?: "A" | "B" | "C" // Track identifier for parallel processing
+  dependsOn?: string[] // Array of step IDs that must complete before this step
+  stageOrder?: number // Order within the stage
+  // Stage-specific data capture
+  stageData?: {
+    // Conductor Processing
+    outputQuantity?: number
+    scrapQuantity?: number
+    scrapReasonCodes?: string[]
+    reworkQuantity?: number
+    reworkReasonCodes?: string[]
+    wipStatusByStation?: Record<string, {
+      stationId: string
+      quantity: number
+      status: "In Queue" | "In Process" | "Completed" | "On Hold"
+      timestamp: string
+    }>
+    // Shell Processing
+    outputByStation?: Record<string, {
+      stationId: string
+      quantity: number
+      timestamp: string
+    }>
+    defects?: Array<{
+      id: string
+      defectType: string
+      quantity: number
+      description: string
+      timestamp: string
+      operatorId: string
+    }>
+    reworkTags?: Array<{
+      id: string
+      tag: string
+      reason: string
+      quantity: number
+      timestamp: string
+    }>
+    bufferHandoff?: {
+      toBuffer: string // Buffer name/ID
+      quantity: number
+      timestamp: string
+      operatorId: string
+      notes?: string
+    }
+    // Assembly
+    assemblyTimeByStation?: Record<string, {
+      stationId: string
+      timeSpent: number // minutes
+      startTime: string
+      endTime: string
+    }>
+    reworkRecords?: Array<{
+      id: string
+      reason: string
+      quantity: number
+      timestamp: string
+      operatorId: string
+      corrected: boolean
+    }>
+    deviationRecords?: Array<{
+      id: string
+      deviationType: string
+      description: string
+      approved: boolean
+      approvedBy?: string
+      timestamp: string
+    }>
+    wipByVariant?: Record<string, {
+      variantId: string
+      variantName: string
+      quantity: number
+      status: "In Queue" | "In Process" | "Completed" | "On Hold"
+      currentStation?: string
+    }>
+  }
 }
 
 export interface ProcessTimer {

@@ -105,6 +105,27 @@ const journeyTemplates = [
     operators: 5
   },
   {
+    id: "bus-duct-compact",
+    name: "Compact Type Bus Duct Manufacturing",
+    description: "Complete manufacturing process for compact bus duct systems with parallel conductor and shell processing",
+    icon: <Factory className="w-6 h-6" />,
+    color: "bg-orange-100 text-orange-800",
+    steps: [
+      { name: "Conductor Processing", description: "Process conductor materials through straightening, punching, bending, and insulation", required: true },
+      { name: "Shell Processing", description: "Process shell materials through pretreatment, cutting, forming, welding, and coating", required: true },
+      { name: "Product Assembly", description: "Assemble conductors and shells, perform testing and packaging", required: true }
+    ],
+    estimatedDuration: "8-10 days",
+    complexity: "High",
+    workstations: ["WS6", "WS7", "WS8", "WS9"],
+    operators: 4,
+    stages: [
+      { name: "Conductor Processing", steps: 8, parallel: true },
+      { name: "Shell Processing", steps: 6, parallel: true },
+      { name: "Product Assembly", steps: 9, parallel: false }
+    ]
+  },
+  {
     id: "custom",
     name: "Custom Workflow",
     description: "Create a custom production workflow from scratch",
@@ -176,13 +197,31 @@ export default function CreateJourneyPage() {
     }))
     
     // Pre-select workstations based on template
-    const templateWorkstations = workstations.filter(ws => 
-      template.workstations.includes(ws.type)
-    ).map(ws => ws.id)
+    let templateWorkstations: string[] = []
+    if (template.id === "bus-duct-compact") {
+      // Bus Duct template uses specific workstation IDs
+      templateWorkstations = template.workstations.filter((wsId: string) => 
+        workstations.some(ws => ws.id === wsId)
+      )
+    } else {
+      // Other templates use workstation types
+      templateWorkstations = workstations.filter(ws => 
+        template.workstations.includes(ws.type)
+      ).map(ws => ws.id)
+    }
     setSelectedWorkstations(templateWorkstations)
     
     // Pre-select operators based on template
-    const availableOperators = operators.slice(0, template.operators).map(op => op.id)
+    let availableOperators: string[] = []
+    if (template.id === "bus-duct-compact") {
+      // Bus Duct template uses specific operator IDs (OP6, OP7, OP8, OP9)
+      availableOperators = ["OP6", "OP7", "OP8", "OP9"].filter(opId =>
+        operators.some(op => op.id === opId)
+      )
+    } else {
+      // Other templates use first N operators
+      availableOperators = operators.slice(0, template.operators).map(op => op.id)
+    }
     setSelectedOperators(availableOperators)
   }
 

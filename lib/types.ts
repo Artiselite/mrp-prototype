@@ -10,12 +10,14 @@ export interface Customer {
   state: string
   zipCode: string
   country: string
+  industry?: string
   status: "Active" | "Inactive" | "Suspended"
   creditLimit: number
   paymentTerms: string
   totalOrders: number
   engineeringStandards?: string[]
   qualityRequirements?: string[]
+  notes?: string
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +34,7 @@ export interface Supplier {
   state: string
   zipCode: string
   country: string
+  category?: string
   status: "Active" | "Inactive" | "Suspended"
   paymentTerms: string
   leadTime: number
@@ -1181,6 +1184,9 @@ export interface Shipment {
   shipmentNumber: string
   orderId: string
   orderNumber: string
+  salesOrderId?: string
+  invoiceId?: string
+  workOrderId?: string
   customerId: string
   customerName: string
   carrier: string

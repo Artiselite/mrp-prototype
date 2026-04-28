@@ -748,7 +748,7 @@ export default function CreateProjectPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="estimatedCost">Estimated Cost ($)</Label>
+                        <Label htmlFor="estimatedCost">Estimated Cost (RM)</Label>
                         <Input
                           id="estimatedCost"
                           type="number"
@@ -777,7 +777,7 @@ export default function CreateProjectPage() {
                       <div className="text-center p-4 bg-green-50 rounded-lg">
                         <DollarSign className="w-8 h-8 mx-auto mb-2 text-green-600" />
                         <p className="text-sm text-gray-600">Estimated Cost</p>
-                        <p className="text-xl font-bold">${formData.estimatedCost.toLocaleString()}</p>
+                        <p className="text-xl font-bold">RM{formData.estimatedCost.toLocaleString()}</p>
                       </div>
                       <div className="text-center p-4 bg-purple-50 rounded-lg">
                         <Calendar className="w-8 h-8 mx-auto mb-2 text-purple-600" />

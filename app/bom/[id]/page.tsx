@@ -493,7 +493,7 @@ export default function BOMDetailPage({ params }: BOMDetailsPageProps) {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">TOTAL COST</label>
-                  <p className="text-lg font-bold">${bom.totalCost?.toLocaleString() || '0'}</p>
+                  <p className="text-lg font-bold">RM{bom.totalCost?.toLocaleString() || '0'}</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">STATUS</label>

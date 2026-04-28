@@ -371,7 +371,7 @@ function CreateShipmentContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="shippingCost">Shipping Cost ($)</Label>
+                  <Label htmlFor="shippingCost">Shipping Cost (RM)</Label>
                   <Input
                     id="shippingCost"
                     type="number"
@@ -382,7 +382,7 @@ function CreateShipmentContent() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="insuranceValue">Insurance Value ($)</Label>
+                  <Label htmlFor="insuranceValue">Insurance Value (RM)</Label>
                   <Input
                     id="insuranceValue"
                     type="number"
@@ -590,7 +590,7 @@ function CreateShipmentContent() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Total Value:</span>
-                    <Badge variant="outline">${calculateTotalValue().toFixed(2)}</Badge>
+                    <Badge variant="outline">RM{calculateTotalValue().toFixed(2)}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Weight:</span>
@@ -602,7 +602,7 @@ function CreateShipmentContent() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Shipping Cost:</span>
-                    <Badge variant="outline">${formData.shippingCost.toFixed(2)}</Badge>
+                    <Badge variant="outline">RM{formData.shippingCost.toFixed(2)}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Status:</span>

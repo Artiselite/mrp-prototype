@@ -27,9 +27,7 @@ import { Customer, Quotation } from "@/lib/types"
 export default function CustomerDetailPage() {
   const params = useParams()
   const customerId = params.id as string
-  const { useCustomers, useQuotations, isInitialized, isLoading } = useDatabaseContext()
-  const { customers } = useCustomers()
-  const { quotations } = useQuotations()
+  const { customers = [], quotations = [], isInitialized, isLoading } = useDatabaseContext()
   
   console.log("Customer ID:", customerId)
   console.log("Available customers:", customers)

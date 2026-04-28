@@ -446,28 +446,28 @@ export default function BOQEditPage({ params }: BOQEditPageProps) {
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-sm">Material Cost</span>
-                          <span className="font-medium">${boq.materialCost.toLocaleString()}</span>
+                          <span className="font-medium">RM{boq.materialCost.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Labor Cost</span>
-                          <span className="font-medium">${boq.laborCost.toLocaleString()}</span>
+                          <span className="font-medium">RM{boq.laborCost.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Equipment Cost</span>
-                          <span className="font-medium">${boq.equipmentCost.toLocaleString()}</span>
+                          <span className="font-medium">RM{boq.equipmentCost.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Subcontract Cost</span>
-                          <span className="font-medium">${boq.subcontractCost.toLocaleString()}</span>
+                          <span className="font-medium">RM{boq.subcontractCost.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Other Cost</span>
-                          <span className="font-medium">${boq.otherCost.toLocaleString()}</span>
+                          <span className="font-medium">RM{boq.otherCost.toLocaleString()}</span>
                         </div>
                         <hr />
                         <div className="flex justify-between text-lg font-bold">
                           <span>Total Cost</span>
-                          <span>${boq.totalCost.toLocaleString()}</span>
+                          <span>RM{boq.totalCost.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>

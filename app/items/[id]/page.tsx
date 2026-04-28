@@ -184,7 +184,7 @@ function ItemDetailContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600">Unit Cost</label>
-                  <p className="text-lg font-semibold">${item.unitCost.toFixed(2)}</p>
+                  <p className="text-lg font-semibold">RM{item.unitCost.toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Selling Price</label>
@@ -192,7 +192,7 @@ function ItemDetailContent() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Total Value</label>
-                  <p className="text-lg font-semibold">${(item.currentStock * item.unitCost).toFixed(2)}</p>
+                  <p className="text-lg font-semibold">RM{(item.currentStock * item.unitCost).toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Margin</label>

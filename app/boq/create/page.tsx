@@ -401,7 +401,7 @@ function CreateBOQContent() {
                         <span className="font-medium">Customer:</span> {quotation.customerName}
                       </div>
                       <div>
-                        <span className="font-medium">Value:</span> ${quotation.total.toLocaleString()}
+                        <span className="font-medium">Value:</span> RM{quotation.total.toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -644,7 +644,7 @@ function CreateBOQContent() {
                   </div>
                   <div>
                     <Label htmlFor="unitRate">
-                      Unit Rate ($) {newItem.selectedItemId && <span className="text-xs text-blue-600">(Auto-populated)</span>}
+                      Unit Rate (RM) {newItem.selectedItemId && <span className="text-xs text-blue-600">(Auto-populated)</span>}
                     </Label>
                     <Input
                       id="unitRate"
@@ -695,7 +695,7 @@ function CreateBOQContent() {
                 </div>
                 <div className="flex justify-between items-center mt-4">
                   <div className="text-sm text-gray-600">
-                    Total Amount: <span className="font-medium">${(newItem.quantity * newItem.unitRate).toFixed(2)}</span>
+                    Total Amount: <span className="font-medium">RM{(newItem.quantity * newItem.unitRate).toFixed(2)}</span>
                   </div>
                   <Button type="button" onClick={addItem} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
@@ -734,8 +734,8 @@ function CreateBOQContent() {
                           </TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>{item.unit}</TableCell>
-                          <TableCell>${item.unitRate.toFixed(2)}</TableCell>
-                          <TableCell className="font-medium">${item.totalAmount.toFixed(2)}</TableCell>
+                          <TableCell>RM{item.unitRate.toFixed(2)}</TableCell>
+                          <TableCell className="font-medium">RM{item.totalAmount.toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge className={getCategoryColor(item.category)}>
                               {item.category}
@@ -760,7 +760,7 @@ function CreateBOQContent() {
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-medium">Total Cost:</span>
-                      <span className="text-2xl font-bold text-green-600">${totalCost.toFixed(2)}</span>
+                      <span className="text-2xl font-bold text-green-600">RM{totalCost.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

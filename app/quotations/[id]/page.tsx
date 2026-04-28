@@ -900,7 +900,7 @@ export default function QuotationDetailPage() {
                             <p className="text-sm text-gray-600 mb-1">Requested by: {change.requestedBy}</p>
                             <p className="text-gray-700 mb-2">{change.description}</p>
                             <div className="flex items-center gap-4 text-sm">
-                              <span>Cost Impact: ${change.costImpact.toLocaleString()}</span>
+                              <span>Cost Impact: RM{change.costImpact.toLocaleString()}</span>
                               <span>Schedule Impact: {change.scheduleImpact} days</span>
                             </div>
                           </div>

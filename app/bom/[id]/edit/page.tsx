@@ -550,7 +550,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                             </div>
                             <div className="flex justify-between items-center">
                               <div className="text-sm text-gray-600">
-                                Total Cost: <span className="font-medium">${(newItem.quantity * newItem.unitCost).toFixed(2)}</span>
+                                Total Cost: <span className="font-medium">RM{(newItem.quantity * newItem.unitCost).toFixed(2)}</span>
                               </div>
                               <div className="flex gap-2">
                                 <Button
@@ -621,7 +621,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                             />
                           </TableCell>
                           <TableCell className="font-medium">
-                            ${(item.totalCost || (item.quantity * item.unitCost)).toLocaleString()}
+                            RM{(item.totalCost || (item.quantity * item.unitCost)).toLocaleString()}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">{item.category}</Badge>
@@ -651,7 +651,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total BOM Cost:</span>
-                      <span>${calculateTotal().toLocaleString()}</span>
+                      <span>RM{calculateTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 )}
@@ -722,7 +722,7 @@ export default function EditBOMPage({ params }: BOMEditPageProps) {
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">TOTAL COST</Label>
-                  <p className="text-lg font-bold">${calculateTotal().toLocaleString()}</p>
+                  <p className="text-lg font-bold">RM{calculateTotal().toLocaleString()}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">VERSION</Label>

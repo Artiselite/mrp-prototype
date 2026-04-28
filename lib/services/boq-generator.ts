@@ -58,8 +58,8 @@ export class BOQGenerator {
       includeLabor: true,
       includeEquipment: true,
       includeOverhead: true,
-      laborRate: 240, // RM240/hour (converted from USD)
-      equipmentRate: 120, // RM120/hour (converted from USD)
+      laborRate: 240, // RM240/hour
+      equipmentRate: 120, // RM120/hour
       overheadPercentage: 15, // 15%
       profitMargin: 20, // 20%
       currency: 'MYR'

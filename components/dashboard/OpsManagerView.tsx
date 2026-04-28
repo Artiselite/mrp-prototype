@@ -105,17 +105,17 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
             breakdowns: 3
         },
         workstations: [
-            { name: "Assembly Line 1", efficiency: 92, status: "Running", utilization: 88 },
-            { name: "Machining Center", efficiency: 89, status: "Running", utilization: 95 },
-            { name: "Welding Station", efficiency: 94, status: "Running", utilization: 82 },
-            { name: "Quality Control", efficiency: 96, status: "Running", utilization: 90 },
-            { name: "Packaging Line", efficiency: 91, status: "Maintenance", utilization: 0 }
+            { name: "Conductor Processing Line", efficiency: 92, status: "Running", utilization: 88 },
+            { name: "Shell Processing Line", efficiency: 89, status: "Running", utilization: 95 },
+            { name: "Insulation Station", efficiency: 94, status: "Running", utilization: 82 },
+            { name: "Assembly & Testing Line", efficiency: 96, status: "Running", utilization: 90 },
+            { name: "Packaging & Dispatch", efficiency: 91, status: "Maintenance", utilization: 0 }
         ],
         alerts: [
-            { type: "warning", message: "Low stock: Steel Rods (Qty: 15)", priority: "high" },
-            { type: "info", message: "Work Order #WO-2024-001 delayed by 2 hours", priority: "medium" },
-            { type: "success", message: "Quality check passed for Batch #QC-2024-045", priority: "low" },
-            { type: "warning", message: "Machine calibration due in 3 days", priority: "medium" }
+            { type: "warning", message: "Low stock: Copper Busbars (Qty: 15)", priority: "high" },
+            { type: "info", message: "IP54 testing delayed for WO #WO-2024-001 by 2 hours", priority: "medium" },
+            { type: "success", message: "Hi-pot & insulation resistance test passed for Batch #QC-2024-045", priority: "low" },
+            { type: "warning", message: "Insulation oven calibration due in 3 days", priority: "medium" }
         ]
     }
 
@@ -377,7 +377,7 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
                 <SectionCard title="🏭 Production Status" icon={<Factory className="w-5 h-5" />}>
                     <div className="h-48 relative">
                         <canvas id="productionStatusChart"></canvas>
-                        <div id="productionStatusLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
+                        <div id="productionStatusLoading" className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                             Loading chart...
                         </div>
                     </div>
@@ -386,7 +386,7 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
                 <SectionCard title="📦 Inventory Levels" icon={<Box className="w-5 h-5" />}>
                     <div className="h-48 relative">
                         <canvas id="inventoryLevelsChart"></canvas>
-                        <div id="inventoryLevelsLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
+                        <div id="inventoryLevelsLoading" className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                             Loading chart...
                         </div>
                     </div>
@@ -397,11 +397,11 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-3 bg-green-50 rounded-lg">
                                 <div className="text-2xl font-bold text-green-600">{operationalData.efficiency.oee}%</div>
-                                <div className="text-sm text-gray-600">OEE</div>
+                                <div className="text-sm text-muted-foreground">OEE</div>
                             </div>
                             <div className="text-center p-3 bg-blue-50 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-600">{operationalData.efficiency.utilization}%</div>
-                                <div className="text-sm text-gray-600">Utilization</div>
+                                <div className="text-sm text-muted-foreground">Utilization</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -432,11 +432,11 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-3 bg-green-50 rounded-lg">
                                 <div className="text-2xl font-bold text-green-600">{operationalData.quality.firstPassYield}%</div>
-                                <div className="text-sm text-gray-600">First Pass Yield</div>
+                                <div className="text-sm text-muted-foreground">First Pass Yield</div>
                             </div>
                             <div className="text-center p-3 bg-red-50 rounded-lg">
                                 <div className="text-2xl font-bold text-red-600">{operationalData.quality.defectRate}%</div>
-                                <div className="text-sm text-gray-600">Defect Rate</div>
+                                <div className="text-sm text-muted-foreground">Defect Rate</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -457,11 +457,11 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-3 bg-blue-50 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-600">{operationalData.maintenance.planned}%</div>
-                                <div className="text-sm text-gray-600">Planned</div>
+                                <div className="text-sm text-muted-foreground">Planned</div>
                             </div>
                             <div className="text-center p-3 bg-orange-50 rounded-lg">
                                 <div className="text-2xl font-bold text-orange-600">{operationalData.maintenance.unplanned}%</div>
-                                <div className="text-sm text-gray-600">Unplanned</div>
+                                <div className="text-sm text-muted-foreground">Unplanned</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -479,33 +479,32 @@ export default function OpsManagerView({ formatters, stats, moduleCharts }: OpsM
             </div>
 
             {/* Real-time Alerts & Notifications */}
-            <SectionCard title="🚨 Operational Alerts" icon={<AlertTriangle className="w-5 h-5" />}>
-                <div className="space-y-3">
+            <SectionCard title="Operational Alerts" icon={<AlertTriangle className="w-4 h-4" />}>
+                <div className="space-y-0">
                     {operationalData.alerts.map((alert, index) => (
-                        <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-                            alert.type === 'warning' ? 'bg-yellow-50 border-l-4 border-yellow-400' :
-                            alert.type === 'info' ? 'bg-blue-50 border-l-4 border-blue-400' :
-                            alert.type === 'success' ? 'bg-green-50 border-l-4 border-green-400' :
-                            'bg-gray-50 border-l-4 border-gray-400'
-                        }`}>
-                            <div className="flex items-center space-x-3">
-                                <div className={`w-2 h-2 rounded-full ${
+                        <div key={index} className="flex items-center justify-between py-3 border-b border-border/40 last:border-b-0">
+                            <div className="flex items-center space-x-3 min-w-0">
+                                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                                     alert.priority === 'high' ? 'bg-red-500' :
-                                    alert.priority === 'medium' ? 'bg-yellow-500' :
-                                    'bg-green-500'
-                                }`}></div>
-                                <span className="text-sm font-medium">{alert.message}</span>
+                                    alert.priority === 'medium' ? 'bg-amber-500' :
+                                    'bg-emerald-500'
+                                }`} />
+                                <span className="text-sm text-foreground truncate">{alert.message}</span>
                             </div>
-                            <Badge variant={alert.priority === 'high' ? 'destructive' : 'secondary'} className="text-xs">
+                            <span className={`text-xs font-medium flex-shrink-0 ml-4 ${
+                                alert.priority === 'high' ? 'text-red-600' :
+                                alert.priority === 'medium' ? 'text-amber-600' :
+                                'text-muted-foreground'
+                            }`}>
                                 {alert.priority}
-                            </Badge>
+                            </span>
                         </div>
                     ))}
                 </div>
             </SectionCard>
 
             {/* Quick Actions */}
-            <SectionCard title="⚡ Quick Actions" icon={<Settings className="w-5 h-5" />}>
+            <SectionCard title="Quick Actions" icon={<Settings className="w-4 h-4" />}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Button variant="outline" className="h-20 flex flex-col space-y-2">
                         <RefreshCw className="w-6 h-6" />

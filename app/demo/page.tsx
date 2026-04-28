@@ -1019,7 +1019,7 @@ export default function DemoPage() {
                         <TableCell>{customer.email}</TableCell>
                         <TableCell>{customer.phone}</TableCell>
                         <TableCell>{customer.status}</TableCell>
-                        <TableCell>${customer.creditLimit.toLocaleString()}</TableCell>
+                        <TableCell>RM{customer.creditLimit.toLocaleString()}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
@@ -1131,7 +1131,7 @@ export default function DemoPage() {
                         <TableCell className="font-medium">{item.partNumber}</TableCell>
                         <TableCell>{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
-                        <TableCell>${item.unitCost.toFixed(2)}</TableCell>
+                        <TableCell>RM{item.unitCost.toFixed(2)}</TableCell>
                         <TableCell>{item.currentStock}</TableCell>
                         <TableCell>{item.status}</TableCell>
                         <TableCell>
@@ -1248,7 +1248,7 @@ export default function DemoPage() {
                           <TableCell>{quotation.customerName}</TableCell>
                           <TableCell>{quotation.title}</TableCell>
                           <TableCell>{quotation.status}</TableCell>
-                          <TableCell>${quotation.total.toLocaleString()}</TableCell>
+                          <TableCell>RM{quotation.total.toLocaleString()}</TableCell>
                           <TableCell>{quotation.validUntil}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1303,7 +1303,7 @@ export default function DemoPage() {
                           <TableCell>{order.customerName}</TableCell>
                           <TableCell>{order.title}</TableCell>
                           <TableCell>{order.status}</TableCell>
-                          <TableCell>${order.total.toLocaleString()}</TableCell>
+                          <TableCell>RM{order.total.toLocaleString()}</TableCell>
                           <TableCell>{order.orderDate}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1356,7 +1356,7 @@ export default function DemoPage() {
                           <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                           <TableCell>{invoice.customerName}</TableCell>
                           <TableCell>{invoice.status}</TableCell>
-                          <TableCell>${invoice.total.toLocaleString()}</TableCell>
+                          <TableCell>RM{invoice.total.toLocaleString()}</TableCell>
                           <TableCell>{invoice.issueDate}</TableCell>
                           <TableCell>{invoice.dueDate}</TableCell>
                           <TableCell>
@@ -1411,7 +1411,7 @@ export default function DemoPage() {
                           <TableCell>{po.supplierName}</TableCell>
                           <TableCell>{po.status}</TableCell>
                           <TableCell>{po.priority || "Not set"}</TableCell>
-                          <TableCell>${po.total.toLocaleString()}</TableCell>
+                          <TableCell>RM{po.total.toLocaleString()}</TableCell>
                           <TableCell>{po.orderDate}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1519,7 +1519,7 @@ export default function DemoPage() {
                           <TableCell className="font-mono text-sm text-gray-500">{bom.id}</TableCell>
                           <TableCell className="font-medium">{bom.bomNumber}</TableCell>
                           <TableCell>{bom.status}</TableCell>
-                          <TableCell>${bom.totalCost.toLocaleString()}</TableCell>
+                          <TableCell>RM{bom.totalCost.toLocaleString()}</TableCell>
                           <TableCell>{bom.createdBy}</TableCell>
                           <TableCell>{bom.version}</TableCell>
                           <TableCell>

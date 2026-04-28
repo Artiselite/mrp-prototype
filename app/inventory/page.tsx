@@ -42,7 +42,7 @@ function InventoryContent() {
   const [uploadMessage, setUploadMessage] = useState("")
   const [selectedImportType, setSelectedImportType] = useState("inbound")
   const [selectedExportType, setSelectedExportType] = useState("full-inventory")
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview")
 
   // Handler functions for warehouse operations
   const handleCreatePutawayTask = () => {
@@ -342,7 +342,7 @@ function InventoryContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Value</p>
-                  <p className="text-2xl font-bold text-gray-900">${totalValue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">RM{totalValue.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -507,7 +507,7 @@ function InventoryContent() {
                           </div>
                           <div className="text-right">
                             <div className="font-medium">{location.itemCount} items</div>
-                            <div className="text-sm text-gray-600">${location.totalValue.toFixed(2)}</div>
+                            <div className="text-sm text-gray-600">RM{location.totalValue.toFixed(2)}</div>
                           </div>
                         </div>
                       ))}
@@ -885,7 +885,7 @@ function InventoryContent() {
                             <div className="text-sm text-gray-600">Items: {valuation.itemCount}</div>
                           </div>
                           <div className="text-right">
-                            <div className="font-medium">${valuation.totalValue.toFixed(2)}</div>
+                            <div className="font-medium">RM{valuation.totalValue.toFixed(2)}</div>
                           </div>
                         </div>
                       </div>
@@ -1028,10 +1028,10 @@ function InventoryContent() {
                           </div>
                         </TableCell>
                         <TableCell className="font-mono">
-                          ${item.unitCost.toFixed(2)}
+                          RM{item.unitCost.toFixed(2)}
                         </TableCell>
                         <TableCell className="font-mono font-medium">
-                          ${(item.currentStock * item.unitCost).toFixed(2)}
+                          RM{(item.currentStock * item.unitCost).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <Badge variant={item.status === "Active" ? "default" : "secondary"}>

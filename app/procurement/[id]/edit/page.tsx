@@ -34,9 +34,9 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
     orderDate: "2024-02-01",
     requestedDeliveryDate: "2024-02-15",
     actualDeliveryDate: "",
-    subtotal: 4560.0,
-    tax: 364.8,
-    total: 4924.8,
+    subtotal: 456000.0,
+    tax: 36480.0,
+    total: 492480.0,
     items: [
       {
         id: "1",
@@ -44,8 +44,8 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
         description: "W12x26 Steel Beam, 20ft raw",
         quantity: 12,
         unit: "pieces",
-        unitPrice: 380.0,
-        totalPrice: 4560.0,
+        unitPrice: 38000.0,
+        totalPrice: 456000.0,
         steelGrade: "A992",
         urgency: "Medium" as const,
         requestedDate: "2024-02-15",
@@ -140,7 +140,7 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
   const calculateTotal = () => {
     const subtotal = calculateSubtotal()
     const tax = calculateTax(subtotal)
-    const shipping = 500 // Fixed shipping cost
+    const shipping = 50000 // Fixed shipping cost
     return subtotal + tax + shipping
   }
 
@@ -181,7 +181,7 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
 
     const subtotal = calculateSubtotal()
     const taxAmount = calculateTax(subtotal)
-    const shippingCost = 500
+    const shippingCost = 50000
     const totalAmount = subtotal + taxAmount + shippingCost
 
     const updatedPO = {
@@ -483,7 +483,7 @@ export default function EditPurchaseOrderPage({ params }: { params: Promise<{ id
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping:</span>
-                  <span>MYR500.00</span>
+                  <span>MYR50,000.00</span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between font-bold text-lg">

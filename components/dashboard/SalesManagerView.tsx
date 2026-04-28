@@ -75,38 +75,38 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
 
         // Pipeline Status
         pipelineStatus: [
-            { stage: "Lead", count: 45, value: 675000, color: "bg-blue-500" },
-            { stage: "Qualified", count: 32, value: 960000, color: "bg-yellow-500" },
-            { stage: "Proposal", count: 18, value: 720000, color: "bg-orange-500" },
-            { stage: "Negotiation", count: 12, value: 540000, color: "bg-purple-500" },
-            { stage: "Closed Won", count: 8, value: 360000, color: "bg-green-500" }
+            { stage: "Lead", count: 45, value: 67500000, color: "bg-blue-500" },
+            { stage: "Qualified", count: 32, value: 96000000, color: "bg-yellow-500" },
+            { stage: "Proposal", count: 18, value: 72000000, color: "bg-orange-500" },
+            { stage: "Negotiation", count: 12, value: 54000000, color: "bg-purple-500" },
+            { stage: "Closed Won", count: 8, value: 36000000, color: "bg-green-500" }
         ],
 
         // Top Customers
         topCustomers: [
-            { name: "ABC Construction Ltd", revenue: 180000, orders: 12, growth: 15.2 },
-            { name: "XYZ Engineering", revenue: 165000, orders: 8, growth: 8.7 },
-            { name: "Metro Steel Works", revenue: 142000, orders: 15, growth: 22.1 },
-            { name: "Industrial Solutions", revenue: 128000, orders: 6, growth: -3.2 },
-            { name: "BuildCorp Industries", revenue: 115000, orders: 9, growth: 12.8 }
+            { name: "Petronas Carigali Sdn Bhd", revenue: 18000000, orders: 12, growth: 15.2 },
+            { name: "Tenaga Nasional Berhad", revenue: 16500000, orders: 8, growth: 8.7 },
+            { name: "YTL Power International", revenue: 14200000, orders: 15, growth: 22.1 },
+            { name: "Industrial Power Solutions Sdn Bhd", revenue: 12800000, orders: 6, growth: -3.2 },
+            { name: "Sarawak Energy Berhad", revenue: 11500000, orders: 9, growth: 12.8 }
         ],
 
         // Product Performance
         productPerformance: [
-            { product: "Structural Steel", revenue: 450000, units: 125, margin: 18.5 },
-            { product: "Welding Equipment", revenue: 320000, units: 45, margin: 22.3 },
-            { product: "Fasteners", revenue: 180000, units: 2500, margin: 15.7 },
-            { product: "Coatings", revenue: 150000, units: 800, margin: 20.1 },
-            { product: "Aluminum Components", revenue: 120000, units: 200, margin: 16.8 }
+            { product: "Compact Bus Duct", revenue: 45000000, units: 125, margin: 18.5 },
+            { product: "Sandwich Bus Duct", revenue: 32000000, units: 45, margin: 22.3 },
+            { product: "Rising Main Bus Duct", revenue: 18000000, units: 2500, margin: 15.7 },
+            { product: "Tap-Off Units & Accessories", revenue: 15000000, units: 800, margin: 20.1 },
+            { product: "Custom Bus Duct Systems", revenue: 12000000, units: 200, margin: 16.8 }
         ],
 
         // Regional Performance
         regionalPerformance: [
-            { region: "North", revenue: 420000, growth: 12.5, customers: 25 },
-            { region: "South", revenue: 380000, growth: 8.3, customers: 18 },
-            { region: "East", revenue: 320000, growth: 15.7, customers: 22 },
-            { region: "West", revenue: 280000, growth: 5.2, customers: 15 },
-            { region: "Central", revenue: 250000, growth: 18.9, customers: 12 }
+            { region: "Klang Valley", revenue: 42000000, growth: 12.5, customers: 25 },
+            { region: "Penang", revenue: 38000000, growth: 8.3, customers: 18 },
+            { region: "Johor", revenue: 32000000, growth: 15.7, customers: 22 },
+            { region: "East Malaysia", revenue: 28000000, growth: 5.2, customers: 15 },
+            { region: "East Coast", revenue: 25000000, growth: 18.9, customers: 12 }
         ]
     }
 
@@ -175,13 +175,13 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-3 bg-blue-50 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-600">{stats.eng.drawings}</div>
-                                <div className="text-sm text-gray-600">Total Drawings</div>
-                                <div className="text-xs text-gray-500">{stats.eng.drawingsReleased} Released</div>
+                                <div className="text-sm text-muted-foreground">Total Drawings</div>
+                                <div className="text-xs text-muted-foreground">{stats.eng.drawingsReleased} Released</div>
                             </div>
                             <div className="text-center p-3 bg-green-50 rounded-lg">
                                 <div className="text-2xl font-bold text-green-600">{stats.eng.boms}</div>
-                                <div className="text-sm text-gray-600">BOMs</div>
-                                <div className="text-xs text-gray-500">{stats.eng.bomsApproved} Approved</div>
+                                <div className="text-sm text-muted-foreground">BOMs</div>
+                                <div className="text-xs text-muted-foreground">{stats.eng.bomsApproved} Approved</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -201,17 +201,17 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                     <div className="space-y-4">
                         <div className="text-center p-4 bg-purple-50 rounded-lg">
                             <div className="text-3xl font-bold text-purple-600">{projects.length}</div>
-                            <div className="text-sm text-gray-600">Active Projects</div>
+                            <div className="text-sm text-muted-foreground">Active Projects</div>
                         </div>
                         <div className="space-y-2">
                             {projects.slice(0, 3).map((project, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
                                     <span className="text-sm font-medium truncate">{project}</span>
                                     <Badge variant="secondary" className="text-xs">Active</Badge>
                                 </div>
                             ))}
                             {projects.length > 3 && (
-                                <div className="text-center text-xs text-gray-500">
+                                <div className="text-center text-xs text-muted-foreground">
                                     +{projects.length - 3} more projects
                                 </div>
                             )}
@@ -224,11 +224,11 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-3 bg-orange-50 rounded-lg">
                                 <div className="text-2xl font-bold text-orange-600">{stats.prod.wosActive}</div>
-                                <div className="text-sm text-gray-600">Active WOs</div>
+                                <div className="text-sm text-muted-foreground">Active WOs</div>
                             </div>
                             <div className="text-center p-3 bg-green-50 rounded-lg">
                                 <div className="text-2xl font-bold text-green-600">{stats.prod.wosDone}</div>
-                                <div className="text-sm text-gray-600">Completed</div>
+                                <div className="text-sm text-muted-foreground">Completed</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -251,17 +251,17 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                 <SectionCard title="📊 Sales Pipeline" icon={<BarChart3 className="w-5 h-5" />}>
                     <div className="space-y-3">
                         {salesData.pipelineStatus.map((stage, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                                 <div className="flex items-center space-x-3">
                                     <div className={`w-3 h-3 rounded-full ${stage.color}`}></div>
                                     <div>
                                         <div className="font-medium text-sm">{stage.stage}</div>
-                                        <div className="text-xs text-gray-600">{stage.count} deals</div>
+                                        <div className="text-xs text-muted-foreground">{stage.count} deals</div>
                                     </div>
                                 </div>
                                 <div className="text-right">
                                     <div className="font-medium text-sm">{formatters.Currency.format(stage.value)}</div>
-                                    <div className="text-xs text-gray-600">{stage.count} deals</div>
+                                    <div className="text-xs text-muted-foreground">{stage.count} deals</div>
                                 </div>
                             </div>
                         ))}
@@ -272,10 +272,10 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                 <SectionCard title="🏆 Top Customers" icon={<Users className="w-5 h-5" />}>
                     <div className="space-y-3">
                         {salesData.topCustomers.map((customer, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                                 <div>
                                     <div className="font-medium text-sm">{customer.name}</div>
-                                    <div className="text-xs text-gray-600">{customer.orders} orders</div>
+                                    <div className="text-xs text-muted-foreground">{customer.orders} orders</div>
                                 </div>
                                 <div className="text-right">
                                     <div className="font-medium text-sm">{formatters.Currency.format(customer.revenue)}</div>
@@ -292,14 +292,14 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                 <SectionCard title="📦 Product Performance" icon={<ShoppingCart className="w-5 h-5" />}>
                     <div className="space-y-3">
                         {salesData.productPerformance.map((product, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                                 <div>
                                     <div className="font-medium text-sm">{product.product}</div>
-                                    <div className="text-xs text-gray-600">{product.units} units</div>
+                                    <div className="text-xs text-muted-foreground">{product.units} units</div>
                                 </div>
                                 <div className="text-right">
                                     <div className="font-medium text-sm">{formatters.Currency.format(product.revenue)}</div>
-                                    <div className="text-xs text-gray-600">{product.margin}% margin</div>
+                                    <div className="text-xs text-muted-foreground">{product.margin}% margin</div>
                                 </div>
                             </div>
                         ))}
@@ -316,13 +316,13 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                                 <div className="text-2xl font-bold text-green-600">
                                     {Math.round((stats.sales.soTotal / stats.sales.quotes) * 100)}%
                                 </div>
-                                <div className="text-sm text-gray-600">Quote Conversion</div>
+                                <div className="text-sm text-muted-foreground">Quote Conversion</div>
                             </div>
                             <div className="text-center p-4 bg-blue-50 rounded-lg">
                                 <div className="text-2xl font-bold text-blue-600">
                                     {formatters.Currency.format(stats.sales.soValue / stats.sales.soTotal)}
                                 </div>
-                                <div className="text-sm text-gray-600">Avg Order Value</div>
+                                <div className="text-sm text-muted-foreground">Avg Order Value</div>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -348,7 +348,7 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                             data={salesData.regionalPerformance.map(region => ({
                                 category: region.region,
                                 count: region.revenue,
-                                percentage: (region.revenue / 1650000) * 100
+                                percentage: (region.revenue / 165000000) * 100
                             }))} 
                             title="Revenue by Region" 
                             yAxisLabel="Revenue (RM)"
@@ -365,8 +365,8 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                             <TrendingUp className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Sales Analytics Insights</h2>
-                            <p className="text-sm text-gray-600">AI-powered sales recommendations</p>
+                            <h2 className="text-2xl font-bold text-foreground">Sales Analytics Insights</h2>
+                            <p className="text-sm text-muted-foreground">AI-powered sales recommendations</p>
                         </div>
                     </div>
                     <div className="flex space-x-2">
@@ -383,14 +383,14 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Sales Forecast */}
-                    <Card className="border-blue-200 bg-white shadow-lg">
-                        <CardHeader className="pb-3 bg-white border-b border-blue-200">
+                    <Card className="border-blue-200 bg-card shadow-lg">
+                        <CardHeader className="pb-3 bg-card border-b border-blue-200">
                             <CardTitle className="text-lg text-blue-800 flex items-center space-x-2">
                                 <TrendingUp className="w-5 h-5" />
                                 <span>Q4 Sales Forecast</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="bg-white">
+                        <CardContent className="bg-card">
                             <div className="space-y-4">
                                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                                     <div className="flex items-center justify-between mb-2">
@@ -419,14 +419,14 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
                     </Card>
 
                     {/* Customer Insights */}
-                    <Card className="border-green-200 bg-white shadow-lg">
-                        <CardHeader className="pb-3 bg-white border-b border-green-200">
+                    <Card className="border-green-200 bg-card shadow-lg">
+                        <CardHeader className="pb-3 bg-card border-b border-green-200">
                             <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
                                 <Users className="w-5 h-5" />
                                 <span>Customer Insights</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="bg-white">
+                        <CardContent className="bg-card">
                             <div className="space-y-4">
                                 <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                                     <div className="flex items-center justify-between mb-2">
@@ -457,7 +457,7 @@ export default function SalesManagerView({ formatters, stats, projects }: SalesM
 
             {/* Quick Actions */}
             <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ Quick Actions</h2>
+                <h2 className="text-xl font-bold text-foreground mb-4">⚡ Quick Actions</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Button className="h-20 flex flex-col items-center justify-center space-y-2">
                         <FileText className="w-6 h-6" />

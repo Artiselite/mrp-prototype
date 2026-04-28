@@ -258,7 +258,7 @@ function EditItemContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="unitCost">Unit Cost ($)</Label>
+                <Label htmlFor="unitCost">Unit Cost (RM)</Label>
                 <Input
                   id="unitCost"
                   type="number"

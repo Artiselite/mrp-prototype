@@ -648,8 +648,8 @@ export default function EditQuotationPage() {
                       <TableHead className="w-[12%]">Part Number</TableHead>
                       <TableHead className="w-[20%]">Description</TableHead>
                       <TableHead className="w-[8%]">Quantity</TableHead>
-                      <TableHead className="w-[12%]">Unit Price ($)</TableHead>
-                      <TableHead className="w-[12%]">Total Price ($)</TableHead>
+                      <TableHead className="w-[12%]">Unit Price (RM)</TableHead>
+                      <TableHead className="w-[12%]">Total Price (RM)</TableHead>
                       <TableHead className="w-[13%]">Delivery Date</TableHead>
                       <TableHead className="w-[8%]">Actions</TableHead>
                     </TableRow>
@@ -722,7 +722,7 @@ export default function EditQuotationPage() {
                             />
                           </TableCell>
                           <TableCell className="p-2 font-medium">
-                            ${item.totalPrice.toLocaleString()}
+                            RM{item.totalPrice.toLocaleString()}
                           </TableCell>
                           <TableCell className="p-2">
                             <Input
@@ -755,15 +755,15 @@ export default function EditQuotationPage() {
                   <div className="w-80 space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span className="font-medium">${calculateSubtotal().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateSubtotal().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax (8.5%):</span>
-                      <span className="font-medium">${calculateTax().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateTax().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                       <span>Total:</span>
-                      <span>${calculateTotal().toLocaleString()}</span>
+                      <span>RM{calculateTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -783,7 +783,7 @@ export default function EditQuotationPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="engineeringCost">Engineering Cost ($)</Label>
+                    <Label htmlFor="engineeringCost">Engineering Cost (RM)</Label>
                     <Input
                       id="engineeringCost"
                       type="number"
@@ -794,7 +794,7 @@ export default function EditQuotationPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="materialCost">Material Cost ($)</Label>
+                    <Label htmlFor="materialCost">Material Cost (RM)</Label>
                     <Input
                       id="materialCost"
                       type="number"
@@ -808,7 +808,7 @@ export default function EditQuotationPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="laborCost">Labor Cost ($)</Label>
+                    <Label htmlFor="laborCost">Labor Cost (RM)</Label>
                     <Input
                       id="laborCost"
                       type="number"
@@ -819,7 +819,7 @@ export default function EditQuotationPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="overheadCost">Overhead Cost ($)</Label>
+                    <Label htmlFor="overheadCost">Overhead Cost (RM)</Label>
                     <Input
                       id="overheadCost"
                       type="number"
@@ -832,7 +832,7 @@ export default function EditQuotationPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="profitMargin">Profit Margin ($)</Label>
+                  <Label htmlFor="profitMargin">Profit Margin (RM)</Label>
                   <Input
                     id="profitMargin"
                     type="number"
@@ -849,41 +849,41 @@ export default function EditQuotationPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal:</span>
-                      <span className="font-medium">${calculateSubtotal().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateSubtotal().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Engineering Cost:</span>
-                      <span className="font-medium">${formData.engineeringCost.toLocaleString()}</span>
+                      <span className="font-medium">RM{formData.engineeringCost.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Material Cost:</span>
-                      <span className="font-medium">${formData.materialCost.toLocaleString()}</span>
+                      <span className="font-medium">RM{formData.materialCost.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Labor Cost:</span>
-                      <span className="font-medium">${formData.laborCost.toLocaleString()}</span>
+                      <span className="font-medium">RM{formData.laborCost.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Overhead Cost:</span>
-                      <span className="font-medium">${formData.overheadCost.toLocaleString()}</span>
+                      <span className="font-medium">RM{formData.overheadCost.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm border-t pt-2">
                       <span className="text-gray-600">Total Cost:</span>
                       <span className="font-medium">
-                        ${(formData.engineeringCost + formData.materialCost + formData.laborCost + formData.overheadCost).toLocaleString()}
+                        RM{(formData.engineeringCost + formData.materialCost + formData.laborCost + formData.overheadCost).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Profit Margin:</span>
-                      <span className="font-medium text-green-600">${formData.profitMargin.toLocaleString()}</span>
+                      <span className="font-medium text-green-600">RM{formData.profitMargin.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Tax (8.5%):</span>
-                      <span className="font-medium">${calculateTax().toLocaleString()}</span>
+                      <span className="font-medium">RM{calculateTax().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t pt-2 text-blue-600">
                       <span>Total Quotation:</span>
-                      <span>${calculateTotal().toLocaleString()}</span>
+                      <span>RM{calculateTotal().toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -1023,15 +1023,15 @@ export default function EditQuotationPage() {
               <CardContent className="space-y-3">
                 <div>
                   <Label className="text-xs font-medium text-gray-500">SUBTOTAL</Label>
-                  <p className="text-lg font-bold">${calculateSubtotal().toLocaleString()}</p>
+                  <p className="text-lg font-bold">RM{calculateSubtotal().toLocaleString()}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">TAX (8.5%)</Label>
-                  <p className="text-sm">${calculateTax().toLocaleString()}</p>
+                  <p className="text-sm">RM{calculateTax().toLocaleString()}</p>
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-gray-500">TOTAL</Label>
-                  <p className="text-xl font-bold text-blue-600">${calculateTotal().toLocaleString()}</p>
+                  <p className="text-xl font-bold text-blue-600">RM{calculateTotal().toLocaleString()}</p>
                 </div>
               </CardContent>
             </Card>

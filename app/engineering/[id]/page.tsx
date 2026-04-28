@@ -14,6 +14,7 @@ import { ArrowLeft, Edit, Download, Upload, MessageSquare, Clock, User, FileText
 import Link from "next/link"
 import { useDatabaseContext } from '@/components/database-provider'
 import CADToBOQConverter from '@/components/cad-to-boq-converter'
+import EngineeringDrawingPreview from '@/components/engineering-drawing-preview'
 import type { EngineeringDrawing, Quotation } from '@/lib/types'
 
 export default function DrawingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,6 +33,7 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
   const [showCommentDialog, setShowCommentDialog] = useState(false)
   const [selectedApproval, setSelectedApproval] = useState<any>(null)
   const [showCADConverter, setShowCADConverter] = useState(false)
+  const [showFullScreen, setShowFullScreen] = useState(false)
 
   // Resolve the async params
   useEffect(() => {
@@ -42,12 +44,14 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     if (isInitialized && drawings && quotations && drawingId) {
+      // Match by drawing ID first, then fall back to projectId for engineering project links
       const foundDrawing = drawings.find((d: any) => d.id === drawingId)
+        || drawings.find((d: any) => d.projectId === drawingId)
       setDrawing(foundDrawing || null)
 
       if (foundDrawing && foundDrawing.projectId) {
-        // The projectId stores the quotation ID (from our create page implementation)
-        const foundQuotation = quotations.find((q: any) => q.id === foundDrawing.projectId)
+        // The projectId stores the quotation/engineering project ID
+        const foundQuotation = quotations.find((q: any) => q.id === foundDrawing.projectId || q.engineeringProjectId === foundDrawing.projectId)
         setQuotation(foundQuotation || null)
       }
 
@@ -318,21 +322,33 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
                 {/* Drawing Preview */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Drawing Preview</CardTitle>
-                    <CardDescription>Current revision: {drawing.revision}</CardDescription>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>Drawing Preview</CardTitle>
+                        <CardDescription>Current revision: {drawing.revision}</CardDescription>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setShowFullScreen(true)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Full Screen
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                      <div className="text-center">
-                        <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-2">Drawing Preview</p>
-                        <p className="text-sm text-gray-400">{drawing.id} - {drawing.revision}</p>
-                        <Button variant="outline" className="mt-4">
-                          <Eye className="w-4 h-4 mr-2" />
-                          Open in Viewer
-                        </Button>
-                      </div>
-                    </div>
+                    <EngineeringDrawingPreview
+                      drawingNumber={drawing.drawingNumber}
+                      title={drawing.title}
+                      revision={drawing.revision}
+                      drawnBy={drawing.drawnBy}
+                      checkedBy={drawing.checkedBy}
+                      approvedBy={drawing.approvedBy}
+                      date={new Date(drawing.createdAt).toLocaleDateString()}
+                      dimensions={drawing.dimensions}
+                      materials={drawing.materials}
+                      specifications={drawing.specifications}
+                      tolerances={drawing.tolerances}
+                      surfaceFinish={drawing.surfaceFinish}
+                      weldingSpecs={drawing.weldingSpecs}
+                    />
                   </CardContent>
                 </Card>
 
@@ -842,6 +858,47 @@ export default function DrawingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Full Screen Drawing Modal */}
+      {showFullScreen && drawing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-[95vw] max-h-[95vh] overflow-auto">
+            <div className="flex justify-between items-center px-6 py-3 border-b">
+              <div>
+                <h2 className="text-lg font-bold">{drawing.drawingNumber} — {drawing.title}</h2>
+                <p className="text-sm text-gray-500">Revision: {drawing.revision}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowFullScreen(false)}>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Close
+                </Button>
+              </div>
+            </div>
+            <div className="p-6">
+              <EngineeringDrawingPreview
+                drawingNumber={drawing.drawingNumber}
+                title={drawing.title}
+                revision={drawing.revision}
+                drawnBy={drawing.drawnBy}
+                checkedBy={drawing.checkedBy}
+                approvedBy={drawing.approvedBy}
+                date={new Date(drawing.createdAt).toLocaleDateString()}
+                dimensions={drawing.dimensions}
+                materials={drawing.materials}
+                specifications={drawing.specifications}
+                tolerances={drawing.tolerances}
+                surfaceFinish={drawing.surfaceFinish}
+                weldingSpecs={drawing.weldingSpecs}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CAD to BOQ Converter Modal */}
       {showCADConverter && (

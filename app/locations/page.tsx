@@ -219,7 +219,7 @@ function LocationsContent() {
                                   {location.items.toLocaleString()}
                                 </TableCell>
                                 <TableCell className="font-mono">
-                                  ${location.value.toLocaleString()}
+                                  RM{location.value.toLocaleString()}
                                 </TableCell>
                                 <TableCell>
                                   <Badge variant={location.status === "Active" ? "default" : "secondary"}>
@@ -298,7 +298,7 @@ function LocationsContent() {
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <div className="text-2xl font-bold text-purple-600">
-                  ${filteredLocations.reduce((sum: number, location: Location) => sum + location.value, 0).toLocaleString()}
+                  RM{filteredLocations.reduce((sum: number, location: Location) => sum + location.value, 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-purple-800">Total Location Value</div>
               </div>

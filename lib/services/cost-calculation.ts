@@ -58,9 +58,9 @@ export interface OverheadCostData {
 
 export class CostCalculationService {
   private static instance: CostCalculationService
-  private copperLMEPrice: number = 40000 // RM per metric ton (converted from USD)
+  private copperLMEPrice: number = 40000 // RM per metric ton (LME spot in MYR)
   private overheadRate: number = 0.15 // 15% of labor cost
-  private engineeringRate: number = 600 // RM per hour (converted from USD)
+  private engineeringRate: number = 600 // RM per hour
 
   static getInstance(): CostCalculationService {
     if (!CostCalculationService.instance) {
@@ -213,9 +213,13 @@ export class CostCalculationService {
       laborCost = quotation.laborCost || quotation.subtotal * 0.3
     }
 
-    // Calculate overhead costs
-    const overheadData = this.calculateOverheadCosts(laborCost)
-    overheadCost = overheadData.totalOverheadCost
+    // Calculate overhead costs — use stored value if available, otherwise estimate
+    if (quotation.overheadCost) {
+      overheadCost = quotation.overheadCost
+    } else {
+      const overheadData = this.calculateOverheadCosts(laborCost)
+      overheadCost = overheadData.totalOverheadCost
+    }
 
     // Calculate engineering costs
     if (engineeringProject) {
@@ -228,9 +232,9 @@ export class CostCalculationService {
     const quantity = quotation.items.reduce((sum, item) => sum + item.quantity, 0)
     const unitCost = quantity > 0 ? totalCost / quantity : 0
 
-    // Calculate profit margin
+    // Calculate profit margin and unit price from actual quotation selling price
     const profitMargin = quotation.profitMargin || (quotation.subtotal * 0.15) // 15% default
-    const unitPrice = unitCost + (profitMargin / quantity)
+    const unitPrice = quantity > 0 ? quotation.subtotal / quantity : 0
 
     return {
       materialCost,

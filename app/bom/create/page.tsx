@@ -961,8 +961,8 @@ function CreateBOMContent() {
                                                     <TableCell>{item.partNumber}</TableCell>
                                                     <TableCell>{item.quantity}</TableCell>
                                                     <TableCell>{item.unit}</TableCell>
-                                                    <TableCell>${item.unitCost.toFixed(2)}</TableCell>
-                                                    <TableCell>${(item.quantity * item.unitCost).toFixed(2)}</TableCell>
+                                                    <TableCell>RM{item.unitCost.toFixed(2)}</TableCell>
+                                                    <TableCell>RM{(item.quantity * item.unitCost).toFixed(2)}</TableCell>
                                                     <TableCell>
                                                         <Badge variant="outline" className={getCategoryColor(item.category)}>
                                                             {item.category}

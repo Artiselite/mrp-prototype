@@ -17,7 +17,7 @@ import {
     Users, Building2, FileText, ShoppingCart, Wrench, ClipboardList, Calculator,
     Factory, Receipt, CheckCircle, Clock, TrendingUp, Box, MapPin, Package,
     DollarSign, BarChart3, TrendingDown, Target, Activity, AlertTriangle, Check, Settings,
-    Brain, Calendar, Eye, RefreshCw, Shield, Zap
+    Brain, Calendar, Eye, RefreshCw, Shield, Zap, ChevronDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDatabaseContext } from "@/components/database-provider"
@@ -68,10 +68,10 @@ const moduleCharts = {
 
         // BOQ Cost Breakdown (Bar Chart)
         boqCostBreakdown: [
-            { category: "Materials", cost: 450000, percentage: 45 },
-            { category: "Labor", cost: 350000, percentage: 35 },
-            { category: "Equipment", cost: 150000, percentage: 15 },
-            { category: "Overhead", cost: 50000, percentage: 5 }
+            { category: "Materials", cost: 45000000, percentage: 45 },
+            { category: "Labor", cost: 35000000, percentage: 35 },
+            { category: "Equipment", cost: 15000000, percentage: 15 },
+            { category: "Overhead", cost: 5000000, percentage: 5 }
         ]
     },
 
@@ -87,22 +87,22 @@ const moduleCharts = {
 
         // Demand vs Supply by Category (Bar Chart)
         demandVsSupply: [
-            { category: "Structural Steel", demand: 85, supply: 78, gap: -7 },
-            { category: "Steel Plates", demand: 62, supply: 65, gap: 3 },
-            { category: "Fasteners", demand: 45, supply: 42, gap: -3 },
-            { category: "Welding Supplies", demand: 38, supply: 40, gap: 2 },
-            { category: "Coatings", demand: 28, supply: 25, gap: -3 },
-            { category: "Aluminum", demand: 22, supply: 20, gap: -2 }
+            { category: "Copper Busbars", demand: 85, supply: 78, gap: -7 },
+            { category: "Aluminum Conductors", demand: 62, supply: 65, gap: 3 },
+            { category: "Insulation Material", demand: 45, supply: 42, gap: -3 },
+            { category: "Steel Casing", demand: 38, supply: 40, gap: 2 },
+            { category: "Connectors", demand: 28, supply: 25, gap: -3 },
+            { category: "Epoxy Compound", demand: 22, supply: 20, gap: -2 }
         ],
 
         // Inventory Turnover by Category (Bar Chart)
         inventoryTurnover: [
-            { category: "Fasteners", turnover: 4.2, target: 3.0 },
-            { category: "Welding Supplies", turnover: 3.8, target: 3.0 },
-            { category: "Structural Steel", turnover: 3.1, target: 3.0 },
-            { category: "Steel Plates", turnover: 2.9, target: 3.0 },
-            { category: "Coatings", turnover: 2.5, target: 3.0 },
-            { category: "Aluminum", turnover: 2.2, target: 3.0 }
+            { category: "Insulation Material", turnover: 4.2, target: 3.0 },
+            { category: "Steel Casing", turnover: 3.8, target: 3.0 },
+            { category: "Copper Busbars", turnover: 3.1, target: 3.0 },
+            { category: "Aluminum Conductors", turnover: 2.9, target: 3.0 },
+            { category: "Connectors", turnover: 2.5, target: 3.0 },
+            { category: "Epoxy Compound", turnover: 2.2, target: 3.0 }
         ]
     },
 
@@ -118,20 +118,20 @@ const moduleCharts = {
 
         // Production Efficiency by Line (Bar Chart)
         productionEfficiency: [
-            { line: "Cutting Line", efficiency: 92, target: 90 },
-            { line: "Welding Line 1", efficiency: 88, target: 90 },
-            { line: "Welding Line 2", efficiency: 95, target: 90 },
-            { line: "Assembly Line", efficiency: 89, target: 90 },
-            { line: "Paint Line", efficiency: 84, target: 90 },
+            { line: "Shell Processing Line", efficiency: 92, target: 90 },
+            { line: "Conductor Line 1", efficiency: 88, target: 90 },
+            { line: "Conductor Line 2", efficiency: 95, target: 90 },
+            { line: "Assembly & Testing Line", efficiency: 89, target: 90 },
+            { line: "Insulation Line", efficiency: 84, target: 90 },
             { line: "Quality Check", efficiency: 78, target: 90 }
         ],
 
         // Quality Metrics by Process (Bar Chart)
         qualityMetrics: [
-            { process: "Cutting", firstPass: 96, rework: 3, scrap: 1 },
-            { process: "Welding", firstPass: 94, rework: 5, scrap: 1 },
-            { process: "Assembly", firstPass: 98, rework: 2, scrap: 0 },
-            { process: "Painting", firstPass: 92, rework: 6, scrap: 2 },
+            { process: "Shell Processing", firstPass: 96, rework: 3, scrap: 1 },
+            { process: "Assembly", firstPass: 94, rework: 5, scrap: 1 },
+            { process: "Insulation", firstPass: 98, rework: 2, scrap: 0 },
+            { process: "Conductor Forming", firstPass: 92, rework: 6, scrap: 2 },
             { process: "Testing", firstPass: 97, rework: 3, scrap: 0 }
         ]
     },
@@ -147,11 +147,11 @@ const moduleCharts = {
 
         // Quality Metrics by Product Type (Bar Chart)
         qualityMetrics: [
-            { product: "Bridge Components", passRate: 92, defectRate: 8 },
-            { product: "Steel Structures", passRate: 88, defectRate: 12 },
-            { product: "Pressure Vessels", passRate: 95, defectRate: 5 },
-            { product: "Piping Systems", passRate: 90, defectRate: 10 },
-            { product: "Equipment Mounts", passRate: 87, defectRate: 13 }
+            { product: "Compact Bus Duct", passRate: 92, defectRate: 8 },
+            { product: "Sandwich Bus Duct", passRate: 88, defectRate: 12 },
+            { product: "Rising Main Bus Duct", passRate: 95, defectRate: 5 },
+            { product: "Bus Duct Connectors", passRate: 90, defectRate: 10 },
+            { product: "Bus Duct Accessories", passRate: 87, defectRate: 13 }
         ],
 
         // Inspection Types Distribution (Pie Chart)
@@ -203,11 +203,11 @@ const moduleCharts = {
 
         // Project Performance by Type (Bar Chart)
         projectPerformance: [
-            { type: "Bridge Construction", onTime: 85, onBudget: 90, quality: 95 },
-            { type: "Steel Structures", onTime: 92, onBudget: 88, quality: 92 },
-            { type: "Industrial Equipment", onTime: 78, onBudget: 85, quality: 88 },
-            { type: "Pipeline Systems", onTime: 88, onBudget: 92, quality: 90 },
-            { type: "Mining Equipment", onTime: 82, onBudget: 87, quality: 85 }
+            { type: "Compact Bus Duct", onTime: 85, onBudget: 90, quality: 95 },
+            { type: "Sandwich Bus Duct", onTime: 92, onBudget: 88, quality: 92 },
+            { type: "Rising Main Bus Duct", onTime: 78, onBudget: 85, quality: 88 },
+            { type: "Bus Duct Connectors", onTime: 88, onBudget: 92, quality: 90 },
+            { type: "Bus Duct Accessories", onTime: 82, onBudget: 87, quality: 85 }
         ],
 
         // Customer Satisfaction Distribution (Pie Chart)
@@ -227,15 +227,15 @@ const moduleCharts = {
             releaseRate: 84
         },
         capacityUtilization: [
-            { resource: "Cutting Line", utilization: 92, available: 160, required: 147 },
-            { resource: "Welding Station 1", utilization: 88, available: 160, required: 141 },
-            { resource: "Welding Station 2", utilization: 95, available: 160, required: 152 },
-            { resource: "Assembly Line", utilization: 78, available: 160, required: 125 },
-            { resource: "Paint Line", utilization: 85, available: 160, required: 136 }
+            { resource: "Shell Processing Line", utilization: 92, available: 160, required: 147 },
+            { resource: "Conductor Processing 1", utilization: 88, available: 160, required: 141 },
+            { resource: "Conductor Processing 2", utilization: 95, available: 160, required: 152 },
+            { resource: "Assembly & Testing Line", utilization: 78, available: 160, required: 125 },
+            { resource: "Insulation Line", utilization: 85, available: 160, required: 136 }
         ],
         bottleneckAnalysis: [
-            { resource: "Assembly Line", severity: "High", waitTime: 8, impact: "Production Delay", action: "Add Labor" },
-            { resource: "Paint Line", severity: "Medium", waitTime: 4, impact: "Minor Delay", action: "Optimize Process" },
+            { resource: "Assembly & Testing Line", severity: "High", waitTime: 8, impact: "Production Delay", action: "Add Labor" },
+            { resource: "Insulation Line", severity: "Medium", waitTime: 4, impact: "Minor Delay", action: "Optimize Process" },
             { resource: "Quality Check", severity: "Low", waitTime: 2, impact: "No Impact", action: "Monitor" }
         ],
         scrapRework: {
@@ -248,28 +248,28 @@ const moduleCharts = {
     // 8. Material Shortages & Supply Chain
     materialShortages: {
         criticalShortages: [
-            { item: "W12x26 I-Beam", currentStock: 15, requiredStock: 45, daysUntilShortage: 2, impact: "Line Stoppage" },
-            { item: "E7018 Welding Rod", currentStock: 50, requiredStock: 120, daysUntilShortage: 3, impact: "Production Slowdown" },
-            { item: "Steel Plates 1/2\"", currentStock: 8, requiredStock: 35, daysUntilShortage: 1, impact: "Critical Delay" }
+            { item: "Copper Busbars 2500A", currentStock: 15, requiredStock: 45, daysUntilShortage: 2, impact: "Line Stoppage" },
+            { item: "Insulation Material (Mylar)", currentStock: 50, requiredStock: 120, daysUntilShortage: 3, impact: "Production Slowdown" },
+            { item: "Epoxy Compound", currentStock: 8, requiredStock: 35, daysUntilShortage: 1, impact: "Critical Delay" }
         ],
         shortageRecommendations: [
-            { item: "W12x26 I-Beam", priority: "High", action: "Expedite Order", eta: "3 days", cost: 2500 },
-            { item: "E7018 Welding Rod", priority: "Medium", action: "Reschedule Production", eta: "5 days", cost: 800 },
-            { item: "Steel Plates 1/2\"", priority: "High", action: "Substitute Material", eta: "1 day", cost: 1200 }
+            { item: "Copper Busbars 2500A", priority: "High", action: "Expedite Order", eta: "3 days", cost: 250000 },
+            { item: "Insulation Material (Mylar)", priority: "Medium", action: "Reschedule Production", eta: "5 days", cost: 80000 },
+            { item: "Epoxy Compound", priority: "High", action: "Substitute Material", eta: "1 day", cost: 120000 }
         ],
         peggingAnalysis: [
-            { item: "W12x26 I-Beam", shortageQty: 30, affectedQty: 45, affectedOrders: 3, orders: ["WO-001", "WO-003", "WO-005"] },
-            { item: "E7018 Welding Rod", shortageQty: 70, affectedQty: 70, affectedOrders: 2, orders: ["WO-002", "WO-004"] },
-            { item: "Steel Plates 1/2\"", shortageQty: 27, affectedQty: 35, affectedOrders: 1, orders: ["WO-006"] }
+            { item: "Copper Busbars 2500A", shortageQty: 30, affectedQty: 45, affectedOrders: 3, orders: ["WO-001", "WO-003", "WO-005"] },
+            { item: "Insulation Material (Mylar)", shortageQty: 70, affectedQty: 70, affectedOrders: 2, orders: ["WO-002", "WO-004"] },
+            { item: "Epoxy Compound", shortageQty: 27, affectedQty: 35, affectedOrders: 1, orders: ["WO-006"] }
         ]
     },
 
     // 9. Exception Management
     exceptionManagement: {
         capacityOverloads: [
-            { resource: "Cutting Line", load: 95, status: "Near Capacity" },
-            { resource: "Welding Station 2", load: 105, status: "Overloaded" },
-            { resource: "Assembly Line", load: 88, status: "Normal" }
+            { resource: "Shell Processing Line", load: 95, status: "Near Capacity" },
+            { resource: "Conductor Processing 2", load: 105, status: "Overloaded" },
+            { resource: "Assembly & Testing Line", load: 88, status: "Normal" }
         ]
     }
 }
@@ -284,7 +284,7 @@ const Percent = (v: number) => `${Math.round(v)}%`
 function metricTrendIcon(trend: "up" | "down" | "stable") {
     if (trend === "up") return <TrendingUp className="w-4 h-4 text-emerald-500" />
     if (trend === "down") return <TrendingDown className="w-4 h-4 text-rose-500" />
-    return <BarChart3 className="w-4 h-4 text-gray-400" />
+    return <BarChart3 className="w-4 h-4 text-muted-foreground" />
 }
 
 function Pill({
@@ -294,7 +294,7 @@ function Pill({
         success: "bg-emerald-100 text-emerald-700",
         warn: "bg-amber-100 text-amber-800",
         danger: "bg-rose-100 text-rose-700",
-        neutral: "bg-gray-100 text-gray-700",
+        neutral: "bg-muted text-foreground",
     }
     return <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", tones[tone])}>{label}</span>
 }
@@ -309,10 +309,10 @@ function Meter({
                 "bg-rose-500"
     return (
         <div className={cn("flex items-center space-x-2", className)}>
-            <div className="flex-1 bg-gray-200/70 rounded-full h-2">
+            <div className="flex-1 bg-muted rounded-full h-2">
                 <div className={cn("h-2 rounded-full", tone)} style={{ width: `${pct}%` }} />
             </div>
-            {showLabel && <span className="text-xs text-gray-600 w-10 text-right">{Percent(pct)}</span>}
+            {showLabel && <span className="text-xs text-muted-foreground w-10 text-right">{Percent(pct)}</span>}
         </div>
     )
 }
@@ -350,6 +350,9 @@ export default function DashboardPage() {
 
     // Stakeholder view state
     const [stakeholderView, setStakeholderView] = useState<string>("senior-management")
+
+    // Alert expansion state (null = all collapsed, string = which category is open)
+    const [expandedAlert, setExpandedAlert] = useState<string | null>(null)
 
     // Get unique projects for filtering
     const projects = useMemo(() => {
@@ -442,7 +445,7 @@ export default function DashboardPage() {
                                 borderWidth: 1,
                                 yAxisID: 'y'
                             }, {
-                                label: 'Revenue ($K)',
+                                label: 'Revenue (RM K)',
                                 data: [2400, 1900, 1400], // Revenue in thousands
                                 backgroundColor: [
                                     'rgba(59, 130, 246, 0.8)',
@@ -478,11 +481,11 @@ export default function DashboardPage() {
                                         afterLabel: function (context: any) {
                                             if (context.datasetIndex === 0) {
                                                 // Units dataset
-                                                const revenue = context.parsed.y * 2; // RM2K per unit
-                                                return `Revenue: RM${revenue}K`;
+                                                const revenue = context.parsed.y * 0.2; // RM0.2M per unit
+                                                return `Revenue: RM${revenue}M`;
                                             } else {
                                                 // Revenue dataset
-                                                const units = context.parsed.y / 2; // 2K per unit
+                                                const units = context.parsed.y / 0.2; // 0.2M per unit
                                                 return `Units: ${units}`;
                                             }
                                         }
@@ -515,7 +518,7 @@ export default function DashboardPage() {
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Revenue ($K)',
+                                        text: 'Revenue (RM K)',
                                         font: {
                                             size: 10
                                         }
@@ -562,7 +565,7 @@ export default function DashboardPage() {
                     new window.Chart(materialsCtx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Steel Plate', 'Fasteners', 'Paint'],
+                            labels: ['Copper Busbar', 'Connectors', 'Insulation'],
                             datasets: [{
                                 data: [320, 18000, 1200],
                                 backgroundColor: [
@@ -732,15 +735,15 @@ export default function DashboardPage() {
                     <div class="space-y-3 text-xs">
                         <div class="space-y-1">
                             <div class="flex justify-between"><span class="text-green-700">Product A:</span><span class="font-medium text-green-800">1,200 units</span></div>
-                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM2,400K</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM240M</span></div>
                         </div>
                         <div class="space-y-1">
                             <div class="flex justify-between"><span class="text-green-700">Product B:</span><span class="font-medium text-green-800">950 units</span></div>
-                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM1,900K</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM190M</span></div>
                         </div>
                         <div class="space-y-1">
                             <div class="flex justify-between"><span class="text-green-700">Product C:</span><span class="font-medium text-green-800">700 units</span></div>
-                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM1,400K</span></div>
+                            <div class="flex justify-between"><span class="text-blue-600">Revenue:</span><span class="font-medium text-blue-800">RM140M</span></div>
                         </div>
                     </div>
                 `
@@ -749,9 +752,9 @@ export default function DashboardPage() {
             if (materialsLoading) {
                 materialsLoading.innerHTML = `
                     <div class="space-y-2 text-xs">
-                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>Steel Plate: 320 tons</span></div>
-                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-green-500"></div><span>Fasteners: 18,000 pcs</span></div>
-                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-orange-500"></div><span>Paint: 1,200 L</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>Copper Busbar: 320 tons</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-green-500"></div><span>Connectors: 18,000 pcs</span></div>
+                        <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-orange-500"></div><span>Insulation: 1,200 L</span></div>
                     </div>
                 `
             }
@@ -909,13 +912,13 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Product-Specific Forecasts</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Product-Specific Forecasts</h3>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded border border-green-200">
                                 <div>
-                                    <div className="font-medium text-green-800">Product A - Structural Steel</div>
-                                    <div className="text-sm text-green-600">Primary construction material</div>
+                                    <div className="font-medium text-green-800">Product A - Compact Bus Duct</div>
+                                    <div className="text-sm text-green-600">Primary bus duct system</div>
                                 </div>
                                 <div className="text-right">
                                     <div className="text-2xl font-bold text-green-800">+45%</div>
@@ -924,8 +927,8 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex items-center justify-between p-3 bg-blue-50 rounded border border-blue-200">
                                 <div>
-                                    <div className="font-medium text-blue-800">Product B - Welding Equipment</div>
-                                    <div className="text-sm text-blue-600">Industrial welding systems</div>
+                                    <div className="font-medium text-blue-800">Product B - Sandwich Bus Duct</div>
+                                    <div className="text-sm text-blue-600">Sandwich bus duct systems</div>
                                 </div>
                                 <div className="text-right">
                                     <div className="text-2xl font-bold text-blue-800">+18%</div>
@@ -935,15 +938,15 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">AI Recommendations</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">AI Recommendations</h3>
                         <div className="space-y-3">
                             <div className="p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
                                 <div className="font-medium text-yellow-800">Immediate Actions (Week 1-2)</div>
                                 <div className="text-sm text-yellow-700 mt-1">
                                     • Increase production capacity by 30%<br />
                                     • Pre-order critical materials (6-8 week lead time)<br />
-                                    • Schedule overtime for welding lines
+                                    • Schedule overtime for conductor lines
                                 </div>
                             </div>
                             <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
@@ -965,8 +968,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Risk Assessment</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Risk Assessment</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="text-center p-3 bg-red-50 rounded border border-red-200">
                                 <div className="text-red-600 font-medium">High Risk</div>
@@ -1010,14 +1013,14 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <div className="font-medium text-orange-700">Potential Impact:</div>
-                                <div className="text-2xl font-bold text-orange-800">RM600K</div>
+                                <div className="text-2xl font-bold text-orange-800">RM60M</div>
                                 <div className="text-orange-600">Cost increase</div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Supplier Risk Analysis</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Supplier Risk Analysis</h3>
                         <div className="space-y-4">
                             <div className="p-3 bg-red-50 rounded border border-red-200">
                                 <div className="flex items-center justify-between mb-2">
@@ -1027,7 +1030,7 @@ export default function DashboardPage() {
                                 <div className="text-sm text-red-700 space-y-1">
                                     <div>• Delivery delay risk: 23% (3-week delays)</div>
                                     <div>• Historical performance: 78% on-time delivery</div>
-                                    <div>• Impact: RM321K potential cost increase</div>
+                                    <div>• Impact: RM32.1M potential cost increase</div>
                                     <div>• Root cause: Transportation bottlenecks</div>
                                 </div>
                             </div>
@@ -1039,15 +1042,15 @@ export default function DashboardPage() {
                                 <div className="text-sm text-yellow-700 space-y-1">
                                     <div>• Price increase risk: 15% (8% volatility)</div>
                                     <div>• Market trend: Upward pressure</div>
-                                    <div>• Impact: RM278K potential cost increase</div>
+                                    <div>• Impact: RM27.8M potential cost increase</div>
                                     <div>• Root cause: Global supply constraints</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Mitigation Strategy</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Mitigation Strategy</h3>
                         <div className="space-y-3">
                             <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
                                 <div className="font-medium text-blue-800">Immediate Actions (Week 1-2)</div>
@@ -1068,23 +1071,23 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Cost-Benefit Analysis</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Cost-Benefit Analysis</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-3 bg-red-50 rounded border border-red-200">
                                 <div className="font-medium text-red-800 text-center">Risk Cost</div>
-                                <div className="text-2xl font-bold text-red-800 text-center">RM600K</div>
+                                <div className="text-2xl font-bold text-red-800 text-center">RM60M</div>
                                 <div className="text-sm text-red-600 text-center">Potential loss</div>
                             </div>
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 text-center">Mitigation Cost</div>
-                                <div className="text-2xl font-bold text-green-800 text-center">RM216K</div>
+                                <div className="text-2xl font-bold text-green-800 text-center">RM21.6M</div>
                                 <div className="text-sm text-green-600 text-center">Prevention cost</div>
                             </div>
                         </div>
                         <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
                             <div className="font-medium text-blue-800 text-center">Net Savings</div>
-                            <div className="text-2xl font-bold text-blue-800 text-center">RM384K</div>
+                            <div className="text-2xl font-bold text-blue-800 text-center">RM38.4M</div>
                             <div className="text-sm text-blue-600 text-center">Risk mitigation value</div>
                         </div>
                     </div>
@@ -1118,14 +1121,14 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <div className="font-medium text-green-700">Annual Savings:</div>
-                                <div className="text-2xl font-bold text-green-800">RM427K</div>
+                                <div className="text-2xl font-bold text-green-800">RM42.7M</div>
                                 <div className="text-green-600">Operational costs</div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Optimization Details</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Optimization Details</h3>
                         <div className="space-y-4">
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 mb-2">Setup Time Reduction</div>
@@ -1146,8 +1149,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Implementation Plan</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Implementation Plan</h3>
                         <div className="space-y-3">
                             <div className="p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
                                 <div className="font-medium text-yellow-800">Week 1-2: Operator Training</div>
@@ -1203,7 +1206,7 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
                                 <div className="font-medium text-blue-700">Projected Savings:</div>
-                                <div className="text-2xl font-bold text-blue-800">RM321K</div>
+                                <div className="text-2xl font-bold text-blue-800">RM32.1M</div>
                                 <div className="text-blue-600">Annual savings</div>
                             </div>
                             <div>
@@ -1219,13 +1222,13 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Savings Breakdown</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Savings Breakdown</h3>
                         <div className="space-y-4">
                             <div className="p-3 bg-blue-50 rounded border border-blue-200">
                                 <div className="font-medium text-blue-800 mb-2">Safety Stock Reduction</div>
                                 <div className="text-sm text-blue-700">
-                                    <div>• Savings: RM134K (40% of total)</div>
+                                    <div>• Savings: RM13.4M (40% of total)</div>
                                     <div>• Items affected: 45 high-value items</div>
                                     <div>• Risk assessment: Low impact</div>
                                 </div>
@@ -1233,7 +1236,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 mb-2">JIT Implementation</div>
                                 <div className="text-sm text-green-700">
-                                    <div>• Savings: RM110K (33% of total)</div>
+                                    <div>• Savings: RM11M (33% of total)</div>
                                     <div>• Items affected: 23 items</div>
                                     <div>• Lead time optimization</div>
                                 </div>
@@ -1241,7 +1244,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-purple-50 rounded border border-purple-200">
                                 <div className="font-medium text-purple-800 mb-2">Carrying Costs</div>
                                 <div className="text-sm text-purple-700">
-                                    <div>• Savings: RM77K (24% of total)</div>
+                                    <div>• Savings: RM7.7M (24% of total)</div>
                                     <div>• Reduced storage costs</div>
                                     <div>• Lower insurance costs</div>
                                 </div>
@@ -1249,13 +1252,13 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Implementation Timeline</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Implementation Timeline</h3>
                         <div className="space-y-3">
                             <div className="p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
                                 <div className="font-medium text-yellow-800">Phase 1 (Month 1): High-Value Items</div>
                                 <div className="text-sm text-yellow-700 mt-1">
-                                    • 8 high-value items (RM86K savings)<br />
+                                    • 8 high-value items (RM8.6M savings)<br />
                                     • Immediate impact items<br />
                                     • Low-risk implementation
                                 </div>
@@ -1263,7 +1266,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
                                 <div className="font-medium text-blue-800">Phase 2 (Month 2): Fast-Moving Items</div>
                                 <div className="text-sm text-blue-700 mt-1">
-                                    • 12 fast-moving items (RM58K savings)<br />
+                                    • 12 fast-moving items (RM5.8M savings)<br />
                                     • High turnover items<br />
                                     • Moderate risk assessment
                                 </div>
@@ -1271,7 +1274,7 @@ export default function DashboardPage() {
                             <div className="p-3 bg-green-50 rounded border-l-4 border-green-400">
                                 <div className="font-medium text-green-800">Phase 3 (Month 3): Long-Lead Items</div>
                                 <div className="text-sm text-green-700 mt-1">
-                                    • 3 long-lead items (RM38K savings)<br />
+                                    • 3 long-lead items (RM3.8M savings)<br />
                                     • Strategic items<br />
                                     • Careful risk management
                                 </div>
@@ -1319,8 +1322,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Prediction Confidence</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Prediction Confidence</h3>
                         <div className="space-y-4">
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 mb-2">High Confidence (90%+)</div>
@@ -1349,8 +1352,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Alert Thresholds</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Alert Thresholds</h3>
                         <div className="space-y-3">
                             <div className="p-3 bg-red-50 rounded border-l-4 border-red-400">
                                 <div className="font-medium text-red-800">Critical: &gt;2% Defect Rate</div>
@@ -1408,14 +1411,14 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <div className="font-medium text-green-700">Annual Savings:</div>
-                                <div className="text-2xl font-bold text-green-800">RM163K</div>
+                                <div className="text-2xl font-bold text-green-800">RM16.3M</div>
                                 <div className="text-green-600">Material costs</div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Parameter Optimization</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Parameter Optimization</h3>
                         <div className="space-y-4">
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <div className="font-medium text-green-800 mb-2">Temperature Optimization</div>
@@ -1444,8 +1447,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="font-semibold text-gray-800 mb-3">Implementation Steps</h3>
+                    <div className="bg-card p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Implementation Steps</h3>
                         <div className="space-y-3">
                             <div className="p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
                                 <div className="font-medium text-yellow-800">Step 1: Temperature Adjustment</div>
@@ -1489,29 +1492,29 @@ export default function DashboardPage() {
     // Show loading state if not initialized
     if (isLoading || !isInitialized) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading dashboard...</p>
+                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-muted-foreground text-sm">Loading dashboard...</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
             {/* Header */}
-            <header className="bg-white shadow-sm border-b">
+            <header className="bg-card border-b border-border">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="py-6">
+                    <div className="py-5">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                                <p className="text-gray-600 mt-2">Manufacturing Resource Planning Overview</p>
+                                <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+                                <p className="text-muted-foreground text-sm mt-1">Manufacturing Resource Planning Overview</p>
                             </div>
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-2">
-                                    <label className="text-sm font-medium text-gray-700">View:</label>
+                                    <label className="text-sm font-medium text-muted-foreground">View:</label>
                                     <Select value={stakeholderView} onValueChange={setStakeholderView}>
                                         <SelectTrigger className="w-48">
                                             <SelectValue />
@@ -1539,143 +1542,130 @@ export default function DashboardPage() {
                 ) : stakeholderView === "finance" ? (
                     <FinanceView formatters={formatters} stats={stats} />
                 ) : (
-                    <div className="space-y-8">
-                        {/* KPI Overview - Compact Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-                            <MetricCard icon={<Users className="w-5 h-5" />} label="Customers" value={formatters.Integer.format(stats.actives.customersActive)} sub={`${stats.actives.customersSuspended} suspended`} />
-                            <MetricCard icon={<Building2 className="w-5 h-5" />} label="Suppliers" value={formatters.Integer.format(stats.actives.suppliersActive)} sub={`${stats.actives.suppliersSuspended} suspended`} />
-                            <MetricCard icon={<FileText className="w-5 h-5" />} label="Quotations" value={formatters.Integer.format(stats.sales.quotes)} sub={formatters.Currency.format(stats.sales.quoteValue)} />
-                            <MetricCard icon={<ShoppingCart className="w-5 h-5" />} label="Sales Orders" value={formatters.Integer.format(stats.sales.soTotal)} sub={formatters.Currency.format(stats.sales.soValue)} />
-                            <MetricCard icon={<Factory className="w-5 h-5" />} label="Work Orders" value={formatters.Integer.format(stats.prod.wos)} sub={`${stats.prod.wosActive} active`} />
-                            <MetricCard icon={<Receipt className="w-5 h-5" />} label="Invoices" value={formatters.Integer.format(stats.fin.invoices)} sub={formatters.Currency.format(stats.fin.invoiceValue)} />
+                    <div className="space-y-6">
+                        {/* KPI Overview - Bento Row */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                            <MetricCard icon={<Users className="w-4 h-4" />} label="Customers" value={formatters.Integer.format(stats.actives.customersActive)} sub={`${stats.actives.customersSuspended} suspended`} accent="green" />
+                            <MetricCard icon={<Building2 className="w-4 h-4" />} label="Suppliers" value={formatters.Integer.format(stats.actives.suppliersActive)} sub={`${stats.actives.suppliersSuspended} suspended`} accent="blue" />
+                            <MetricCard icon={<FileText className="w-4 h-4" />} label="Quotations" value={formatters.Integer.format(stats.sales.quotes)} sub={formatters.Currency.format(stats.sales.quoteValue)} accent="amber" />
+                            <MetricCard icon={<ShoppingCart className="w-4 h-4" />} label="Sales Orders" value={formatters.Integer.format(stats.sales.soTotal)} sub={formatters.Currency.format(stats.sales.soValue)} accent="green" />
+                            <MetricCard icon={<Factory className="w-4 h-4" />} label="Work Orders" value={formatters.Integer.format(stats.prod.wos)} sub={`${stats.prod.wosActive} active`} accent="amber" />
+                            <MetricCard icon={<Receipt className="w-4 h-4" />} label="Invoices" value={formatters.Integer.format(stats.fin.invoices)} sub={formatters.Currency.format(stats.fin.invoiceValue)} accent="blue" />
                         </div>
 
-                        {/* Main Dashboard Grid - 3 Columns */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        {/* Bento Dashboard Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
 
-                            {/* Left Column - Engineering & Quality */}
-                            <div className="space-y-6">
-                                {/* Engineering Status */}
-                                <SectionCard title="🏗️ Engineering Status" icon={<Wrench className="w-5 h-5" />}>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                            <div className="text-2xl font-bold text-blue-600">{stats.eng.drawings}</div>
-                                            <div className="text-sm text-gray-600">Total Drawings</div>
-                                            <div className="text-xs text-gray-500">{stats.eng.drawingsReleased} Released</div>
-                                        </div>
-                                        <div className="text-center p-3 bg-green-50 rounded-lg">
-                                            <div className="text-2xl font-bold text-green-600">{stats.eng.boms}</div>
-                                            <div className="text-sm text-gray-600">BOMs</div>
-                                            <div className="text-xs text-gray-500">{stats.eng.bomsApproved} Approved</div>
-                                        </div>
+                            {/* Engineering Status — spans 5 cols */}
+                            <SectionCard title="Engineering Status" icon={<Wrench className="w-4 h-4" />} accent="blue" className="lg:col-span-5">
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <div className="p-3 rounded-md bg-blue-50/80">
+                                        <div className="text-2xl font-semibold text-blue-600 tracking-tight">{stats.eng.drawings}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">Total Drawings</div>
+                                        <div className="text-xs text-blue-500/80">{stats.eng.drawingsReleased} Released</div>
                                     </div>
-                                    <div className="mt-4">
-                                        <EngineeringPieChart data={moduleCharts.engineering.drawingStatus} title="Drawing Status" />
+                                    <div className="p-3 rounded-md bg-emerald-50/80">
+                                        <div className="text-2xl font-semibold text-emerald-600 tracking-tight">{stats.eng.boms}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">BOMs</div>
+                                        <div className="text-xs text-emerald-500/80">{stats.eng.bomsApproved} Approved</div>
                                     </div>
-                                </SectionCard>
+                                </div>
+                                <EngineeringPieChart data={moduleCharts.engineering.drawingStatus} title="Drawing Status" />
+                            </SectionCard>
 
-                                {/* Quality Metrics */}
-                                <SectionCard title="🔍 Quality Overview" icon={<CheckCircle className="w-5 h-5" />}>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                            <span className="text-sm">First Pass Yield</span>
-                                            <span className="font-medium text-green-600">94.2%</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                            <span className="text-sm">Rework Rate</span>
-                                            <span className="font-medium text-yellow-600">4.8%</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                            <span className="text-sm">Scrap Rate</span>
-                                            <span className="font-medium text-red-600">1.0%</span>
-                                        </div>
+                            {/* Quality Overview — spans 3 cols */}
+                            <SectionCard title="Quality Overview" icon={<CheckCircle className="w-4 h-4" />} className="lg:col-span-3">
+                                <div className="space-y-0">
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">First Pass Yield</span>
+                                        <span className="text-sm font-semibold text-emerald-600">94.2%</span>
                                     </div>
-                                </SectionCard>
-                            </div>
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">Rework Rate</span>
+                                        <span className="text-sm font-semibold text-amber-600">4.8%</span>
+                                    </div>
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">Scrap Rate</span>
+                                        <span className="text-sm font-semibold text-red-500">1.0%</span>
+                                    </div>
+                                </div>
+                            </SectionCard>
 
-                            {/* Center Column - Production & Inventory */}
-                            <div className="space-y-6">
-                                {/* Production Status */}
-                                <SectionCard title="🏭 Production Status" icon={<Factory className="w-5 h-5" />}>
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="text-center p-3 bg-orange-50 rounded-lg">
-                                            <div className="text-2xl font-bold text-orange-600">{stats.prod.wosActive}</div>
-                                            <div className="text-sm text-gray-600">Active WOs</div>
-                                        </div>
-                                        <div className="text-center p-3 bg-green-50 rounded-lg">
-                                            <div className="text-2xl font-bold text-green-600">{stats.prod.wosDone}</div>
-                                            <div className="text-sm text-gray-600">Completed</div>
-                                        </div>
+                            {/* Financial Overview — spans 4 cols */}
+                            <SectionCard title="Financial Overview" icon={<DollarSign className="w-4 h-4" />} accent="amber" className="lg:col-span-4">
+                                <div className="space-y-0">
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">Revenue (30d)</span>
+                                        <span className="text-sm font-semibold text-emerald-600">{formatters.Currency.format(stats.sales.soValue)}</span>
                                     </div>
-                                    <ProductionPieChart data={moduleCharts.production.workOrderStatus} title="Work Order Status" />
-                                </SectionCard>
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">Outstanding</span>
+                                        <span className="text-sm font-semibold text-blue-600">{formatters.Currency.format(stats.fin.invoiceValue)}</span>
+                                    </div>
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">PO Value</span>
+                                        <span className="text-sm font-semibold text-amber-600">{formatters.Currency.format(stats.fin.poValue)}</span>
+                                    </div>
+                                </div>
+                            </SectionCard>
 
-                                {/* Inventory Status */}
-                                <SectionCard title="📦 Inventory Status" icon={<Box className="w-5 h-5" />}>
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="text-center p-3 bg-red-50 rounded-lg">
-                                            <div className="text-2xl font-bold text-red-600">{stats.inv.low}</div>
-                                            <div className="text-sm text-gray-600">Low Stock</div>
-                                        </div>
-                                        <div className="text-center p-3 bg-amber-50 rounded-lg">
-                                            <div className="text-2xl font-bold text-amber-600">{stats.inv.out}</div>
-                                            <div className="text-sm text-gray-600">Out of Stock</div>
-                                        </div>
+                            {/* Production Status — spans 5 cols */}
+                            <SectionCard title="Production Status" icon={<Factory className="w-4 h-4" />} accent="primary" className="lg:col-span-5">
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <div className="p-3 rounded-md bg-amber-50/80">
+                                        <div className="text-2xl font-semibold text-amber-600 tracking-tight">{stats.prod.wosActive}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">Active WOs</div>
                                     </div>
-                                    <DemandSupplyPieChart data={moduleCharts.demandSupply.stockLevels} title="Stock Levels" />
-                                </SectionCard>
-                            </div>
+                                    <div className="p-3 rounded-md bg-emerald-50/80">
+                                        <div className="text-2xl font-semibold text-emerald-600 tracking-tight">{stats.prod.wosDone}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">Completed</div>
+                                    </div>
+                                </div>
+                                <ProductionPieChart data={moduleCharts.production.workOrderStatus} title="Work Order Status" />
+                            </SectionCard>
 
-                            {/* Right Column - Financial & Supply Chain */}
-                            <div className="space-y-6">
-                                {/* Financial Overview */}
-                                <SectionCard title="💰 Financial Overview" icon={<DollarSign className="w-5 h-5" />}>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between p-2 bg-green-50 rounded">
-                                            <span className="text-sm">Revenue (30d)</span>
-                                            <span className="font-medium text-green-600">{formatters.Currency.format(stats.sales.soValue)}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                                            <span className="text-sm">Outstanding</span>
-                                            <span className="font-medium text-blue-600">{formatters.Currency.format(stats.fin.invoiceValue)}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-amber-50 rounded">
-                                            <span className="text-sm">PO Value</span>
-                                            <span className="font-medium text-amber-600">{formatters.Currency.format(stats.fin.poValue)}</span>
-                                        </div>
+                            {/* Inventory Status — spans 4 cols */}
+                            <SectionCard title="Inventory Status" icon={<Box className="w-4 h-4" />} accent="red" className="lg:col-span-4">
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <div className="p-3 rounded-md bg-red-50/80">
+                                        <div className="text-2xl font-semibold text-red-500 tracking-tight">{stats.inv.low}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">Low Stock</div>
                                     </div>
-                                </SectionCard>
+                                    <div className="p-3 rounded-md bg-amber-50/80">
+                                        <div className="text-2xl font-semibold text-amber-600 tracking-tight">{stats.inv.out}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">Out of Stock</div>
+                                    </div>
+                                </div>
+                                <DemandSupplyPieChart data={moduleCharts.demandSupply.stockLevels} title="Stock Levels" />
+                            </SectionCard>
 
-                                {/* Supply Chain */}
-                                <SectionCard title="🚚 Supply Chain" icon={<Package className="w-5 h-5" />}>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                            <span className="text-sm">Active POs</span>
-                                            <span className="font-medium">{stats.fin.posActive}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                            <span className="text-sm">Suppliers</span>
-                                            <span className="font-medium">{stats.actives.suppliersActive}</span>
-                                        </div>
+                            {/* Supply Chain — spans 3 cols */}
+                            <SectionCard title="Supply Chain" icon={<Package className="w-4 h-4" />} accent="purple" className="lg:col-span-3">
+                                <div className="space-y-0 mb-4">
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">Active POs</span>
+                                        <span className="text-sm font-semibold">{stats.fin.posActive}</span>
                                     </div>
-                                    <div className="mt-4">
-                                        <DemandSupplyBarChart data={moduleCharts.demandSupply.demandVsSupply} title="Demand vs Supply" type="demand" />
+                                    <div className="data-row">
+                                        <span className="text-sm text-muted-foreground">Suppliers</span>
+                                        <span className="text-sm font-semibold">{stats.actives.suppliersActive}</span>
                                     </div>
-                                </SectionCard>
-                            </div>
+                                </div>
+                                <DemandSupplyBarChart data={moduleCharts.demandSupply.demandVsSupply} title="Demand vs Supply" type="demand" />
+                            </SectionCard>
                         </div>
 
-                        {/* Bottom Row - Detailed Charts */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        {/* Wide Charts Row */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
                             {/* Production Efficiency */}
                             <SectionCard
-                                title="📊 Production Efficiency"
+                                title="Production Efficiency"
                                 icon={<Activity className="w-5 h-5" />}
                                 footer={
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
+                                            <label className="text-xs font-medium text-muted-foreground">Filter by Project:</label>
                                             <Select value={productionFilter} onValueChange={setProductionFilter}>
                                                 <SelectTrigger className="w-40 h-7 text-xs">
                                                     <SelectValue />
@@ -1690,7 +1680,7 @@ export default function DashboardPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="text-xs text-gray-500">
+                                        <div className="text-xs text-muted-foreground">
                                             {productionFilter === "all" ? "All Projects" : productionFilter}
                                         </div>
                                     </div>
@@ -1698,7 +1688,7 @@ export default function DashboardPage() {
                             >
                                 <div className="h-64 relative">
                                     <canvas id="productionEfficiencyChart"></canvas>
-                                    <div id="productionEfficiencyLoading" className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
+                                    <div id="productionEfficiencyLoading" className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                                         Loading chart...
                                     </div>
                                 </div>
@@ -1706,12 +1696,12 @@ export default function DashboardPage() {
 
                             {/* Cost Breakdown */}
                             <SectionCard
-                                title="💵 Cost Breakdown"
+                                title="Cost Breakdown"
                                 icon={<Calculator className="w-5 h-5" />}
                                 footer={
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <label className="text-xs font-medium text-gray-600">Filter by Project:</label>
+                                            <label className="text-xs font-medium text-muted-foreground">Filter by Project:</label>
                                             <Select value={costFilter} onValueChange={setCostFilter}>
                                                 <SelectTrigger className="w-40 h-7 text-xs">
                                                     <SelectValue />
@@ -1726,7 +1716,7 @@ export default function DashboardPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="text-xs text-gray-500">
+                                        <div className="text-xs text-muted-foreground">
                                             {costFilter === "all" ? "All Projects" : costFilter}
                                         </div>
                                     </div>
@@ -1740,12 +1730,12 @@ export default function DashboardPage() {
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center space-x-3">
-                                    <div className="p-2 bg-blue-100 rounded-full">
-                                        <Brain className="w-6 h-6 text-blue-600" />
+                                    <div className="p-2 bg-accent rounded-md">
+                                        <Brain className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-bold text-gray-900">AI Analytics Insights</h2>
-                                        <p className="text-sm text-gray-600">Intelligent recommendations powered by AI</p>
+                                        <h2 className="text-lg font-semibold text-foreground">AI Analytics Insights</h2>
+                                        <p className="text-sm text-muted-foreground">Intelligent recommendations powered by AI</p>
                                     </div>
                                 </div>
                                 <div className="flex space-x-2">
@@ -1762,22 +1752,22 @@ export default function DashboardPage() {
 
                             <div>
                                 {/* Supply & Demand Planning Card */}
-                                <Card className="border-green-200 bg-white shadow-lg mb-6">
-                                    <CardHeader className="pb-3 bg-white border-b border-green-200">
+                                <Card className="border-border bg-card mb-6">
+                                    <CardHeader className="pb-3 border-b border-border">
                                         <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
-                                                <BarChart3 className="w-5 h-5" />
+                                            <CardTitle className="text-base text-foreground flex items-center space-x-2">
+                                                <BarChart3 className="w-5 h-5 text-muted-foreground" />
                                                 <span>Supply & Demand Planning</span>
                                             </CardTitle>
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                            <Badge variant="secondary" className="text-xs">
                                                 AI-Based
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-green-600">
+                                        <p className="text-sm text-muted-foreground">
                                             Align materials inventory and purchase orders with forecasted sales
                                         </p>
                                     </CardHeader>
-                                    <CardContent className="bg-white">
+                                    <CardContent>
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                             {/* Forecasted Sales - Bar Chart */}
                                             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
@@ -1822,10 +1812,10 @@ export default function DashboardPage() {
                                                 <div className="space-y-2">
                                                     <div className="text-xs font-medium text-blue-800 mb-2">Recommended Actions:</div>
                                                     <div className="space-y-2">
-                                                        {/* Steel Plate Row */}
-                                                        <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                        {/* Copper Busbar Row */}
+                                                        <div className="flex items-center justify-between p-2 bg-card rounded border border-blue-200">
                                                             <div className="flex-1">
-                                                                <div className="font-medium text-xs text-blue-800">Steel Plate</div>
+                                                                <div className="font-medium text-xs text-blue-800">Copper Busbar</div>
                                                                 <div className="text-xs text-blue-600">Order 80 tons</div>
                                                             </div>
                                                             <div className="text-right">
@@ -1833,21 +1823,21 @@ export default function DashboardPage() {
                                                                 <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Urgent</Badge>
                                                             </div>
                                                         </div>
-                                                        {/* Paint Row */}
-                                                        <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                        {/* Insulation Row */}
+                                                        <div className="flex items-center justify-between p-2 bg-card rounded border border-blue-200">
                                                             <div className="flex-1">
-                                                                <div className="font-medium text-xs text-blue-800">Paint</div>
-                                                                <div className="text-xs text-blue-600">Order 600 L</div>
+                                                                <div className="font-medium text-xs text-blue-800">Insulation Material</div>
+                                                                <div className="text-xs text-blue-600">Order 600 rolls</div>
                                                             </div>
                                                             <div className="text-right">
                                                                 <div className="text-xs text-blue-600">2 weeks</div>
                                                                 <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">Medium</Badge>
                                                             </div>
                                                         </div>
-                                                        {/* Fasteners Row */}
-                                                        <div className="flex items-center justify-between p-2 bg-white rounded border border-blue-200">
+                                                        {/* Connectors Row */}
+                                                        <div className="flex items-center justify-between p-2 bg-card rounded border border-blue-200">
                                                             <div className="flex-1">
-                                                                <div className="font-medium text-xs text-blue-800">Fasteners</div>
+                                                                <div className="font-medium text-xs text-blue-800">Connectors</div>
                                                                 <div className="text-xs text-blue-600">No immediate action</div>
                                                             </div>
                                                             <div className="text-right">
@@ -1882,8 +1872,8 @@ export default function DashboardPage() {
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Predictive Analytics */}
-                                <Card className="border-blue-200 bg-white shadow-lg">
-                                    <CardHeader className="pb-3 bg-white border-b border-blue-200">
+                                <Card className="border-blue-200 bg-card">
+                                    <CardHeader className="pb-3 bg-card border-b border-blue-200">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-lg text-blue-800 flex items-center space-x-2">
                                                 <TrendingUp className="w-5 h-5" />
@@ -1895,7 +1885,7 @@ export default function DashboardPage() {
                                         </div>
                                         <p className="text-sm text-blue-600">AI-powered demand forecasting</p>
                                     </CardHeader>
-                                    <CardContent className="bg-white">
+                                    <CardContent>
                                         <div className="space-y-4">
                                             {/* Demand Forecast */}
                                             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -1965,8 +1955,8 @@ export default function DashboardPage() {
                                 </Card>
 
                                 {/* Performance Optimization */}
-                                <Card className="border-green-200 bg-white shadow-lg">
-                                    <CardHeader className="pb-3 bg-white border-b border-green-200">
+                                <Card className="border-green-200 bg-card">
+                                    <CardHeader className="pb-3 bg-card border-b border-green-200">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
                                                 <Zap className="w-5 h-5" />
@@ -1978,7 +1968,7 @@ export default function DashboardPage() {
                                         </div>
                                         <p className="text-sm text-green-600">AI-identified improvement opportunities</p>
                                     </CardHeader>
-                                    <CardContent className="bg-white">
+                                    <CardContent>
                                         <div className="space-y-4">
                                             {/* Production Optimization */}
                                             <div className="p-3 bg-green-50 rounded-lg border border-green-200">
@@ -2017,13 +2007,13 @@ export default function DashboardPage() {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div className="font-semibold text-blue-800 text-sm">Inventory Reduction</div>
                                                     <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                                                        RM216K Savings
+                                                        RM21.6M Savings
                                                     </Badge>
                                                 </div>
                                                 <div className="text-xs text-blue-600 mb-2">
                                                     <div className="flex items-center space-x-1 mb-1">
                                                         <DollarSign className="w-3 h-3" />
-                                                        <span>Projected: RM321K annual savings</span>
+                                                        <span>Projected: RM32.1M annual savings</span>
                                                     </div>
                                                     <div>• Reduce safety stock by 15%</div>
                                                     <div>• Implement JIT for 23 items</div>
@@ -2048,8 +2038,8 @@ export default function DashboardPage() {
                                 </Card>
 
                                 {/* Quality Intelligence */}
-                                <Card className="border-purple-200 bg-white shadow-lg">
-                                    <CardHeader className="pb-3 bg-white border-b border-purple-200">
+                                <Card className="border-purple-200 bg-card">
+                                    <CardHeader className="pb-3 bg-card border-b border-purple-200">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-lg text-purple-800 flex items-center space-x-2">
                                                 <Shield className="w-5 h-5" />
@@ -2061,7 +2051,7 @@ export default function DashboardPage() {
                                         </div>
                                         <p className="text-sm text-purple-600">AI-powered quality monitoring</p>
                                     </CardHeader>
-                                    <CardContent className="bg-white">
+                                    <CardContent>
                                         <div className="space-y-4">
                                             {/* Defect Prediction */}
                                             <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
@@ -2132,289 +2122,352 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Enhanced Critical Alerts */}
+                        {/* Critical Alerts */}
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="p-2 bg-red-100 rounded-full">
-                                            <AlertTriangle className="w-6 h-6 text-red-600" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-bold text-gray-900">Critical Alerts</h2>
-                                            <p className="text-sm text-gray-600">Immediate attention required</p>
-                                        </div>
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-red-100 rounded-full">
+                                        <AlertTriangle className="w-6 h-6 text-red-600" />
                                     </div>
-                                    <div className="flex space-x-2">
-                                        <Button variant="outline" size="sm" className="text-xs">
-                                            <Clock className="w-3 h-3 mr-1" />
-                                            Last Updated: {new Date().toLocaleTimeString()}
-                                        </Button>
-                                        <Button variant="outline" size="sm" className="text-xs">
-                                            <Settings className="w-3 h-3 mr-1" />
-                                            Alert Settings
-                                        </Button>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900">Critical Alerts</h2>
+                                        <p className="text-sm text-muted-foreground">{moduleCharts.materialShortages.criticalShortages.length + moduleCharts.exceptionManagement.capacityOverloads.length + 2} items requiring attention</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                                {/* Table header */}
+                                <div className="grid grid-cols-[6px_1fr_80px_56px_64px_56px_72px_20px] gap-2 items-center px-4 py-2 bg-gray-50/80 border-b border-gray-100">
+                                    <div />
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Item</span>
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Category</span>
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider text-right">Level</span>
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider text-right">Impact</span>
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider text-right">ETA</span>
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider text-right">Status</span>
+                                    <div />
+                                </div>
 
-                                {/* Material Shortages - Enhanced */}
-                                <Card className="border-red-200 bg-white shadow-lg">
-                                    <CardHeader className="pb-3 bg-white border-b border-red-200">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg text-red-800 flex items-center space-x-2">
-                                                <AlertTriangle className="w-5 h-5" />
-                                                <span>Material Shortages</span>
-                                            </CardTitle>
-                                            <Badge variant="destructive" className="text-xs">
-                                                {moduleCharts.materialShortages.criticalShortages.length} Critical
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-red-600">Items requiring immediate action</p>
-                                    </CardHeader>
-                                    <CardContent className="bg-white">
-                                        <div className="space-y-3">
-                                            {moduleCharts.materialShortages.criticalShortages.map((shortage, index) => (
-                                                <div key={index} className="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div className="font-semibold text-red-800 text-sm">{shortage.item}</div>
-                                                        <Badge
-                                                            variant={shortage.daysUntilShortage <= 1 ? "destructive" : "secondary"}
-                                                            className="text-xs"
-                                                        >
-                                                            {shortage.daysUntilShortage <= 1 ? "URGENT" : `${shortage.daysUntilShortage}d`}
-                                                        </Badge>
+                                {/* Material shortage rows */}
+                                {moduleCharts.materialShortages.criticalShortages.map((shortage, i) => {
+                                    const rec = moduleCharts.materialShortages.shortageRecommendations[i]
+                                    const peg = moduleCharts.materialShortages.peggingAnalysis[i]
+                                    return (
+                                    <div key={`m-${i}`}>
+                                        <button
+                                            onClick={() => setExpandedAlert(prev => prev === `m-${i}` ? null : `m-${i}`)}
+                                            className={cn(
+                                                "w-full grid grid-cols-[6px_1fr_80px_56px_64px_56px_72px_20px] gap-2 items-center px-4 py-2.5 hover:bg-gray-50/60 transition-colors border-b border-gray-50",
+                                                expandedAlert === `m-${i}` && "bg-gray-50/40"
+                                            )}
+                                        >
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <div className="text-left min-w-0">
+                                                <span className="text-sm text-gray-800 truncate block">{shortage.item}</span>
+                                                <span className="text-[11px] text-muted-foreground">{peg.affectedOrders} order{peg.affectedOrders !== 1 ? 's' : ''} affected</span>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">Material</span>
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <div className="w-8 bg-gray-100 rounded-full h-1.5">
+                                                    <div
+                                                        className="h-1.5 rounded-full bg-red-400"
+                                                        style={{ width: `${(shortage.currentStock / shortage.requiredStock) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[11px] text-gray-500 tabular-nums">{Math.round((shortage.currentStock / shortage.requiredStock) * 100)}%</span>
+                                            </div>
+                                            <span className="text-[11px] text-red-500 text-right truncate">{shortage.impact}</span>
+                                            <span className="text-[11px] text-gray-500 tabular-nums text-right">{rec.eta}</span>
+                                            <div className="flex justify-end">
+                                                <span className={cn(
+                                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide",
+                                                    shortage.daysUntilShortage <= 1
+                                                        ? "text-red-700 bg-red-100"
+                                                        : "text-red-600 bg-red-50"
+                                                )}>
+                                                    {shortage.daysUntilShortage <= 1 ? "Urgent" : `${shortage.daysUntilShortage}d`}
+                                                </span>
+                                            </div>
+                                            <ChevronDown className={cn(
+                                                "w-3 h-3 text-gray-300 transition-transform duration-200",
+                                                expandedAlert === `m-${i}` && "rotate-180 text-gray-500"
+                                            )} />
+                                        </button>
+
+                                        {expandedAlert === `m-${i}` && (
+                                            <div className="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
+                                                <div className="ml-4 pl-3 border-l-2 border-red-200 space-y-2.5">
+                                                    {/* Row 1: Stock + Timeline */}
+                                                    <div className="grid grid-cols-4 gap-4 text-xs">
+                                                        <div>
+                                                            <span className="text-muted-foreground">Current stock</span>
+                                                            <div className="text-gray-700 font-medium tabular-nums">{shortage.currentStock} units</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Required</span>
+                                                            <div className="text-gray-700 font-medium tabular-nums">{shortage.requiredStock} units</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Shortage qty</span>
+                                                            <div className="text-red-600 font-medium tabular-nums">{peg.shortageQty} units</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Days remaining</span>
+                                                            <div className="text-gray-700 font-medium tabular-nums">{shortage.daysUntilShortage}d</div>
+                                                        </div>
                                                     </div>
 
-                                                    {/* Stock Level Bar */}
-                                                    <div className="mb-2">
-                                                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                            <span>Current: {shortage.currentStock}</span>
-                                                            <span>Required: {shortage.requiredStock}</span>
+                                                    {/* Row 2: Recommendation + Cost */}
+                                                    <div className="grid grid-cols-4 gap-4 text-xs">
+                                                        <div>
+                                                            <span className="text-muted-foreground">Recommended action</span>
+                                                            <div className="text-gray-800 font-medium">{rec.action}</div>
                                                         </div>
-                                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                                            <div
-                                                                className="h-2 rounded-full bg-red-500 transition-all duration-300"
-                                                                style={{ width: `${(shortage.currentStock / shortage.requiredStock) * 100}%` }}
-                                                            />
+                                                        <div>
+                                                            <span className="text-muted-foreground">Priority</span>
+                                                            <div className={cn("font-medium", rec.priority === "High" ? "text-red-600" : "text-amber-600")}>{rec.priority}</div>
                                                         </div>
-                                                    </div>
-
-                                                    <div className="text-xs text-red-600 mb-2">
-                                                        <div className="flex items-center space-x-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            <span>{shortage.daysUntilShortage} days until shortage</span>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Est. cost</span>
+                                                            <div className="text-gray-700 font-medium tabular-nums">RM {(rec.cost / 1000).toFixed(0)}k</div>
                                                         </div>
-                                                        <div className="mt-1">
-                                                            <span className="font-medium">Impact:</span> {shortage.impact}
+                                                        <div>
+                                                            <span className="text-muted-foreground">Resolution ETA</span>
+                                                            <div className="text-gray-700 font-medium">{rec.eta}</div>
                                                         </div>
                                                     </div>
 
-                                                    {/* Action Buttons */}
-                                                    <div className="flex space-x-2">
-                                                        <Button size="sm" variant="destructive" className="text-xs h-6 px-2">
-                                                            Expedite
+                                                    {/* Row 3: Affected orders */}
+                                                    <div className="text-xs">
+                                                        <span className="text-muted-foreground">Affected work orders</span>
+                                                        <div className="flex gap-1.5 mt-1 flex-wrap">
+                                                            {peg.orders.map((wo) => (
+                                                                <span key={wo} className="text-[11px] font-mono text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{wo}</span>
+                                                            ))}
+                                                            <span className="text-[11px] text-muted-foreground self-center ml-1">{peg.affectedQty} units at risk</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2 pt-1">
+                                                        <Button size="sm" variant="outline" className="text-[11px] h-6 px-2.5 border-red-200 text-red-700 hover:bg-red-50">
+                                                            {rec.action}
                                                         </Button>
-                                                        <Button size="sm" variant="outline" className="text-xs h-6 px-2">
-                                                            Substitute
+                                                        <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-gray-500">
+                                                            View pegging
                                                         </Button>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    )
+                                })}
 
-                                        <div className="mt-4 pt-3 border-t border-red-200">
-                                            <Button variant="outline" size="sm" className="w-full text-red-700 border-red-300 hover:bg-red-50">
-                                                <TrendingUp className="w-3 h-3 mr-1" />
-                                                View All Shortages
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                {/* Capacity overload rows */}
+                                {moduleCharts.exceptionManagement.capacityOverloads.map((overload, i) => (
+                                    <div key={`c-${i}`}>
+                                        <button
+                                            onClick={() => setExpandedAlert(prev => prev === `c-${i}` ? null : `c-${i}`)}
+                                            className={cn(
+                                                "w-full grid grid-cols-[6px_1fr_80px_56px_64px_56px_72px_20px] gap-2 items-center px-4 py-2.5 hover:bg-gray-50/60 transition-colors border-b border-gray-50",
+                                                expandedAlert === `c-${i}` && "bg-gray-50/40"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-1.5 h-1.5 rounded-full",
+                                                overload.load > 100 ? "bg-red-500" : overload.load > 90 ? "bg-amber-500" : "bg-emerald-500"
+                                            )} />
+                                            <div className="text-left min-w-0">
+                                                <span className="text-sm text-gray-800 truncate block">{overload.resource}</span>
+                                                <span className="text-[11px] text-muted-foreground">{overload.status}</span>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">Capacity</span>
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <div className="w-8 bg-gray-100 rounded-full h-1.5">
+                                                    <div
+                                                        className={cn(
+                                                            "h-1.5 rounded-full",
+                                                            overload.load > 100 ? "bg-red-400" : overload.load > 90 ? "bg-amber-400" : "bg-emerald-400"
+                                                        )}
+                                                        style={{ width: `${Math.min(overload.load, 100)}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[11px] text-gray-500 tabular-nums">{overload.load}%</span>
+                                            </div>
+                                            <span className="text-[11px] text-gray-500 text-right">{overload.load > 100 ? "Bottleneck" : overload.load > 90 ? "At risk" : "Normal"}</span>
+                                            <span className="text-[11px] text-muted-foreground text-right">-</span>
+                                            <div className="flex justify-end">
+                                                <span className={cn(
+                                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide",
+                                                    overload.load > 100
+                                                        ? "text-red-700 bg-red-100"
+                                                        : overload.load > 90
+                                                            ? "text-amber-700 bg-amber-100"
+                                                            : "text-emerald-700 bg-emerald-50"
+                                                )}>
+                                                    {overload.load > 100 ? "Over" : overload.load > 90 ? "High" : "OK"}
+                                                </span>
+                                            </div>
+                                            <ChevronDown className={cn(
+                                                "w-3 h-3 text-gray-300 transition-transform duration-200",
+                                                expandedAlert === `c-${i}` && "rotate-180 text-gray-500"
+                                            )} />
+                                        </button>
 
-                                {/* Capacity Issues - Enhanced */}
-                                <Card className="border-orange-200 bg-white shadow-lg">
-                                    <CardHeader className="pb-3 bg-white border-b border-orange-200">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg text-orange-800 flex items-center space-x-2">
-                                                <Activity className="w-5 h-5" />
-                                                <span>Capacity Issues</span>
-                                            </CardTitle>
-                                            <Badge variant="secondary" className="text-xs bg-orange-200 text-orange-800">
-                                                {moduleCharts.exceptionManagement.capacityOverloads.filter(o => o.load > 90).length} Overloaded
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-orange-600">Production line bottlenecks</p>
-                                    </CardHeader>
-                                    <CardContent className="bg-white">
-                                        <div className="space-y-3">
-                                            {moduleCharts.exceptionManagement.capacityOverloads.map((overload, index) => (
-                                                <div key={index} className="p-3 bg-white rounded-lg border border-orange-200 shadow-sm">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div className="font-semibold text-orange-800 text-sm">{overload.resource}</div>
-                                                        <Badge
-                                                            variant={overload.load > 100 ? "destructive" : "secondary"}
-                                                            className="text-xs"
-                                                        >
-                                                            {overload.load > 100 ? "OVERLOADED" : "HIGH"}
-                                                        </Badge>
-                                                    </div>
-
-                                                    {/* Capacity Meter */}
-                                                    <div className="mb-3">
-                                                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                            <span>Load: {overload.load}%</span>
-                                                            <span>Status: {overload.status}</span>
+                                        {expandedAlert === `c-${i}` && (
+                                            <div className="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
+                                                <div className="ml-4 pl-3 border-l-2 border-amber-200 space-y-2">
+                                                    <div className="grid grid-cols-4 gap-4 text-xs">
+                                                        <div>
+                                                            <span className="text-muted-foreground">Current load</span>
+                                                            <div className="text-gray-700 font-medium tabular-nums">{overload.load}%</div>
                                                         </div>
-                                                        <div className="w-full bg-gray-200 rounded-full h-3">
-                                                            <div
-                                                                className={`h-3 rounded-full transition-all duration-300 ${overload.load > 100 ? 'bg-red-500' :
-                                                                    overload.load > 90 ? 'bg-orange-500' : 'bg-green-500'
-                                                                    }`}
-                                                                style={{ width: `${Math.min(overload.load, 100)}%` }}
-                                                            />
+                                                        <div>
+                                                            <span className="text-muted-foreground">Capacity target</span>
+                                                            <div className="text-gray-700 font-medium tabular-nums">85%</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Overage</span>
+                                                            <div className={cn("font-medium tabular-nums", overload.load > 85 ? "text-red-600" : "text-emerald-600")}>
+                                                                {overload.load > 85 ? `+${overload.load - 85}%` : "On target"}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Risk</span>
+                                                            <div className="text-gray-700 font-medium">
+                                                                {overload.load > 100 ? "Production delay likely" : overload.load > 90 ? "Schedule slip possible" : "None"}
+                                                            </div>
                                                         </div>
                                                     </div>
-
-                                                    {/* Recommendations */}
-                                                    <div className="text-xs text-orange-600 mb-2">
-                                                        <div className="font-medium mb-1">Recommendations:</div>
-                                                        {overload.load > 100 && (
-                                                            <div className="text-red-600">• Add overtime or additional shifts</div>
-                                                        )}
-                                                        {overload.load > 90 && overload.load <= 100 && (
-                                                            <div>• Monitor closely, consider reallocation</div>
-                                                        )}
-                                                        {overload.load <= 90 && (
-                                                            <div>• Normal operation</div>
-                                                        )}
+                                                    <div className="text-xs">
+                                                        <span className="text-muted-foreground">Recommended action</span>
+                                                        <div className="text-gray-700 mt-0.5">
+                                                            {overload.load > 100
+                                                                ? "Add overtime or additional shifts immediately. Consider subcontracting overflow."
+                                                                : overload.load > 90
+                                                                    ? "Monitor closely. Pre-approve overtime if trend continues. Review job sequencing."
+                                                                    : "Normal operation. No action required."}
+                                                        </div>
                                                     </div>
-
-                                                    {/* Action Buttons */}
-                                                    <div className="flex space-x-2">
-                                                        <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
+                                                    <div className="flex gap-2 pt-1">
+                                                        <Button size="sm" variant="outline" className="text-[11px] h-6 px-2.5 border-amber-200 text-amber-700 hover:bg-amber-50">
                                                             Reallocate
                                                         </Button>
-                                                        <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-orange-300 text-orange-700">
-                                                            Schedule
+                                                        <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-gray-500">
+                                                            View schedule
                                                         </Button>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
 
-                                        <div className="mt-4 pt-3 border-t border-orange-200">
-                                            <Button variant="outline" size="sm" className="w-full text-orange-700 border-orange-300 hover:bg-orange-50">
-                                                <BarChart3 className="w-3 h-3 mr-1" />
-                                                Capacity Planning
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                {/* Quality Issues - Enhanced */}
-                                <Card className="border-yellow-200 bg-white shadow-lg">
-                                    <CardHeader className="pb-3 bg-white border-b border-yellow-200">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg text-yellow-800 flex items-center space-x-2">
-                                                <AlertTriangle className="w-5 h-5" />
-                                                <span>Quality Issues</span>
-                                            </CardTitle>
-                                            <Badge variant="secondary" className="text-xs bg-yellow-200 text-yellow-800">
-                                                2 Active Issues
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-yellow-600">Quality metrics requiring attention</p>
-                                    </CardHeader>
-                                    <CardContent className="bg-white">
-                                        <div className="space-y-3">
-                                            {/* Rework Rate Issue */}
-                                            <div className="p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <div className="font-semibold text-yellow-800 text-sm">High Rework Rate</div>
-                                                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-                                                        CRITICAL
-                                                    </Badge>
+                                {/* Quality issue rows */}
+                                {[
+                                    {
+                                        id: "q-0", name: "High Rework Rate", category: "Quality", metric: "8.2%", target: "<5%", barPct: 82, severity: "critical" as const,
+                                        location: "Line 3", trend: "Worsening", trendWeeks: 4, affectedLines: 1,
+                                        rootCauses: ["Operator training gaps", "Process parameters out of spec"],
+                                        estCost: "RM 45k/month in rework labor",
+                                    },
+                                    {
+                                        id: "q-1", name: "Scrap Rate Increase", category: "Quality", metric: "+2.1%", target: "<1%", barPct: 42, severity: "warning" as const,
+                                        location: "Lines 1, 3", trend: "Upward", trendWeeks: 3, affectedLines: 2,
+                                        rootCauses: ["Raw material variability", "Tool wear on punch press"],
+                                        estCost: "RM 28k/month in wasted material",
+                                    },
+                                ].map((issue) => (
+                                    <div key={issue.id}>
+                                        <button
+                                            onClick={() => setExpandedAlert(prev => prev === issue.id ? null : issue.id)}
+                                            className={cn(
+                                                "w-full grid grid-cols-[6px_1fr_80px_56px_64px_56px_72px_20px] gap-2 items-center px-4 py-2.5 hover:bg-gray-50/60 transition-colors border-b border-gray-50",
+                                                expandedAlert === issue.id && "bg-gray-50/40"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-1.5 h-1.5 rounded-full",
+                                                issue.severity === "critical" ? "bg-red-500" : "bg-yellow-500"
+                                            )} />
+                                            <div className="text-left min-w-0">
+                                                <span className="text-sm text-gray-800 truncate block">{issue.name}</span>
+                                                <span className="text-[11px] text-muted-foreground">{issue.location}</span>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">{issue.category}</span>
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <div className="w-8 bg-gray-100 rounded-full h-1.5">
+                                                    <div
+                                                        className={cn(
+                                                            "h-1.5 rounded-full",
+                                                            issue.severity === "critical" ? "bg-red-400" : "bg-yellow-400"
+                                                        )}
+                                                        style={{ width: `${issue.barPct}%` }}
+                                                    />
                                                 </div>
+                                                <span className="text-[11px] text-gray-500 tabular-nums">{issue.metric}</span>
+                                            </div>
+                                            <span className="text-[11px] text-gray-500 text-right">{issue.affectedLines} line{issue.affectedLines !== 1 ? 's' : ''}</span>
+                                            <span className="text-[11px] text-muted-foreground text-right">{issue.trendWeeks}w</span>
+                                            <div className="flex justify-end">
+                                                <span className={cn(
+                                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide",
+                                                    issue.severity === "critical"
+                                                        ? "text-red-700 bg-red-100"
+                                                        : "text-yellow-700 bg-yellow-100"
+                                                )}>
+                                                    {issue.severity === "critical" ? "Crit" : "Warn"}
+                                                </span>
+                                            </div>
+                                            <ChevronDown className={cn(
+                                                "w-3 h-3 text-gray-300 transition-transform duration-200",
+                                                expandedAlert === issue.id && "rotate-180 text-gray-500"
+                                            )} />
+                                        </button>
 
-                                                <div className="mb-3">
-                                                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                        <span>Line 3: 8.2%</span>
-                                                        <span>Target: &lt;5%</span>
+                                        {expandedAlert === issue.id && (
+                                            <div className="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
+                                                <div className="ml-4 pl-3 border-l-2 border-yellow-200 space-y-2">
+                                                    <div className="grid grid-cols-4 gap-4 text-xs">
+                                                        <div>
+                                                            <span className="text-muted-foreground">Current</span>
+                                                            <div className="text-gray-700 font-medium">{issue.metric}</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Target</span>
+                                                            <div className="text-gray-700 font-medium">{issue.target}</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Trend</span>
+                                                            <div className={cn("font-medium", issue.trend === "Worsening" ? "text-red-600" : "text-amber-600")}>{issue.trend} ({issue.trendWeeks}w)</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-foreground">Est. cost impact</span>
+                                                            <div className="text-gray-700 font-medium">{issue.estCost}</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="w-full bg-gray-200 rounded-full h-3">
-                                                        <div
-                                                            className="h-3 rounded-full bg-red-500 transition-all duration-300"
-                                                            style={{ width: `${(8.2 / 10) * 100}%` }}
-                                                        />
+                                                    <div className="text-xs">
+                                                        <span className="text-muted-foreground">Root causes</span>
+                                                        <div className="flex gap-1.5 mt-1 flex-wrap">
+                                                            {issue.rootCauses.map((cause) => (
+                                                                <span key={cause} className="text-[11px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{cause}</span>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-
-                                                <div className="text-xs text-yellow-600 mb-2">
-                                                    <div className="font-medium mb-1">Root Causes:</div>
-                                                    <div>• Operator training needed</div>
-                                                    <div>• Process parameters out of spec</div>
-                                                </div>
-
-                                                <div className="flex space-x-2">
-                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                        Investigate
-                                                    </Button>
-                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                        Retrain
-                                                    </Button>
+                                                    <div className="flex gap-2 pt-1">
+                                                        <Button size="sm" variant="outline" className="text-[11px] h-6 px-2.5 border-yellow-200 text-yellow-700 hover:bg-yellow-50">
+                                                            Investigate
+                                                        </Button>
+                                                        <Button size="sm" variant="ghost" className="text-[11px] h-6 px-2.5 text-gray-500">
+                                                            View trend
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            {/* Scrap Rate Issue */}
-                                            <div className="p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <div className="font-semibold text-yellow-800 text-sm">Scrap Rate Increase</div>
-                                                    <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
-                                                        WARNING
-                                                    </Badge>
-                                                </div>
-
-                                                <div className="mb-3">
-                                                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                                        <span>Current: +2.1%</span>
-                                                        <span>Target: &lt;1%</span>
-                                                    </div>
-                                                    <div className="w-full bg-gray-200 rounded-full h-3">
-                                                        <div
-                                                            className="h-3 rounded-full bg-yellow-500 transition-all duration-300"
-                                                            style={{ width: `${(2.1 / 5) * 100}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="text-xs text-yellow-600 mb-2">
-                                                    <div className="font-medium mb-1">Trend:</div>
-                                                    <div>• 3-week upward trend</div>
-                                                    <div>• Affecting 2 product lines</div>
-                                                </div>
-
-                                                <div className="flex space-x-2">
-                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                        Analyze
-                                                    </Button>
-                                                    <Button size="sm" variant="outline" className="text-xs h-6 px-2 border-yellow-300 text-yellow-700">
-                                                        Optimize
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 pt-3 border-t border-yellow-200">
-                                            <Button variant="outline" size="sm" className="w-full text-yellow-700 border-yellow-300 hover:bg-yellow-50">
-                                                <CheckCircle className="w-3 h-3 mr-1" />
-                                                Quality Dashboard
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
 

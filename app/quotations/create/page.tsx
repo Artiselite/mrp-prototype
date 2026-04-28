@@ -306,6 +306,20 @@ export default function CreateQuotationPage() {
     return calculateSubtotal() + calculateTax()
   }
 
+  // Cost breakdown defaults: 10% margin on subtotal
+  const DEFAULT_MARGIN_PERCENT = 10
+  const getEstimatedCosts = () => {
+    const subtotal = calculateSubtotal()
+    const material = formData.materialCost || subtotal * 0.55
+    const labor = formData.laborCost || subtotal * 0.25
+    const overhead = formData.overheadCost || subtotal * 0.10
+    const engineering = formData.engineeringCost || 0
+    const totalCost = material + labor + overhead + engineering
+    const margin = subtotal > 0 ? subtotal - totalCost : 0
+    const marginPercent = subtotal > 0 ? (margin / subtotal) * 100 : DEFAULT_MARGIN_PERCENT
+    return { material, labor, overhead, engineering, totalCost, margin, marginPercent }
+  }
+
   const handleEngineeringChange = (field: string, value: string) => {
     setEngineeringData(prev => ({ ...prev, [field]: value }))
   }
@@ -379,19 +393,19 @@ export default function CreateQuotationPage() {
           engineeringHours: 0,
           engineeringRate: 0,
           engineeringCost: 0,
-          materialCost: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.6,
-          laborCost: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.3,
-          overheadCost: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.1,
-          profitMargin: 0,
+          materialCost: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.55,
+          laborCost: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.25,
+          overheadCost: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.10,
+          profitMargin: (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0) * 0.10,
           bomId: undefined,
           drawingId: undefined
         })),
         subtotal: calculateSubtotal(),
         engineeringCost: formData.engineeringCost || 0,
-        materialCost: formData.materialCost || calculateSubtotal() * 0.6,
-        laborCost: formData.laborCost || calculateSubtotal() * 0.3,
-        overheadCost: formData.overheadCost || calculateSubtotal() * 0.1,
-        profitMargin: formData.profitMargin || 0,
+        materialCost: formData.materialCost || calculateSubtotal() * 0.55,
+        laborCost: formData.laborCost || calculateSubtotal() * 0.25,
+        overheadCost: formData.overheadCost || calculateSubtotal() * 0.10,
+        profitMargin: formData.profitMargin || calculateSubtotal() * 0.10,
         tax: calculateTax(),
         total: calculateTotal(),
         validUntil: formData.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -808,8 +822,8 @@ export default function CreateQuotationPage() {
                           <TableHead className="w-[25%]">Description</TableHead>
                           <TableHead className="w-[8%]">Quantity</TableHead>
                           <TableHead className="w-[8%]">Unit</TableHead>
-                          <TableHead className="w-[12%]">Unit Price ($)</TableHead>
-                          <TableHead className="w-[12%]">Amount ($)</TableHead>
+                          <TableHead className="w-[12%]">Unit Price (RM)</TableHead>
+                          <TableHead className="w-[12%]">Amount (RM)</TableHead>
                           <TableHead className="w-[8%]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -890,7 +904,7 @@ export default function CreateQuotationPage() {
                                 />
                               </TableCell>
                               <TableCell className="p-2 font-medium text-right">
-                                ${item.amount.toLocaleString()}
+                                RM{item.amount.toLocaleString()}
                               </TableCell>
                               <TableCell className="p-2">
                                 <div className="flex flex-col gap-1">
@@ -915,15 +929,15 @@ export default function CreateQuotationPage() {
                       <div className="w-80 space-y-2">
                         <div className="flex justify-between">
                           <span>Subtotal:</span>
-                          <span className="font-medium">${calculateSubtotal().toLocaleString()}</span>
+                          <span className="font-medium">RM{calculateSubtotal().toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Tax (8.5%):</span>
-                          <span className="font-medium">${calculateTax().toLocaleString()}</span>
+                          <span className="font-medium">RM{calculateTax().toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-2">
                           <span>Total:</span>
-                          <span>${calculateTotal().toLocaleString()}</span>
+                          <span>RM{calculateTotal().toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -961,18 +975,66 @@ export default function CreateQuotationPage() {
                   <CardContent className="space-y-3">
                     <div>
                       <Label className="text-xs font-medium text-gray-500">SUBTOTAL</Label>
-                      <p className="text-lg font-bold">${calculateSubtotal().toLocaleString()}</p>
+                      <p className="text-lg font-bold">RM{calculateSubtotal().toLocaleString()}</p>
                     </div>
                     <div>
                       <Label className="text-xs font-medium text-gray-500">TAX (8.5%)</Label>
-                      <p className="text-sm">${calculateTax().toLocaleString()}</p>
+                      <p className="text-sm">RM{calculateTax().toLocaleString()}</p>
                     </div>
                     <div>
                       <Label className="text-xs font-medium text-gray-500">TOTAL</Label>
-                      <p className="text-xl font-bold text-blue-600">${calculateTotal().toLocaleString()}</p>
+                      <p className="text-xl font-bold text-blue-600">RM{calculateTotal().toLocaleString()}</p>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Cost & Margin Estimate */}
+                {calculateSubtotal() > 0 && (
+                  <Card className="border-green-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Cost & Margin</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {(() => {
+                        const costs = getEstimatedCosts()
+                        return (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Material (55%)</span>
+                              <span>RM{costs.material.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Labor (25%)</span>
+                              <span>RM{costs.labor.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Overhead (10%)</span>
+                              <span>RM{costs.overhead.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                            </div>
+                            {costs.engineering > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Engineering</span>
+                                <span>RM{costs.engineering.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-sm border-t pt-2">
+                              <span className="text-gray-600">Est. Total Cost</span>
+                              <span className="font-medium">RM{costs.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                            </div>
+                            <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                              <span className={costs.marginPercent >= 10 ? 'text-green-700' : 'text-red-700'}>
+                                Margin ({costs.marginPercent.toFixed(1)}%)
+                              </span>
+                              <span className={costs.marginPercent >= 10 ? 'text-green-700' : 'text-red-700'}>
+                                RM{costs.margin.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </span>
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Unit Economics - Cost Breakdown Panel */}
                 {unitEconomics.showCostBreakdown && (
@@ -1042,30 +1104,30 @@ export default function CreateQuotationPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Materials:</span>
-                          <span className="font-medium">${unitEconomics.materialCost.toFixed(2)}</span>
+                          <span className="font-medium">RM{unitEconomics.materialCost.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Labor:</span>
-                          <span className="font-medium">${unitEconomics.laborCost.toFixed(2)}</span>
+                          <span className="font-medium">RM{unitEconomics.laborCost.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Overhead:</span>
-                          <span className="font-medium">${unitEconomics.overheadCost.toFixed(2)}</span>
+                          <span className="font-medium">RM{unitEconomics.overheadCost.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Other Costs:</span>
-                          <span className="font-medium">${unitEconomics.otherCosts.toFixed(2)}</span>
+                          <span className="font-medium">RM{unitEconomics.otherCosts.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm font-semibold border-t pt-2">
                           <span>Unit Cost:</span>
-                          <span>${unitEconomics.unitCost.toFixed(2)}</span>
+                          <span>RM{unitEconomics.unitCost.toFixed(2)}</span>
                         </div>
                       </div>
 
                       {/* Price Input & Margin Display */}
                       <div className="space-y-3">
                         <div>
-                          <Label htmlFor="proposedPrice">Proposed Unit Price ($)</Label>
+                          <Label htmlFor="proposedPrice">Proposed Unit Price (RM)</Label>
                           <Input
                             id="proposedPrice"
                             type="number"
@@ -1085,7 +1147,7 @@ export default function CreateQuotationPage() {
                               unitEconomics.marginStatus === 'borderline' ? 'text-yellow-600' :
                               unitEconomics.marginStatus === 'below' ? 'text-red-600' : 'text-gray-600'
                             }`}>
-                              ${unitEconomics.unitMargin.toFixed(2)}
+                              RM{unitEconomics.unitMargin.toFixed(2)}
                             </div>
                           </div>
                           <div className="text-center p-3 bg-white rounded-lg border">
@@ -1379,15 +1441,15 @@ export default function CreateQuotationPage() {
                         <div className="grid grid-cols-3 gap-4">
                           <div className="text-center p-4 bg-blue-50 rounded-lg">
                             <p className="text-sm text-gray-600">Material Cost</p>
-                            <p className="text-2xl font-bold text-blue-600">${boqData.totalMaterialCost.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-blue-600">RM{boqData.totalMaterialCost.toLocaleString()}</p>
                           </div>
                           <div className="text-center p-4 bg-green-50 rounded-lg">
                             <p className="text-sm text-gray-600">Labor Cost</p>
-                            <p className="text-2xl font-bold text-green-600">${boqData.totalLaborCost.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-green-600">RM{boqData.totalLaborCost.toLocaleString()}</p>
                           </div>
                           <div className="text-center p-4 bg-purple-50 rounded-lg">
                             <p className="text-sm text-gray-600">Equipment Cost</p>
-                            <p className="text-2xl font-bold text-purple-600">${boqData.totalEquipmentCost.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-purple-600">RM{boqData.totalEquipmentCost.toLocaleString()}</p>
                           </div>
                         </div>
                         <div className="mt-6">
@@ -1433,7 +1495,7 @@ export default function CreateQuotationPage() {
                   copperLMEPrice: 40000, // TODO: Fetch from LME API
                   laborCost: formData.laborCost || 0,
                   overheadCost: formData.overheadCost || 0,
-                  profitMargin: 15, // Default profit margin
+                  profitMargin: 10, // Default 10% profit margin
                   quantity: lineItems.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0) || 1,
                   currency: 'MYR',
                   createdAt: new Date().toISOString(),
@@ -1479,14 +1541,25 @@ export default function CreateQuotationPage() {
                       </div>
                     </div>
                     <div className="border-t pt-4">
-                      <h4 className="font-medium mb-2">Cost Breakdown</h4>
+                      <h4 className="font-medium mb-2">Pricing</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-                          <p className="text-sm text-gray-600">Tax: ${calculateTax().toLocaleString()}</p>
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-600">Subtotal: RM{calculateSubtotal().toLocaleString()}</p>
+                          <p className="text-sm text-gray-600">Tax (8.5%): RM{calculateTax().toLocaleString()}</p>
+                          <p className="text-lg font-bold">Total: RM{calculateTotal().toLocaleString()}</p>
                         </div>
-                        <div>
-                          <p className="text-lg font-bold">Total: ${calculateTotal().toLocaleString()}</p>
+                        <div className="space-y-1">
+                          {(() => {
+                            const costs = getEstimatedCosts()
+                            return (
+                              <>
+                                <p className="text-sm text-gray-600">Est. Cost: RM{costs.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                                <p className={`text-sm font-medium ${costs.marginPercent >= 10 ? 'text-green-700' : 'text-red-700'}`}>
+                                  Margin: RM{costs.margin.toLocaleString(undefined, { maximumFractionDigits: 0 })} ({costs.marginPercent.toFixed(1)}%)
+                                </p>
+                              </>
+                            )
+                          })()}
                         </div>
                       </div>
                     </div>

@@ -179,7 +179,7 @@ function ItemsContent() {
                                 {item.description}
                               </TableCell>
                               <TableCell>{item.unit}</TableCell>
-                              <TableCell className="font-mono">${item.unitCost.toFixed(2)}</TableCell>
+                              <TableCell className="font-mono">RM{item.unitCost.toFixed(2)}</TableCell>
                               <TableCell className="font-mono">{item.currentStock}</TableCell>
                               <TableCell className="font-mono text-sm">
                                 {item.minStock} / {item.maxStock}
@@ -272,7 +272,7 @@ function ItemsContent() {
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-lg">
                 <div className="text-2xl font-bold text-yellow-600">
-                  ${filteredItems.reduce((sum, item) => sum + (item.unitCost * item.currentStock), 0).toFixed(2)}
+                  RM{filteredItems.reduce((sum, item) => sum + (item.unitCost * item.currentStock), 0).toFixed(2)}
                 </div>
                 <div className="text-sm text-yellow-800">Total Inventory Value</div>
               </div>

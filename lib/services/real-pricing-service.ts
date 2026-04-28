@@ -297,7 +297,7 @@ export class RealPricingService {
         grade: 'A36',
         unit: 'kg',
         price: 0.85,
-        currency: 'USD',
+        currency: 'MYR',
         lastUpdated: new Date().toISOString(),
         source: 'Fallback'
       }
@@ -314,7 +314,7 @@ export class RealPricingService {
         grade: '6061-T6',
         unit: 'kg',
         price: 2.15,
-        currency: 'USD',
+        currency: 'MYR',
         lastUpdated: new Date().toISOString(),
         source: 'Fallback'
       }
@@ -331,7 +331,7 @@ export class RealPricingService {
         grade: 'C110',
         unit: 'kg',
         price: 8.50,
-        currency: 'USD',
+        currency: 'MYR',
         lastUpdated: new Date().toISOString(),
         source: 'Fallback'
       }
